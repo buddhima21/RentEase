@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import SearchBar from "./SearchBar";
 
 /**
@@ -22,6 +23,22 @@ export default function HeroSection() {
 
                         {/* Embedded Search Bar */}
                         <SearchBar />
+
+                        {/* Auth CTA Buttons */}
+                        <div className="flex items-center gap-4 mt-6">
+                            <Link
+                                to="/signup"
+                                className="px-8 py-3 rounded-xl text-base font-bold text-white bg-primary hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 transform active:scale-[0.98]"
+                            >
+                                Sign Up
+                            </Link>
+                            <Link
+                                to="/login"
+                                className="px-8 py-3 rounded-xl text-base font-bold text-slate-700 border border-slate-200 hover:bg-slate-50 transition-all"
+                            >
+                                Log In
+                            </Link>
+                        </div>
                     </div>
 
                     {/* Right Column – Hero Image & Badge */}

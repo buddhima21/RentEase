@@ -4,9 +4,9 @@
 
 /* ===== Custom Theme (mirrors the original HTML design tokens) ===== */
 @theme {
-  --color-primary: #0d9488;
-  --color-background-light: #f8fafc;
-  --color-background-dark: #0f172a;
+  --color-primary: #ec5b13;
+  --color-background-light: #f8f6f6;
+  --color-background-dark: #221610;
 
   --font-display: "Public Sans", sans-serif;
 
