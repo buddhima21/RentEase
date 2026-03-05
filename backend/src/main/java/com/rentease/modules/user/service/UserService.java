@@ -1,13 +1,15 @@
 package com.rentease.modules.user.service;
 
 import com.rentease.common.enums.UserRole;
-import com.rentease.exception.BadRequestException;
+import com.rentease.exception.EmailAlreadyExistsException;
 import com.rentease.exception.ResourceNotFoundException;
+import com.rentease.exception.UnauthorizedException;
 import com.rentease.modules.user.dto.UserRequest;
 import com.rentease.modules.user.dto.UserResponse;
 import com.rentease.modules.user.model.User;
 import com.rentease.modules.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,16 +17,17 @@ import org.springframework.stereotype.Service;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public UserResponse register(UserRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new BadRequestException("Email already registered");
+            throw new EmailAlreadyExistsException("Email already registered");
         }
 
         User user = User.builder()
                 .fullName(request.getFullName())
                 .email(request.getEmail())
-                .password(request.getPassword()) // TODO: hash with BCrypt
+                .password(passwordEncoder.encode(request.getPassword()))
                 .phone(request.getPhone())
                 .role(request.getRole() != null ? UserRole.valueOf(request.getRole()) : UserRole.TENANT)
                 .profileImageUrl(request.getProfileImageUrl())
@@ -36,10 +39,10 @@ public class UserService {
 
     public UserResponse login(String email, String password) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
-        // TODO: verify hashed password
-        if (!user.getPassword().equals(password)) {
-            throw new BadRequestException("Invalid credentials");
+                .orElseThrow(() -> new UnauthorizedException("Invalid email or password"));
+
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new UnauthorizedException("Invalid email or password");
         }
         return mapToResponse(user);
     }

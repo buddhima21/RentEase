@@ -5,15 +5,16 @@ import MapView from "../pages/MapView";
 import Login from "../pages/Login";
 import Signup from "../pages/Signup";
 import OwnerDashboard from "../pages/OwnerDashboard";
+import Listings from "../pages/Listings";
+import ListingDetails from "../pages/ListingDetails";
 
-/**
- * AppRoutes – Centralised route definitions for the application.
- */
 export default function AppRoutes() {
     return (
         <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/search" element={<Search />} />
+            <Route path="/listings" element={<Listings />} />
+            <Route path="/listings/:id" element={<ListingDetails />} />
             <Route path="/map" element={<MapView />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
