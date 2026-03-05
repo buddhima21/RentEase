@@ -1,0 +1,29 @@
+/* ===== Tailwind CSS v4 Directives ===== */
+@import "tailwindcss";
+@plugin "@tailwindcss/forms";
+
+/* ===== Custom Theme (mirrors the original HTML design tokens) ===== */
+@theme {
+  --color-primary: #0d9488;
+  --color-background-light: #f8fafc;
+  --color-background-dark: #0f172a;
+
+  --font-display: "Public Sans", sans-serif;
+
+  --radius-DEFAULT: 0.25rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-full: 9999px;
+}
+
+/* ===== Base Styles ===== */
+body {
+  font-family: "Public Sans", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Material Symbols baseline alignment */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}

@@ -1,0 +1,56 @@
+# ==================================================
+# FRONTEND (React / Vite)
+# ==================================================
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/lerna-debug.log*
+
+frontend/.cache/
+frontend/.parcel-cache
+frontend/.next
+frontend/out
+frontend/.nuxt
+frontend/.svelte-kit/
+frontend/coverage
+frontend/*.tsbuildinfo
+frontend/.eslintcache
+frontend/.stylelintcache
+frontend/vite.config.*.timestamp-*
+
+# ==================================================
+# BACKEND (Spring Boot / Maven)
+# ==================================================
+Backend/target/
+Backend/*.log
+Backend/logs/
+Backend/.mvn/wrapper/maven-wrapper.jar
+Backend/HELP.md
+
+# ==================================================
+# IDE FILES (All)
+# ==================================================
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+.sts4-cache/
+.factorypath
+.apt_generated
+
+# ==================================================
+# GENERAL
+# ==================================================
+*.log
+.DS_Store
+Thumbs.db
