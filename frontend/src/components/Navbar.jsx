@@ -39,6 +39,12 @@ export default function Navbar() {
                         >
                             Map
                         </Link>
+                        <Link
+                            to="/maintenance"
+                            className="text-sm font-semibold hover:text-primary transition-colors"
+                        >
+                            Maintenance
+                        </Link>
                     </nav>
 
                     {/* Auth Buttons */}

@@ -54,3 +54,4 @@ Backend/HELP.md
 *.log
 .DS_Store
 Thumbs.db
+*.md
