@@ -1,7 +1,6 @@
 package com.rentease.modules.property.service;
 
 import com.rentease.common.enums.PropertyStatus;
-import com.rentease.exception.BadRequestException;
 import com.rentease.exception.ResourceNotFoundException;
 import com.rentease.modules.property.dto.PropertyRequest;
 import com.rentease.modules.property.dto.PropertyResponse;
