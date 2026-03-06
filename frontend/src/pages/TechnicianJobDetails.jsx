@@ -11,6 +11,12 @@ export default function TechnicianJobDetails() {
         { task: "Repair Component", completed: false },
         { task: "Test Functionality", completed: false }
     ]);
+    const [uploadedFiles, setUploadedFiles] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [formData, setFormData] = useState({
+        summary: "",
+        partsUsed: ""
+    });
 
     const toggleChecklistItem = (index) => {
         const updated = [...checklist];
@@ -18,10 +24,30 @@ export default function TechnicianJobDetails() {
         setChecklist(updated);
     };
 
-    const handleFinishRepair = () => {
-        // TODO: API call
-        alert("Repair completed successfully!");
-        navigate("/technician/dashboard");
+    const handleFileUpload = (e) => {
+        const files = Array.from(e.target.files);
+        setUploadedFiles([...uploadedFiles, ...files]);
+    };
+
+    const removeFile = (index) => {
+        setUploadedFiles(uploadedFiles.filter((_, i) => i !== index));
+    };
+
+    const handleFinishRepair = async () => {
+        if (!formData.summary) {
+            alert("Please provide a repair summary");
+            return;
+        }
+        setLoading(true);
+        try {
+            // TODO: API call
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            navigate("/technician/dashboard");
+        } catch (error) {
+            alert("Failed to complete repair");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -96,27 +122,62 @@ export default function TechnicianJobDetails() {
                             <h2 className="text-xl font-bold mb-4">Complete Repair</h2>
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block font-semibold mb-2">Repair Summary</label>
+                                    <label htmlFor="summary" className="block font-semibold mb-2">Repair Summary *</label>
                                     <textarea 
+                                        id="summary"
                                         className="w-full px-4 py-3 border rounded-xl"
                                         rows="4"
                                         placeholder="Describe what was done..."
+                                        value={formData.summary}
+                                        onChange={(e) => setFormData({...formData, summary: e.target.value})}
+                                        required
                                     ></textarea>
                                 </div>
                                 <div>
-                                    <label className="block font-semibold mb-2">Parts Used</label>
+                                    <label htmlFor="partsUsed" className="block font-semibold mb-2">Parts Used</label>
                                     <input 
+                                        id="partsUsed"
                                         type="text"
                                         className="w-full px-4 py-3 border rounded-xl"
                                         placeholder="List parts and materials..."
+                                        value={formData.partsUsed}
+                                        onChange={(e) => setFormData({...formData, partsUsed: e.target.value})}
                                     />
                                 </div>
                                 <div>
-                                    <label className="block font-semibold mb-2">Upload Photos</label>
+                                    <label htmlFor="completionPhotos" className="block font-semibold mb-2">Upload Photos</label>
                                     <div className="border-2 border-dashed rounded-xl p-6 text-center">
-                                        <span className="material-symbols-outlined text-slate-400 text-4xl">cloud_upload</span>
-                                        <p className="text-sm text-slate-600">Upload completion photos</p>
+                                        <input 
+                                            id="completionPhotos"
+                                            type="file" 
+                                            multiple 
+                                            accept="image/*"
+                                            onChange={handleFileUpload}
+                                            className="hidden"
+                                            aria-label="Upload completion photos"
+                                        />
+                                        <label htmlFor="completionPhotos" className="cursor-pointer">
+                                            <span className="material-symbols-outlined text-slate-400 text-4xl" aria-hidden="true">cloud_upload</span>
+                                            <p className="text-sm text-slate-600">Upload completion photos</p>
+                                        </label>
                                     </div>
+                                    {uploadedFiles.length > 0 && (
+                                        <div className="mt-3 space-y-2">
+                                            {uploadedFiles.map((file, index) => (
+                                                <div key={index} className="flex items-center justify-between bg-slate-50 p-2 rounded-lg">
+                                                    <span className="text-sm truncate">{file.name}</span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeFile(index)}
+                                                        className="text-red-600 hover:text-red-800"
+                                                        aria-label={`Remove ${file.name}`}
+                                                    >
+                                                        <span className="material-symbols-outlined text-sm">close</span>
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -142,10 +203,11 @@ export default function TechnicianJobDetails() {
                                 </button>
                                 <button 
                                     onClick={handleFinishRepair}
-                                    className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 flex items-center justify-center gap-2"
+                                    disabled={loading}
+                                    className="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    <span className="material-symbols-outlined">check_circle</span>
-                                    Finish Repair
+                                    <span className="material-symbols-outlined" aria-hidden="true">check_circle</span>
+                                    {loading ? "Finishing..." : "Finish Repair"}
                                 </button>
                             </div>
                         </div>

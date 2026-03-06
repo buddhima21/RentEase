@@ -1,10 +1,11 @@
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import { MAINTENANCE_STATUS, PRIORITY_LEVELS } from "../constants/maintenanceConstants";
 
 export default function TenantMaintenanceDashboard() {
     const activeRequests = [
-        { id: "MR-2024-001", service: "Plumbing", property: "Unit 3B", status: "In Progress", priority: "High", technician: "Maria Fernando", date: "2024-01-15" },
-        { id: "MR-2024-002", service: "Electrical", property: "Unit 3B", status: "Assigned", priority: "Medium", technician: "John Silva", date: "2024-01-16" }
+        { id: "MR-2024-001", service: "Plumbing", property: "Unit 3B", status: MAINTENANCE_STATUS.IN_PROGRESS, priority: PRIORITY_LEVELS.HIGH, technician: "Maria Fernando", date: "2024-01-15" },
+        { id: "MR-2024-002", service: "Electrical", property: "Unit 3B", status: MAINTENANCE_STATUS.ASSIGNED, priority: PRIORITY_LEVELS.MEDIUM, technician: "John Silva", date: "2024-01-16" }
     ];
 
     const scheduledVisits = [
@@ -64,9 +65,9 @@ export default function TenantMaintenanceDashboard() {
 
                 {/* Scheduled Visits */}
                 {scheduledVisits.length > 0 && (
-                    <div className="bg-blue-50 border-l-4 border-blue-600 p-6 rounded-xl mb-8">
+                    <div className="bg-blue-50 border-l-4 border-blue-600 p-6 rounded-xl mb-8" role="alert">
                         <h3 className="font-bold mb-2">Upcoming Visit</h3>
-                        <div className="flex justify-between items-center">
+                        <div className="flex justify-between items-center flex-wrap gap-3">
                             <div>
                                 <p className="font-semibold">{scheduledVisits[0].service}</p>
                                 <p className="text-sm text-slate-600">{scheduledVisits[0].date} at {scheduledVisits[0].time}</p>
@@ -92,7 +93,7 @@ export default function TenantMaintenanceDashboard() {
                                         <p className="text-slate-600">{req.service} - {req.property}</p>
                                     </div>
                                     <span className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                                        req.priority === 'High' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
+                                        req.priority === PRIORITY_LEVELS.HIGH || req.priority === PRIORITY_LEVELS.EMERGENCY ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
                                     }`}>
                                         {req.priority}
                                     </span>

@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import { TECHNICIANS } from "../constants/maintenanceConstants";
 
 export default function TechnicianDashboard() {
     const [activeTab, setActiveTab] = useState("today");
+
+    const currentTechnician = TECHNICIANS[1]; // John Silva
 
     const todayJobs = [
         { id: "MR-2024-001", issue: "Kitchen sink leak", property: "Unit 3B, Colombo 04", priority: "High", time: "10:45 AM", status: "In Progress" },
@@ -21,7 +24,7 @@ export default function TechnicianDashboard() {
                 <div className="flex justify-between items-center mb-8">
                     <div>
                         <h1 className="text-3xl font-bold">Technician Dashboard</h1>
-                        <p className="text-slate-600">Welcome back, John Silva</p>
+                        <p className="text-slate-600">Welcome back, {currentTechnician.name}</p>
                     </div>
                     <div className="flex items-center gap-3">
                         <span className="px-4 py-2 bg-green-100 text-green-700 rounded-xl font-semibold">Available</span>
@@ -31,28 +34,28 @@ export default function TechnicianDashboard() {
                 {/* Stats */}
                 <div className="grid md:grid-cols-4 gap-4 mb-8">
                     <div className="bg-white p-6 rounded-2xl shadow">
-                        <p className="text-3xl font-bold text-primary">2</p>
+                        <p className="text-3xl font-bold text-primary">{currentTechnician.tasksToday}</p>
                         <p className="text-slate-600">Today's Jobs</p>
                     </div>
                     <div className="bg-white p-6 rounded-2xl shadow">
-                        <p className="text-3xl font-bold text-yellow-600">5</p>
-                        <p className="text-slate-600">Workload (Low)</p>
+                        <p className="text-3xl font-bold text-yellow-600">{currentTechnician.tasksToday}/5</p>
+                        <p className="text-slate-600">Workload ({currentTechnician.workload})</p>
                     </div>
                     <div className="bg-white p-6 rounded-2xl shadow">
                         <p className="text-3xl font-bold text-green-600">96</p>
                         <p className="text-slate-600">Completed Jobs</p>
                     </div>
                     <div className="bg-white p-6 rounded-2xl shadow">
-                        <p className="text-3xl font-bold text-blue-600">4.8</p>
+                        <p className="text-3xl font-bold text-blue-600">{currentTechnician.rating}</p>
                         <p className="text-slate-600">Average Rating</p>
                     </div>
                 </div>
 
                 {/* Emergency Alert */}
                 {emergencyJobs.length > 0 && (
-                    <div className="bg-red-50 border-l-4 border-red-600 p-6 rounded-xl mb-6">
+                    <div className="bg-red-50 border-l-4 border-red-600 p-6 rounded-xl mb-6" role="alert">
                         <div className="flex items-center gap-3 mb-3">
-                            <span className="material-symbols-outlined text-red-600 text-3xl">emergency</span>
+                            <span className="material-symbols-outlined text-red-600 text-3xl" aria-hidden="true">emergency</span>
                             <h3 className="font-bold text-lg">Emergency Request</h3>
                         </div>
                         {emergencyJobs.map(job => (
