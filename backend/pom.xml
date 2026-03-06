@@ -36,6 +36,13 @@
 			<artifactId>spring-boot-starter-data-mongodb</artifactId>
 		</dependency>
 
+		<!-- DNS SRV resolution for mongodb+srv:// Atlas URIs -->
+		<dependency>
+			<groupId>dnsjava</groupId>
+			<artifactId>dnsjava</artifactId>
+			<version>3.6.3</version>
+		</dependency>
+
 		<!-- Web -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
