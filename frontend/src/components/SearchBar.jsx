@@ -9,7 +9,7 @@ export default function SearchBar() {
 
     /** Navigate to the search page when the user clicks "Search Now" */
     const handleSearch = () => {
-        navigate("/search");
+        navigate("/listings");
     };
 
     return (
