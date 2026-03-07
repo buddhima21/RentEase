@@ -5,12 +5,13 @@ import MapView from "../pages/MapView";
 import Login from "../pages/Login";
 import Signup from "../pages/Signup";
 import OwnerDashboard from "../pages/OwnerDashboard";
+import OwnerAnalytics from "../pages/OwnerAnalytics";
+import AdminDashboard from "../pages/AdminDashboard";
 
 import PropertyDetails from "../pages/PropertyDetails";
 
 import Listings from "../pages/Listings";
 import ListingDetails from "../pages/ListingDetails";
-
 
 export default function AppRoutes() {
     return (
@@ -24,6 +25,8 @@ export default function AppRoutes() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/owner/dashboard" element={<OwnerDashboard />} />
+            <Route path="/owner/analytics" element={<OwnerAnalytics />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
         </Routes>
     );
 }

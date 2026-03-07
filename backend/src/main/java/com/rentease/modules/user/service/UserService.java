@@ -12,12 +12,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.rentease.security.CustomUserDetails;
+import com.rentease.security.JwtUtil;
+
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
     public UserResponse register(UserRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -34,7 +38,8 @@ public class UserService {
                 .build();
 
         User saved = userRepository.save(user);
-        return mapToResponse(saved);
+        String token = jwtUtil.generateToken(new CustomUserDetails(saved), saved.getId());
+        return mapToResponse(saved, token);
     }
 
     public UserResponse login(String email, String password) {
@@ -44,16 +49,17 @@ public class UserService {
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new UnauthorizedException("Invalid email or password");
         }
-        return mapToResponse(user);
+        String token = jwtUtil.generateToken(new CustomUserDetails(user), user.getId());
+        return mapToResponse(user, token);
     }
 
     public UserResponse getUserById(String id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
-        return mapToResponse(user);
+        return mapToResponse(user, null);
     }
 
-    private UserResponse mapToResponse(User user) {
+    private UserResponse mapToResponse(User user, String token) {
         return UserResponse.builder()
                 .id(user.getId())
                 .fullName(user.getFullName())
@@ -62,6 +68,7 @@ public class UserService {
                 .role(user.getRole())
                 .profileImageUrl(user.getProfileImageUrl())
                 .createdAt(user.getCreatedAt())
+                .token(token)
                 .build();
     }
 }

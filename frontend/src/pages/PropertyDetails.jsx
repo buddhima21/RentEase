@@ -1,12 +1,39 @@
 import { useParams, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
 import mockListings from "../data/mockListings";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import ReviewSection from "../components/reviews/ReviewSection";
+import { getPropertyReviews } from "../services/api";
 
 export default function PropertyDetails() {
     const { id } = useParams();
     const property = mockListings.find(p => p.id === parseInt(id));
+
+    const [reviews, setReviews] = useState([]);
+    const [isLoadingReviews, setIsLoadingReviews] = useState(true);
+    const [averageRating, setAverageRating] = useState(property?.rating || 0);
+
+    useEffect(() => {
+        if (!property) return;
+
+        setIsLoadingReviews(true);
+        // Using "property_" prefix to match our mock backend setup for now, 
+        // real app would use the actual MongoDB ObjectID
+        getPropertyReviews(`property_${id}`)
+            .then(res => {
+                const fetchedReviews = res.data.data;
+                setReviews(fetchedReviews);
+
+                // Calculate dynamic rating
+                if (fetchedReviews.length > 0) {
+                    const total = fetchedReviews.reduce((sum, rev) => sum + rev.rating, 0);
+                    setAverageRating((total / fetchedReviews.length).toFixed(1));
+                }
+            })
+            .catch(err => console.error("Failed to fetch reviews:", err))
+            .finally(() => setIsLoadingReviews(false));
+    }, [id, property]);
 
     if (!property) {
         return (
@@ -43,7 +70,7 @@ export default function PropertyDetails() {
                                 )}
                                 <div className="flex items-center gap-1 text-amber-600 bg-amber-50 px-2 py-1 rounded-md text-sm font-bold">
                                     <span className="material-symbols-outlined text-sm">star</span>
-                                    {property.rating}
+                                    {averageRating}
                                 </div>
                             </div>
                             <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 mb-2">{property.title}</h1>
@@ -109,7 +136,18 @@ export default function PropertyDetails() {
                 </div>
 
                 {/* Reviews Section */}
-                <ReviewSection reviews={property.reviews || []} rating={property.rating} />
+                {isLoadingReviews ? (
+                    <div className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] p-12 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-white/50 flex flex-col items-center justify-center min-h-[400px]">
+                        <div className="w-16 h-16 border-4 border-slate-200 border-t-primary rounded-full animate-spin mb-4"></div>
+                        <p className="text-slate-500 font-medium">Loading premium verified reviews...</p>
+                    </div>
+                ) : (
+                    <ReviewSection
+                        propertyId={`property_${id}`}
+                        reviews={reviews}
+                        rating={averageRating}
+                    />
+                )}
 
             </main>
             <Footer />
