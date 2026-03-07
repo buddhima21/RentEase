@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { loginUser } from "../services/api";
+import { useAuth } from "../context/AuthContext";
 
 /**
  * Login – Card-based login page with left image + right form.
@@ -15,6 +16,7 @@ export default function Login() {
     const [loading, setLoading] = useState(false);
     const [apiError, setApiError] = useState("");
     const navigate = useNavigate();
+    const { login } = useAuth();
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -47,11 +49,18 @@ export default function Login() {
                 password: formData.password,
             });
 
-            // Store user in localStorage
-            localStorage.setItem("user", JSON.stringify(res.data.data));
+            // Store user in context
+            login(res.data.data, res.data.data.token);
 
-            // Redirect to home
-            navigate("/");
+            // Redirect based on actual role returned from server
+            const returnedRole = res.data.data.role;
+            if (returnedRole === "ADMIN") {
+                navigate("/admin/dashboard");
+            } else if (returnedRole === "OWNER") {
+                navigate("/owner/dashboard");
+            } else {
+                navigate("/");
+            }
         } catch (err) {
             const msg =
                 err.response?.data?.message ||
@@ -127,11 +136,11 @@ export default function Login() {
 
                     {/* Role Toggle */}
                     <div className="mb-8">
-                        <div className="flex h-12 w-full items-center justify-center rounded-xl bg-slate-100 p-1">
+                        <div className="flex h-12 w-full items-center justify-center rounded-xl bg-slate-100 p-1 mb-6">
                             <button
                                 type="button"
                                 onClick={() => setRole("TENANT")}
-                                className={`flex h-full grow items-center justify-center rounded-lg px-2 font-semibold transition-all cursor-pointer ${role === "TENANT"
+                                className={`flex h-full grow items-center justify-center rounded-lg px-2 text-sm font-semibold transition-all cursor-pointer ${role === "TENANT"
                                     ? "bg-white text-[#13ec6d] shadow-sm"
                                     : "text-slate-500 hover:text-slate-700"
                                     }`}
@@ -141,12 +150,22 @@ export default function Login() {
                             <button
                                 type="button"
                                 onClick={() => setRole("OWNER")}
-                                className={`flex h-full grow items-center justify-center rounded-lg px-2 font-semibold transition-all cursor-pointer ${role === "OWNER"
+                                className={`flex h-full grow items-center justify-center rounded-lg px-2 text-sm font-semibold transition-all cursor-pointer ${role === "OWNER"
                                     ? "bg-white text-[#13ec6d] shadow-sm"
                                     : "text-slate-500 hover:text-slate-700"
                                     }`}
                             >
                                 Owner
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setRole("ADMIN")}
+                                className={`flex h-full grow items-center justify-center rounded-lg px-2 text-sm font-semibold transition-all cursor-pointer ${role === "ADMIN"
+                                    ? "bg-white text-blue-600 shadow-sm"
+                                    : "text-slate-500 hover:text-slate-700"
+                                    }`}
+                            >
+                                Admin
                             </button>
                         </div>
                     </div>

@@ -21,4 +21,5 @@ public class UserResponse {
     private UserRole role;
     private String profileImageUrl;
     private LocalDateTime createdAt;
+    private String token;
 }
