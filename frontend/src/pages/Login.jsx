@@ -7,6 +7,7 @@ import { useAuth } from "../context/AuthContext";
  * Login – Card-based login page with left image + right form.
  */
 export default function Login() {
+    const { login } = useAuth();
     const [role, setRole] = useState("TENANT");
     const [formData, setFormData] = useState({ email: "", password: "" });
     const [rememberMe, setRememberMe] = useState(false);
@@ -49,8 +50,8 @@ export default function Login() {
                 password: formData.password,
             });
 
-            // Store user in context
-            login(res.data.data, res.data.data.token);
+            // Store user in localStorage via Context
+            login(res.data.data);
 
             // Redirect based on actual role returned from server
             const returnedRole = res.data.data.role;

@@ -1,41 +1,49 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import { createContext, useContext, useState, useEffect } from "react";
 
-export const AuthContext = createContext();
+const AuthContext = createContext(null);
 
-export const useAuth = () => useContext(AuthContext);
-
-export const AuthProvider = ({ children }) => {
+/**
+ * AuthProvider – Wraps the app and provides auth state + helpers.
+ * Hydrates from localStorage on mount so the user stays logged in across refreshes.
+ */
+export function AuthProvider({ children }) {
     const [user, setUser] = useState(null);
-    const [token, setToken] = useState(localStorage.getItem('token') || null);
 
+    // Hydrate once on mount
     useEffect(() => {
-        const storedUser = localStorage.getItem('user');
-        if (storedUser && token) {
-            try {
-                setUser(JSON.parse(storedUser));
-            } catch (e) {
-                console.error("Failed to parse user from localStorage");
-            }
+        try {
+            const stored = localStorage.getItem("user");
+            if (stored) setUser(JSON.parse(stored));
+        } catch {
+            localStorage.removeItem("user");
         }
-    }, [token]);
+    }, []);
 
-    const login = (userData, jwtToken) => {
+    /** Persist user to localStorage and update state */
+    const login = (userData) => {
+        localStorage.setItem("user", JSON.stringify(userData));
         setUser(userData);
-        setToken(jwtToken);
-        localStorage.setItem('token', jwtToken);
-        localStorage.setItem('user', JSON.stringify(userData));
     };
 
+    /** Clear everything and reset state */
     const logout = () => {
+        localStorage.removeItem("user");
+        sessionStorage.clear();
         setUser(null);
-        setToken(null);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
     };
 
     return (
-        <AuthContext.Provider value={{ user, token, login, logout }}>
+        <AuthContext.Provider value={{ user, login, logout }}>
             {children}
         </AuthContext.Provider>
     );
-};
+}
+
+/**
+ * useAuth – Convenience hook to consume auth context.
+ */
+export function useAuth() {
+    const ctx = useContext(AuthContext);
+    if (!ctx) throw new Error("useAuth must be used within an AuthProvider");
+    return ctx;
+}
