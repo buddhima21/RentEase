@@ -19,7 +19,7 @@ export const sidebarLinks = [
   { label: "Bookings", icon: "calendar_month", path: "/owner/bookings" },
   { label: "Maintenance", icon: "build", path: "/owner/maintenance", badge: 3 },
   { label: "Finance", icon: "payments", path: "/owner/finance" },
-  { label: "Reports", icon: "assessment", path: "/owner/reports" },
+  { label: "Analytics", icon: "analytics", path: "/owner/analytics" },
 ];
 
 // ── KPI Stats ─────────────────────────────────────────────────
