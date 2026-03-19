@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { signupUser } from "../services/api";
+import { useAuth } from "../context/AuthContext";
 
 /**
  * Signup – Full registration page with split layout.
  * Left panel: hero image + brand. Right panel: role toggle + form.
  */
 export default function Signup() {
+    const { login } = useAuth();
     const [role, setRole] = useState("TENANT");
     const [formData, setFormData] = useState({
         fullName: "",
@@ -67,8 +69,8 @@ export default function Signup() {
                 role,
             });
 
-            // Store user in localStorage
-            localStorage.setItem("user", JSON.stringify(res.data.data));
+            // Store user in localStorage via Context
+            login(res.data.data);
             setSuccessMsg("Account created successfully! Redirecting to login...");
 
             // Redirect to login after short delay

@@ -5,6 +5,7 @@ import MapView from "../pages/MapView";
 import Login from "../pages/Login";
 import Signup from "../pages/Signup";
 import OwnerDashboard from "../pages/OwnerDashboard";
+import MyProperties from "../pages/MyProperties";
 import Listings from "../pages/Listings";
 import ListingDetails from "../pages/ListingDetails";
 
@@ -19,6 +20,7 @@ export default function AppRoutes() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/owner/dashboard" element={<OwnerDashboard />} />
+            <Route path="/owner/properties" element={<MyProperties />} />
         </Routes>
     );
 }

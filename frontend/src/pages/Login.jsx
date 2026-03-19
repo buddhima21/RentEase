@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { loginUser } from "../services/api";
+import { useAuth } from "../context/AuthContext";
 
 /**
  * Login – Card-based login page with left image + right form.
  */
 export default function Login() {
+    const { login } = useAuth();
     const [role, setRole] = useState("TENANT");
     const [formData, setFormData] = useState({ email: "", password: "" });
     const [rememberMe, setRememberMe] = useState(false);
@@ -47,8 +49,8 @@ export default function Login() {
                 password: formData.password,
             });
 
-            // Store user in localStorage
-            localStorage.setItem("user", JSON.stringify(res.data.data));
+            // Store user in localStorage via Context
+            login(res.data.data);
 
             // Redirect to home
             navigate("/");
