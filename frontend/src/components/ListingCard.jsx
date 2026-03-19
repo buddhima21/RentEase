@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 /**
  * ListingCard – A single property listing card.
@@ -12,7 +13,7 @@ export default function ListingCard({ listing }) {
     return (
         <div className="group bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300">
             {/* Image Container */}
-            <div className="relative h-64 overflow-hidden">
+            <Link to={`/property/${listing.id}`} className="block relative h-64 overflow-hidden">
                 <img
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     src={listing.image}
@@ -25,20 +26,24 @@ export default function ListingCard({ listing }) {
                         {listing.badge}
                     </div>
                 )}
+            </Link>
 
-                {/* Wishlist / Favorite Button */}
-                <button
-                    onClick={() => setLiked(!liked)}
-                    aria-label={liked ? "Remove from favorites" : "Add to favorites"}
-                    className={`absolute top-4 right-4 bg-white/90 p-2 rounded-full transition-colors ${liked ? "text-red-500" : "text-slate-900 hover:text-red-500"
-                        }`}
-                >
-                    <span className="material-symbols-outlined">favorite</span>
-                </button>
-            </div>
+            {/* Wishlist / Favorite Button (Positioned over image but independent of the link) */}
+            <button
+                onClick={(e) => {
+                    e.preventDefault();
+                    setLiked(!liked);
+                }}
+                aria-label={liked ? "Remove from favorites" : "Add to favorites"}
+                className={`absolute top-4 right-4 bg-white/90 p-2 rounded-full transition-colors ${liked ? "text-red-500" : "text-slate-900 hover:text-red-500"
+                    }`}
+                style={{ zIndex: 10 }}
+            >
+                <span className="material-symbols-outlined">favorite</span>
+            </button>
 
             {/* Card Body */}
-            <div className="p-6">
+            <Link to={`/property/${listing.id}`} className="block p-6">
                 {/* Title & Rating */}
                 <div className="flex justify-between items-start mb-2">
                     <h3 className="text-lg font-bold group-hover:text-primary transition-colors line-clamp-1">
@@ -81,13 +86,14 @@ export default function ListingCard({ listing }) {
                         <span className="text-xs text-slate-500 font-medium">/month</span>
                     </div>
                     <button
+                        role="link"
                         aria-label={`View details for ${listing.title}`}
                         className="p-2 bg-primary/10 text-primary hover:bg-primary hover:text-white rounded-lg transition-all"
                     >
                         <span className="material-symbols-outlined">chevron_right</span>
                     </button>
                 </div>
-            </div>
+            </Link>
         </div>
     );
 }

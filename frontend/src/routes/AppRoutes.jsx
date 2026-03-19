@@ -17,6 +17,7 @@ export default function AppRoutes() {
             <Route path="/listings" element={<Listings />} />
             <Route path="/listings/:id" element={<ListingDetails />} />
             <Route path="/map" element={<MapView />} />
+            <Route path="/property/:id" element={<PropertyDetails />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/owner/dashboard" element={<OwnerDashboard />} />
