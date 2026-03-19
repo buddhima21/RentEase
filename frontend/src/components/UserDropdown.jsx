@@ -41,7 +41,11 @@ export default function UserDropdown({ user, onLogout }) {
     };
 
     const dashboardPath =
-        user.role === "OWNER" ? "/owner/dashboard" : "/tenant/dashboard";
+        user.role === "ADMIN" 
+            ? "/admin/dashboard" 
+            : user.role === "OWNER" 
+                ? "/owner/dashboard" 
+                : "/tenant/dashboard";
 
     const handleLogout = () => {
         setOpen(false);

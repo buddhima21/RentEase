@@ -17,7 +17,6 @@ export default function Login() {
     const [loading, setLoading] = useState(false);
     const [apiError, setApiError] = useState("");
     const navigate = useNavigate();
-    const { login } = useAuth();
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -57,9 +56,8 @@ export default function Login() {
             const returnedRole = res.data.data.role;
             if (returnedRole === "ADMIN") {
                 navigate("/admin/dashboard");
-            } else if (returnedRole === "OWNER") {
-                navigate("/owner/dashboard");
             } else {
+                // Both OWNER and TENANT go to landing page first
                 navigate("/");
             }
         } catch (err) {
