@@ -1,11 +1,46 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { useAuth } from "../context/AuthContext";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8081";
 
 /**
  * Login – Auth page with email/password form.
  */
 export default function Login() {
+    const navigate = useNavigate();
+    const { login } = useAuth();
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        setError(null);
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/v1/users/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email, password })
+            });
+            if (!res.ok) {
+                const body = await res.json().catch(() => ({}));
+                throw new Error(body.message || "Invalid credentials");
+            }
+            const body = await res.json();
+            login(body.data);
+            navigate("/");
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <div className="bg-background-light text-slate-900 min-h-screen flex flex-col">
             <Navbar />
@@ -58,12 +93,7 @@ export default function Login() {
                             </p>
                         </div>
 
-                        <form
-                            className="space-y-5"
-                            onSubmit={(e) => {
-                                e.preventDefault();
-                            }}
-                        >
+                        <form className="space-y-5" onSubmit={handleSubmit}>
                             <div className="space-y-2">
                                 <label
                                     htmlFor="email"
@@ -74,6 +104,8 @@ export default function Login() {
                                 <input
                                     id="email"
                                     type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
                                     required
                                     className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
                                     placeholder="you@example.com"
@@ -90,11 +122,19 @@ export default function Login() {
                                 <input
                                     id="password"
                                     type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
                                     required
                                     className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-900 shadow-sm focus:border-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20"
                                     placeholder="••••••••"
                                 />
                             </div>
+
+                            {error && (
+                                <div className="text-sm text-red-600 bg-red-50 p-2 rounded-xl">
+                                    {error}
+                                </div>
+                            )}
 
                             <div className="flex items-center justify-between text-xs text-slate-600">
                                 <label className="inline-flex items-center gap-2">
@@ -114,12 +154,13 @@ export default function Login() {
 
                             <button
                                 type="submit"
-                                className="w-full inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary/30 transition-colors hover:bg-primary/90"
+                                disabled={loading}
+                                className="w-full inline-flex items-center justify-center rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-primary/30 transition-colors hover:bg-primary/90 disabled:opacity-50"
                             >
                                 <span className="material-symbols-outlined text-base mr-1">
                                     login
                                 </span>
-                                Sign in
+                                {loading ? "Signing in..." : "Sign in"}
                             </button>
                         </form>
 

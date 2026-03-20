@@ -1,10 +1,12 @@
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 /**
  * Navbar – Sticky top navigation bar.
  * Contains the RentEase logo, desktop nav links, and auth buttons.
  */
 export default function Navbar() {
+    const { user, logout } = useAuth();
     return (
         <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/80 backdrop-blur-md">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -39,22 +41,44 @@ export default function Navbar() {
                         >
                             Map
                         </Link>
+                        <Link
+                            to="/agreements"
+                            className="text-sm font-semibold hover:text-primary transition-colors"
+                        >
+                            Agreements
+                        </Link>
                     </nav>
 
                     {/* Auth Buttons */}
                     <div className="flex items-center gap-3">
-                        <Link
-                            to="/login"
-                            className="hidden sm:block px-4 py-2 text-sm font-semibold hover:text-primary transition-colors"
-                        >
-                            Login
-                        </Link>
-                        <Link
-                            to="/signup"
-                            className="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-primary/20 transition-all"
-                        >
-                            Sign up
-                        </Link>
+                        {user ? (
+                            <>
+                                <span className="hidden sm:block text-sm font-semibold text-slate-700">
+                                    {user.fullName}
+                                </span>
+                                <button
+                                    onClick={logout}
+                                    className="bg-red-50 hover:bg-red-100 text-red-600 px-5 py-2.5 rounded-xl text-sm font-bold transition-all"
+                                >
+                                    Logout
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <Link
+                                    to="/login"
+                                    className="hidden sm:block px-4 py-2 text-sm font-semibold hover:text-primary transition-colors"
+                                >
+                                    Login
+                                </Link>
+                                <Link
+                                    to="/signup"
+                                    className="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-primary/20 transition-all"
+                                >
+                                    Sign up
+                                </Link>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>

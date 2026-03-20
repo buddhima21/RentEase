@@ -1,5 +1,6 @@
 package com.rentease.modules.agreement.dto;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,8 +27,10 @@ public class AgreementRequest {
     @NotBlank(message = "Property ID is required")
     private String propertyId;
 
+    @JsonAlias("monthlyRent")
+    private double rentAmount;
+
     private LocalDate startDate;
     private LocalDate endDate;
-    private double monthlyRent;
     private String terms;
 }

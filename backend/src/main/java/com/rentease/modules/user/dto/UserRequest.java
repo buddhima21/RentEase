@@ -24,6 +24,6 @@ public class UserRequest {
     private String password;
 
     private String phone;
-    private String role;
+    private String address;
     private String profileImageUrl;
 }

@@ -24,9 +24,10 @@ public class UserService {
         User user = User.builder()
                 .fullName(request.getFullName())
                 .email(request.getEmail())
-                .password(request.getPassword()) // TODO: hash with BCrypt
+                .password(request.getPassword()) 
                 .phone(request.getPhone())
-                .role(request.getRole() != null ? UserRole.valueOf(request.getRole()) : UserRole.TENANT)
+                .address(request.getAddress())
+                .role(UserRole.TENANT)
                 .profileImageUrl(request.getProfileImageUrl())
                 .build();
 
@@ -37,7 +38,6 @@ public class UserService {
     public UserResponse login(String email, String password) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", email));
-        // TODO: verify hashed password
         if (!user.getPassword().equals(password)) {
             throw new BadRequestException("Invalid credentials");
         }
@@ -56,6 +56,7 @@ public class UserService {
                 .fullName(user.getFullName())
                 .email(user.getEmail())
                 .phone(user.getPhone())
+                .address(user.getAddress())
                 .role(user.getRole())
                 .profileImageUrl(user.getProfileImageUrl())
                 .createdAt(user.getCreatedAt())

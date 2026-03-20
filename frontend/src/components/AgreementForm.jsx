@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 const API_BASE_URL =
-    import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:8081";
 
 export default function AgreementForm({ bookingId, onCreated }) {
     const [form, setForm] = useState({
@@ -35,7 +35,7 @@ export default function AgreementForm({ bookingId, onCreated }) {
                 propertyId: form.propertyId,
                 startDate: form.startDate || null,
                 endDate: form.endDate || null,
-                monthlyRent: Number(form.rentAmount) || 0,
+                rentAmount: Number(form.rentAmount) || 0,
                 terms: form.rules,
             };
 

@@ -1,5 +1,6 @@
 package com.rentease.modules.agreement.model;
 
+import com.rentease.agreements.domain.AgreementStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,6 +22,8 @@ public class Agreement {
     @Id
     private String id;
 
+    private String agreementNumber;
+
     private String bookingId;
     private String tenantId;
     private String ownerId;
@@ -31,6 +34,9 @@ public class Agreement {
     private String terms;
     private boolean signedByTenant;
     private boolean signedByOwner;
+
+    @Builder.Default
+    private AgreementStatus status = AgreementStatus.ACTIVE;
 
     @CreatedDate
     private LocalDateTime createdAt;
