@@ -1,10 +1,10 @@
 import { useState } from "react";
-import Sidebar from "../components/dashboard/Sidebar";
-import StatCard from "../components/dashboard/StatCard";
-import PropertyTable from "../components/dashboard/PropertyTable";
-import ActionCard from "../components/dashboard/ActionCard";
-import ActivityList from "../components/dashboard/ActivityList";
-import RevenueChart from "../components/dashboard/RevenueChart";
+import Sidebar from "../components/owner/dashboard/Sidebar";
+import StatCard from "../components/owner/dashboard/StatCard";
+import PropertyTable from "../components/owner/dashboard/PropertyTable";
+import ActionCard from "../components/owner/dashboard/ActionCard";
+import ActivityList from "../components/owner/dashboard/ActivityList";
+import RevenueChart from "../components/owner/dashboard/RevenueChart";
 import { statsData, pendingActions, ownerProfile } from "../data/ownerDashboardData";
 import { useAuth } from "../context/AuthContext";
 import UserDropdown from "../components/UserDropdown";
@@ -12,7 +12,7 @@ import UserDropdown from "../components/UserDropdown";
 /**
  * OwnerDashboard — Full-featured property owner dashboard page.
  * Route: /owner/dashboard
- * Theme: Green (#13ec6d) — overrides global primary for dashboard scope.
+ * Theme: Green (#1DBC60) — overrides global primary for dashboard scope.
  */
 export default function OwnerDashboard() {
     const [searchQuery, setSearchQuery] = useState("");
@@ -21,7 +21,7 @@ export default function OwnerDashboard() {
     return (
         <div
             className="flex min-h-screen bg-[#f6f8f7]"
-            style={{ "--color-primary": "#13ec6d" }}
+            style={{ "--color-primary": "#1DBC60" }}
         >
             {/* ── Sidebar ─────────────────────────────────────── */}
             <Sidebar />
@@ -113,3 +113,4 @@ export default function OwnerDashboard() {
         </div>
     );
 }
+

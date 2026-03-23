@@ -1,9 +1,12 @@
 import { useState, useMemo } from "react";
-import Sidebar from "../components/dashboard/Sidebar";
+import { useNavigate } from "react-router-dom";
+import Sidebar from "../components/owner/dashboard/Sidebar";
 import { ownerProfile } from "../data/ownerDashboardData";
 import { allProperties, getTabCounts, ITEMS_PER_PAGE } from "../data/myPropertiesData";
 import { useAuth } from "../context/AuthContext";
 import UserDropdown from "../components/UserDropdown";
+import ActionDropdown from "../components/owner/dashboard/ActionDropdown";
+import DeletePropertyModal from "../components/owner/dashboard/DeletePropertyModal";
 
 const statusStyles = {
     Published: "bg-emerald-100 text-emerald-700",
@@ -20,7 +23,15 @@ export default function MyProperties() {
     const [activeTab, setActiveTab] = useState("All");
     const [searchQuery, setSearchQuery] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
+    const [deletingProperty, setDeletingProperty] = useState(null);
     const { user, logout } = useAuth();
+    const navigate = useNavigate();
+
+    const handleDeleteConfirm = (reason) => {
+        console.log(`Deleting property: ${deletingProperty.name}, Reason: ${reason}`);
+        // Typically dispatch an action or API call here
+        setDeletingProperty(null);
+    };
 
     const tabCounts = useMemo(() => getTabCounts(allProperties), []);
 
@@ -59,8 +70,8 @@ export default function MyProperties() {
 
     return (
         <div
-            className="flex h-screen overflow-hidden bg-[#f6f8f7]"
-            style={{ "--color-primary": "#13ec6d" }}
+            className="flex min-h-screen bg-[#f6f8f7]"
+            style={{ "--color-primary": "#1DBC60" }}
         >
             {/* ── Sidebar ─────────────────────────────────────── */}
             <Sidebar />
@@ -195,11 +206,11 @@ export default function MyProperties() {
 
                                                 {/* Actions */}
                                                 <td className="px-6 py-4 text-right">
-                                                    <button className="p-2 hover:bg-emerald-100 rounded-lg transition-colors">
-                                                        <span className="material-symbols-outlined text-slate-400">
-                                                            more_vert
-                                                        </span>
-                                                    </button>
+                                                    <ActionDropdown 
+                                                        onUpdate={() => navigate(`/owner/properties/${prop.id}/edit`)}
+                                                        onView={() => navigate(`/owner/properties/${prop.id}`)}
+                                                        onDelete={() => setDeletingProperty(prop)}
+                                                    />
                                                 </td>
                                             </tr>
                                         ))
@@ -269,6 +280,15 @@ export default function MyProperties() {
                     </div>
                 </div>
             </main>
+
+            {/* Delete Modal */}
+            <DeletePropertyModal 
+                isOpen={!!deletingProperty}
+                onClose={() => setDeletingProperty(null)}
+                onConfirm={handleDeleteConfirm}
+                propertyName={deletingProperty?.name}
+            />
         </div>
     );
 }
+

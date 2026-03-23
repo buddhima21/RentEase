@@ -1,9 +1,10 @@
 /**
- * StatCard — Reusable KPI card for the dashboard overview.
+ * AdminStatCard — Reusable KPI card for the admin dashboard overview.
+ * Same pattern as the owner StatCard but scoped to the admin namespace.
  *
  * Props: icon, iconBg, iconColor, label, value, badge, badgeBg, badgeColor
  */
-export default function StatCard({
+export default function AdminStatCard({
     icon,
     iconBg,
     iconColor,

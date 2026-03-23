@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { sidebarLinks, ownerProfile } from "../../data/ownerDashboardData";
+import { sidebarLinks, ownerProfile } from "../../../data/ownerDashboardData";
 
 /**
  * Sidebar — Collapsible sidebar navigation for owner pages.
@@ -53,10 +53,10 @@ export default function Sidebar() {
 
             {/* ── Add Property CTA ────────────────────────────── */}
             <div className="px-4 pb-4">
-                <button className="w-full flex items-center justify-center gap-2 py-3 bg-primary text-slate-900 rounded-lg font-bold text-sm hover:brightness-105 transition-all shadow-sm">
+                <Link to="/owner/add-property" className="w-full flex items-center justify-center gap-2 py-3 bg-primary text-slate-900 rounded-lg font-bold text-sm hover:brightness-105 transition-all shadow-sm">
                     <span className="material-symbols-outlined text-lg">add</span>
                     Add New Property
-                </button>
+                </Link>
             </div>
 
             {/* ── Profile Footer ──────────────────────────────── */}
@@ -121,3 +121,4 @@ export default function Sidebar() {
         </>
     );
 }
+

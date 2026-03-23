@@ -1,4 +1,8 @@
-import { propertiesData } from "../../data/ownerDashboardData";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { propertiesData } from "../../../data/ownerDashboardData";
+import ActionDropdown from "./ActionDropdown";
+import DeletePropertyModal from "./DeletePropertyModal";
 
 const statusStyles = {
     green: "bg-emerald-50 text-emerald-600",
@@ -10,12 +14,25 @@ const statusStyles = {
  * PropertyTable — Responsive table listing the owner's properties (Dashboard summary).
  */
 export default function PropertyTable() {
+    const navigate = useNavigate();
+    const [deletingProperty, setDeletingProperty] = useState(null);
+
+    const handleDeleteConfirm = (reason) => {
+        console.log(`Deleting property: ${deletingProperty.name}, Reason: ${reason}`);
+        // Here you would typically dispatch an action or make an API call to delete the property
+        // For now, since propertiesData is static, we just log it
+        setDeletingProperty(null);
+    };
+
     return (
         <div className="bg-white rounded-2xl border border-emerald-100 shadow-sm overflow-hidden">
             {/* Header */}
             <div className="px-6 py-5 border-b border-emerald-100 flex items-center justify-between">
                 <h3 className="font-bold text-lg">My Properties</h3>
-                <button className="text-emerald-600 text-sm font-semibold hover:underline underline-offset-4 transition-all">
+                <button 
+                    onClick={() => navigate('/owner/properties')}
+                    className="text-primary text-sm font-bold hover:underline underline-offset-4 transition-all"
+                >
                     View All →
                 </button>
             </div>
@@ -70,15 +87,26 @@ export default function PropertyTable() {
 
                                 {/* Actions */}
                                 <td className="px-6 py-4 text-right">
-                                    <button className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-all duration-200">
-                                        <span className="material-symbols-outlined text-xl">more_vert</span>
-                                    </button>
+                                    <ActionDropdown 
+                                        onUpdate={() => navigate(`/owner/properties/${prop.id}/edit`)}
+                                        onView={() => navigate(`/owner/properties/${prop.id}`)}
+                                        onDelete={() => setDeletingProperty(prop)}
+                                    />
                                 </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
             </div>
+
+            {/* Delete Modal */}
+            <DeletePropertyModal 
+                isOpen={!!deletingProperty}
+                onClose={() => setDeletingProperty(null)}
+                onConfirm={handleDeleteConfirm}
+                propertyName={deletingProperty?.name}
+            />
         </div>
     );
 }
+

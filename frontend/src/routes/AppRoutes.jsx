@@ -6,11 +6,17 @@ import Login from "../pages/Login";
 import Signup from "../pages/Signup";
 import OwnerDashboard from "../pages/OwnerDashboard";
 import MyProperties from "../pages/MyProperties";
+import AddProperty from "../pages/AddProperty";
 import Listings from "../pages/Listings";
 import ListingDetails from "../pages/ListingDetails";
 import PropertyDetails from "../pages/PropertyDetails";
 import AdminDashboard from "../pages/AdminDashboard";
+import AdminLogin from "../pages/AdminLogin";
 import OwnerAnalytics from "../pages/OwnerAnalytics";
+import Bookings from "../pages/Bookings";
+import ListingModeration from "../pages/ListingModeration";
+import UpdateProperty from "../components/owner/dashboard/UpdateProperty";
+import ViewPropertyDetails from "../components/owner/dashboard/ViewPropertyDetails";
 
 export default function AppRoutes() {
     return (
@@ -25,8 +31,15 @@ export default function AppRoutes() {
             <Route path="/signup" element={<Signup />} />
             <Route path="/owner/dashboard" element={<OwnerDashboard />} />
             <Route path="/owner/properties" element={<MyProperties />} />
+            <Route path="/owner/add-property" element={<AddProperty />} />
+            <Route path="/owner/bookings" element={<Bookings />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/listings" element={<ListingModeration />} />
+            <Route path="/owner/properties/:id" element={<ViewPropertyDetails />} />
+            <Route path="/owner/properties/:id/edit" element={<UpdateProperty />} />
             <Route path="/owner/analytics" element={<OwnerAnalytics />} />
         </Routes>
     );
 }
+

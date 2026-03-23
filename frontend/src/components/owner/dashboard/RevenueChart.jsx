@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { revenueData, revenueMax } from "../../data/ownerDashboardData";
+import { revenueData, revenueMax } from "../../../data/ownerDashboardData";
 
 /**
  * RevenueChart — Pure Tailwind bar chart with hover tooltips and proportional scaling.
@@ -112,3 +112,4 @@ export default function RevenueChart() {
         </div>
     );
 }
+

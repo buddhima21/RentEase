@@ -1,4 +1,4 @@
-import { recentActivity } from "../../data/ownerDashboardData";
+import { recentActivity } from "../../../data/ownerDashboardData";
 
 /**
  * ActivityList — Timeline-style recent activity feed.
@@ -42,3 +42,4 @@ export default function ActivityList() {
         </div>
     );
 }
+
