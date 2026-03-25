@@ -1,7 +1,5 @@
 import { Link } from "react-router-dom";
 
-const FALLBACK_IMAGE = "https://placehold.co/600x400/f1f5f9/94a3b8?text=No+Image";
-
 const AMENITY_ICONS = {
     WiFi: "wifi",
     AC: "ac_unit",
@@ -35,17 +33,19 @@ export default function PropertyCard({ property }) {
 
     return (
         <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100">
-            <div className="relative h-52 w-full bg-slate-200 overflow-hidden">
-                <img
-                    className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    src={image}
-                    alt={title}
-                    loading="lazy"
-                    onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = FALLBACK_IMAGE;
-                    }}
-                />
+            <div className="relative h-52 w-full bg-slate-200 overflow-hidden flex items-center justify-center">
+                <span className="material-symbols-outlined text-5xl text-slate-300 absolute z-0">home_work</span>
+                {image && (
+                    <img
+                        className="relative z-10 h-full w-full object-cover group-hover:scale-105 transition-transform duration-500 text-transparent"
+                        src={image}
+                        alt={title}
+                        loading="lazy"
+                        onError={(e) => {
+                            e.target.style.display = 'none';
+                        }}
+                    />
+                )}
 
                 <div className="absolute top-3 left-3 flex items-center gap-2">
                     {featured && (

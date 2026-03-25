@@ -11,6 +11,8 @@ import ListingDetails from "../pages/ListingDetails";
 import PropertyDetails from "../pages/PropertyDetails";
 import AdminDashboard from "../pages/AdminDashboard";
 import OwnerAnalytics from "../pages/OwnerAnalytics";
+import TenantDashboard from "../pages/TenantDashboard";
+import OwnerBookings from "../pages/OwnerBookings";
 
 export default function AppRoutes() {
     return (
@@ -25,8 +27,10 @@ export default function AppRoutes() {
             <Route path="/signup" element={<Signup />} />
             <Route path="/owner/dashboard" element={<OwnerDashboard />} />
             <Route path="/owner/properties" element={<MyProperties />} />
+            <Route path="/owner/bookings" element={<OwnerBookings />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/owner/analytics" element={<OwnerAnalytics />} />
+            <Route path="/tenant/dashboard" element={<TenantDashboard />} />
         </Routes>
     );
 }

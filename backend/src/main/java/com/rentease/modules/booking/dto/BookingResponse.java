@@ -25,4 +25,22 @@ public class BookingResponse {
     private BookingStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    // Cancellation Reason
+    private String cancellationReason;
+
+    // Enriched property details
+    private String propertyTitle;
+    private String propertyCity;
+    private String propertyType;
+    private int propertyBedrooms;
+    private double propertyPrice;
+    private String propertyAddress;
+    private String propertyImageUrl;
+
+    // Enriched tenant details (visible to owner)
+    private String tenantName;
+    private String tenantEmail;
+    private String tenantPhone;
 }
+

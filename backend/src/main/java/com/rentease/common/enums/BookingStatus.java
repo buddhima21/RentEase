@@ -2,7 +2,11 @@ package com.rentease.common.enums;
 
 public enum BookingStatus {
     PENDING,
-    CONFIRMED,
+    APPROVED,
+    ALLOCATED,
+    REJECTED,
     CANCELLED,
+    EXPIRED,
+    CONFIRMED,
     COMPLETED
 }

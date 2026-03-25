@@ -19,61 +19,51 @@ API.interceptors.request.use((req) => {
     return req;
 });
 
-/**
- * Sign up a new user.
- * @param {{ fullName: string, email: string, phone: string, password: string, role: string }} data
- * @returns {Promise} Axios response
- */
+// ── Auth ──────────────────────────────────────────────
 export const signupUser = (data) => API.post("/api/auth/signup", data);
-
-/**
- * Log in an existing user.
- * @param {{ email: string, password: string }} data
- * @returns {Promise} Axios response
- */
 export const loginUser = (data) => API.post("/api/auth/login", data);
 
-/**
- * Fetch approved reviews for a specific property.
- * @param {string} propertyId 
- * @returns {Promise} Axios response
- */
+// ── Properties ────────────────────────────────────────
+export const getAllProperties = () => API.get("/api/v1/properties");
+export const getPropertyById = (id) => API.get(`/api/v1/properties/${id}`);
+export const getAvailableProperties = () => API.get("/api/v1/properties/status/AVAILABLE");
+
+// ── Bookings ──────────────────────────────────────────
+/** Tenant creates a booking request */
+export const createBookingRequest = (data) => API.post("/api/v1/bookings", data);
+
+/** Get all bookings for the logged-in tenant */
+export const getTenantBookings = (tenantId) => API.get(`/api/v1/bookings/tenant/${tenantId}`);
+
+/** Get all bookings for the logged-in owner */
+export const getOwnerBookings = (ownerId) => API.get(`/api/v1/bookings/owner/${ownerId}`);
+
+/** Owner approves a pending booking */
+export const approveBooking = (bookingId) => API.patch(`/api/v1/bookings/${bookingId}/approve`);
+
+/** Owner rejects a pending booking */
+export const rejectBooking = (bookingId) => API.patch(`/api/v1/bookings/${bookingId}/reject`);
+
+/** Tenant cancels their own booking */
+export const tenantCancelBooking = (bookingId, data) => API.patch(`/api/v1/bookings/${bookingId}/cancel`, data);
+
+
+/** Owner removes an allocated tenant (soft remove) */
+export const removeAllocation = (bookingId) => API.delete(`/api/v1/bookings/${bookingId}`);
+
+/** Owner permanently deletes a booking from history */
+export const hardDeleteBooking = (bookingId) => API.delete(`/api/v1/bookings/${bookingId}/hard-delete`);
+
+/** Get available bedroom slots for a property */
+export const getPropertyAvailableSlots = (propertyId) =>
+    API.get(`/api/v1/bookings/property/${propertyId}/available-slots`);
+
+// ── Reviews ───────────────────────────────────────────
 export const getPropertyReviews = (propertyId) => API.get(`/api/v1/reviews/property/${propertyId}?onlyApproved=true`);
-
-/**
- * Submit a new property review (Starts as PENDING).
- * @param {{ propertyId: string, reviewerId: string, rating: number, comment: string, photos: string[] }} data 
- * @returns {Promise} Axios response
- */
 export const submitReview = (data) => API.post("/api/v1/reviews", data);
-
-/**
- * Fetch all pending reviews. (Requires Admin)
- * @returns {Promise} Axios response
- */
 export const getPendingReviews = () => API.get(`/api/v1/reviews/status/PENDING`);
-
-/**
- * Update the status of a review. (Requires Admin)
- * @param {string} reviewId 
- * @param {string} status 'APPROVED' | 'REJECTED'
- * @returns {Promise} Axios response
- */
 export const updateReviewStatus = (reviewId, status) => API.put(`/api/v1/reviews/${reviewId}/status?status=${status}`);
-
-/**
- * Edit an existing review. (Requires Author)
- * @param {string} reviewId
- * @param {{ rating: number, comment: string, photos: string[] }} reviewData
- * @returns {Promise} Axios response
- */
 export const updateReview = (reviewId, reviewData) => API.put(`/api/v1/reviews/${reviewId}`, reviewData);
-
-/**
- * Delete a review. (Requires Author)
- * @param {string} reviewId
- * @returns {Promise} Axios response
- */
 export const deleteReview = (reviewId) => API.delete(`/api/v1/reviews/${reviewId}`);
 
 export default API;
