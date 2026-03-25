@@ -9,6 +9,7 @@ import com.rentease.modules.user.dto.UserResponse;
 import com.rentease.modules.user.model.User;
 import com.rentease.modules.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +18,7 @@ import com.rentease.security.JwtUtil;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserService {
 
     private final UserRepository userRepository;
@@ -38,6 +40,7 @@ public class UserService {
                 .build();
 
         User saved = userRepository.save(user);
+        log.info("Registered user: {} with name: {} and ID: {}", saved.getEmail(), saved.getFullName(), saved.getId());
         String token = jwtUtil.generateToken(new CustomUserDetails(saved), saved.getId());
         return mapToResponse(saved, token);
     }
@@ -49,6 +52,7 @@ public class UserService {
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new UnauthorizedException("Invalid email or password");
         }
+        log.info("User {} logged in. Full name: {}", user.getEmail(), user.getFullName());
         String token = jwtUtil.generateToken(new CustomUserDetails(user), user.getId());
         return mapToResponse(user, token);
     }

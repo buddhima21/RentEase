@@ -64,15 +64,27 @@ public class ReviewController {
             @RequestParam com.rentease.common.enums.ReviewStatus status,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         
-        // Ensure only an admin can perform this action
         boolean isAdmin = userDetails.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-        if (!isAdmin) {
-            throw new UnauthorizedException("Only administrators can update review statuses");
-        }
-
-        ReviewResponse response = reviewService.updateReviewStatus(reviewId, status);
+        // Service layer will check if user is admin or the property owner
+        ReviewResponse response = reviewService.updateReviewStatus(reviewId, status, userDetails.getId(), isAdmin);
+        
         return ResponseEntity.ok(ApiResponse.success(response, "Review status updated successfully"));
+    }
+
+    @PutMapping("/{reviewId}/reply")
+    public ResponseEntity<ApiResponse<ReviewResponse>> replyToReview(
+            @PathVariable String reviewId,
+            @RequestBody java.util.Map<String, String> payload,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        
+        String reply = payload.get("reply");
+        if (reply == null || reply.trim().isEmpty()) {
+            throw new com.rentease.exception.BadRequestException("Reply cannot be empty");
+        }
+        
+        ReviewResponse response = reviewService.replyToReview(reviewId, reply, userDetails.getId());
+        return ResponseEntity.ok(ApiResponse.success(response, "Reply posted successfully"));
     }
 
     @GetMapping("/status/{status}")

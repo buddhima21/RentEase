@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import { motion } from "framer-motion";
@@ -8,50 +8,50 @@ import {
 } from "recharts";
 import { 
   Building2, Users, CalendarCheck, DollarSign, 
-  TrendingUp, Activity, Wrench, ArrowUpRight
+  TrendingUp, Activity, Wrench, ArrowUpRight, ChevronDown, Download
 } from "lucide-react";
 
-// Mock Data
+// Real Data Initializers (Waiting for Backend Integration)
 const stats = {
-  totalProperties: 120,
-  availableProperties: 35,
-  rentedProperties: 85,
-  totalUsers: 420,
-  totalBookings: 310,
-  activeBookings: 60,
-  pendingMaintenanceRequests: 7,
-  totalRevenue: 1250000,
-  revenueGrowth: "+14.5%",
+  totalProperties: 0,
+  availableProperties: 0,
+  rentedProperties: 0,
+  totalUsers: 0,
+  totalBookings: 0,
+  activeBookings: 0,
+  pendingMaintenanceRequests: 0,
+  totalRevenue: 0,
+  revenueGrowth: "0%",
 };
 
 const revenueData = [
-  { name: "Jan", revenue: 45000 },
-  { name: "Feb", revenue: 52000 },
-  { name: "Mar", revenue: 48000 },
-  { name: "Apr", revenue: 61000 },
-  { name: "May", revenue: 75000 },
-  { name: "Jun", revenue: 82000 },
-  { name: "Jul", revenue: 79000 },
-  { name: "Aug", revenue: 95000 },
-  { name: "Sep", revenue: 105000 },
-  { name: "Oct", revenue: 110000 },
-  { name: "Nov", revenue: 115000 },
-  { name: "Dec", revenue: 125000 },
+  { name: "Jan", revenue: 0 },
+  { name: "Feb", revenue: 0 },
+  { name: "Mar", revenue: 0 },
+  { name: "Apr", revenue: 0 },
+  { name: "May", revenue: 0 },
+  { name: "Jun", revenue: 0 },
+  { name: "Jul", revenue: 0 },
+  { name: "Aug", revenue: 0 },
+  { name: "Sep", revenue: 0 },
+  { name: "Oct", revenue: 0 },
+  { name: "Nov", revenue: 0 },
+  { name: "Dec", revenue: 0 },
 ];
 
 const propertyStatusData = [
-  { name: "Rented", value: 85, color: "#ec5b13" },
-  { name: "Available", value: 35, color: "#1e293b" },
+  { name: "Rented", value: 0, color: "#ec5b13" },
+  { name: "Available", value: 1, color: "#1e293b" }, // Need at least 1 for PieChart to render a blank state
 ];
 
 const bookingTrendsData = [
-  { name: "Mon", bookings: 12 },
-  { name: "Tue", bookings: 19 },
-  { name: "Wed", bookings: 15 },
-  { name: "Thu", bookings: 22 },
-  { name: "Fri", bookings: 28 },
-  { name: "Sat", bookings: 35 },
-  { name: "Sun", bookings: 30 },
+  { name: "Mon", bookings: 0 },
+  { name: "Tue", bookings: 0 },
+  { name: "Wed", bookings: 0 },
+  { name: "Thu", bookings: 0 },
+  { name: "Fri", bookings: 0 },
+  { name: "Sat", bookings: 0 },
+  { name: "Sun", bookings: 0 },
 ];
 
 // --- Components ---
@@ -83,6 +83,43 @@ const StatCard = ({ title, value, icon: Icon, trend, delay }) => (
 );
 
 export default function OwnerAnalytics() {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [selectedTimeframe, setSelectedTimeframe] = useState("This Year");
+  const dropdownRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const timeframes = ["Weekly", "Monthly", "This Year"];
+
+  const handleExport = () => {
+    const csvContent = "data:text/csv;charset=utf-8," 
+      + "Metric,Value\n"
+      + `Total Properties,${stats.totalProperties}\n`
+      + `Available Properties,${stats.availableProperties}\n`
+      + `Rented Properties,${stats.rentedProperties}\n`
+      + `Total Users,${stats.totalUsers}\n`
+      + `Total Bookings,${stats.totalBookings}\n`
+      + `Active Bookings,${stats.activeBookings}\n`
+      + `Total Revenue,${stats.totalRevenue}\n`;
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "RentEase_Analytics_Report.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="bg-[#f8f6f6] min-h-screen flex flex-col font-display selection:bg-[#ec5b13]/20">
       <Navbar />
@@ -101,12 +138,38 @@ export default function OwnerAnalytics() {
             <p className="text-slate-500 text-lg">Monitor your platform's performance and growth.</p>
           </div>
           <div className="flex items-center gap-3">
-            <button className="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-xl font-semibold shadow-sm hover:bg-slate-50 transition-colors flex items-center gap-2">
-              <CalendarCheck size={18} />
-              This Year
-            </button>
-            <button className="bg-[#ec5b13] text-white px-5 py-2 rounded-xl font-bold shadow-md shadow-[#ec5b13]/20 hover:bg-[#d44c0e] hover:-translate-y-0.5 transition-all flex items-center gap-2">
-              <ArrowUpRight size={18} />
+            <div className="relative" ref={dropdownRef}>
+              <button 
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-xl font-semibold shadow-sm hover:bg-slate-50 transition-colors flex items-center gap-2"
+              >
+                <CalendarCheck size={18} />
+                {selectedTimeframe}
+                <ChevronDown size={14} className={`transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {isDropdownOpen && (
+                <div className="absolute top-full mt-2 left-0 w-full min-w-[120px] bg-white border border-slate-200 rounded-xl shadow-lg z-50 overflow-hidden">
+                  {timeframes.map((time) => (
+                    <button
+                      key={time}
+                      onClick={() => {
+                        setSelectedTimeframe(time);
+                        setIsDropdownOpen(false);
+                      }}
+                      className={`block w-full text-left px-4 py-2.5 text-sm hover:bg-slate-50 transition-colors ${selectedTimeframe === time ? 'text-[#ec5b13] font-semibold bg-slate-50/50' : 'text-slate-600 font-medium'}`}
+                    >
+                      {time}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+            <button 
+              onClick={handleExport}
+              className="bg-[#ec5b13] text-white px-5 py-2 rounded-xl font-bold shadow-md shadow-[#ec5b13]/20 hover:bg-[#d44c0e] hover:-translate-y-0.5 active:scale-95 transition-all flex items-center justify-center gap-2"
+            >
+              <Download size={18} />
               Export Report
             </button>
           </div>

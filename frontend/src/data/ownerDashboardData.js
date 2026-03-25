@@ -17,6 +17,7 @@ export const sidebarLinks = [
   { label: "Dashboard", icon: "dashboard", path: "/owner/dashboard" },
   { label: "My Properties", icon: "home_work", path: "/owner/properties" },
   { label: "Bookings", icon: "calendar_month", path: "/owner/bookings" },
+  { label: "Reviews", icon: "star_rate", path: "/owner/reviews" },
   { label: "Maintenance", icon: "build", path: "/owner/maintenance", badge: 3 },
   { label: "Finance", icon: "payments", path: "/owner/finance" },
   { label: "Analytics", icon: "analytics", path: "/owner/analytics" },

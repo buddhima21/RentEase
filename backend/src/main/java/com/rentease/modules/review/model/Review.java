@@ -26,6 +26,7 @@ public class Review {
     // References to other collections
     private String propertyId;
     private String reviewerId; // Tenant who wrote the review
+    private String reviewerName;
 
     // Core Review Data
     private int rating; // 1 to 5 scale

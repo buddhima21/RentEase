@@ -1,7 +1,10 @@
 import { useParams, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
 import properties from "../data/properties";
 import Navbar from "../components/Navbar";
 import BookingCard from "../components/BookingCard";
+import ReviewSection from "../components/reviews/ReviewSection";
+import { getPropertyReviews } from "../services/api";
 
 const FALLBACK_IMAGE = "https://placehold.co/800x500/f1f5f9/94a3b8?text=No+Image";
 
@@ -21,22 +24,33 @@ const HOUSE_RULES = [
     { icon: "volume_off", text: "Quiet hours after 10:00 PM" },
 ];
 
-const REVIEWS = [
-    {
-        name: "Kasun Silva",
-        date: "September 2023",
-        text: "Stayed here for my final semester at SLIIT. The place is very quiet, and the host is wonderful. Very safe for students!",
-    },
-    {
-        name: "Dilini Fernando",
-        date: "July 2023",
-        text: "Clean, tidy, and has all the basics needed. The separate entrance is a big plus for privacy. Highly recommend!",
-    },
-];
-
 export default function ListingDetails() {
     const { id } = useParams();
     const property = properties.find((p) => p.id === Number(id));
+
+    const [reviews, setReviews] = useState([]);
+    const [isLoadingReviews, setIsLoadingReviews] = useState(true);
+    const [averageRating, setAverageRating] = useState(property?.rating || 0);
+
+    useEffect(() => {
+        if (!property) return;
+
+        setIsLoadingReviews(true);
+        // Using "property_" prefix to match our mock backend setup for now
+        getPropertyReviews(`property_${id}`)
+            .then(res => {
+                const fetchedReviews = res.data.data;
+                setReviews(fetchedReviews);
+
+                // Calculate dynamic rating
+                if (fetchedReviews.length > 0) {
+                    const total = fetchedReviews.reduce((sum, rev) => sum + rev.rating, 0);
+                    setAverageRating((total / fetchedReviews.length).toFixed(1));
+                }
+            })
+            .catch(err => console.error("Failed to fetch reviews:", err))
+            .finally(() => setIsLoadingReviews(false));
+    }, [id, property]);
 
     if (!property) {
         return (
@@ -291,38 +305,18 @@ export default function ListingDetails() {
                             </button>
                         </section>
 
-                        <section>
-                            <div className="flex items-center gap-2 mb-8">
-                                <span
-                                    className="material-symbols-outlined text-primary"
-                                    style={{ fontVariationSettings: "'FILL' 1" }}
-                                >
-                                    star
-                                </span>
-                                <span className="text-2xl font-bold">{property.rating}</span>
-                                <span className="text-slate-400">•</span>
-                                <span className="text-2xl font-bold">{property.reviewsCount} reviews</span>
+                        {isLoadingReviews ? (
+                            <div className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] p-12 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-white/50 flex flex-col items-center justify-center min-h-[400px]">
+                                <div className="w-16 h-16 border-4 border-slate-200 border-t-primary rounded-full animate-spin mb-4"></div>
+                                <p className="text-slate-500 font-medium">Loading premium verified reviews...</p>
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                {REVIEWS.map((review) => (
-                                    <div key={review.name} className="space-y-3">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center">
-                                                <span className="material-symbols-outlined text-slate-400 text-sm">person</span>
-                                            </div>
-                                            <div>
-                                                <p className="font-bold">{review.name}</p>
-                                                <p className="text-xs text-slate-500">{review.date}</p>
-                                            </div>
-                                        </div>
-                                        <p className="text-slate-600 text-sm leading-relaxed">{review.text}</p>
-                                    </div>
-                                ))}
-                            </div>
-                            <button className="mt-8 px-6 py-2.5 rounded-xl border border-slate-300 font-bold hover:bg-slate-50 transition-colors">
-                                Show all {property.reviewsCount} reviews
-                            </button>
-                        </section>
+                        ) : (
+                            <ReviewSection
+                                propertyId={`property_${id}`}
+                                reviews={reviews}
+                                rating={averageRating}
+                            />
+                        )}
                     </div>
 
                     <BookingCard property={property} />
