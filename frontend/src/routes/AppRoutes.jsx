@@ -12,6 +12,7 @@ import PropertyDetails from "../pages/PropertyDetails";
 import AdminDashboard from "../pages/AdminDashboard";
 import OwnerAnalytics from "../pages/OwnerAnalytics";
 import OwnerFinance from "../pages/OwnerFinance";
+import TenantDashboard from "../pages/TenantDashboard";
 
 export default function AppRoutes() {
     return (
@@ -29,6 +30,7 @@ export default function AppRoutes() {
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/owner/analytics" element={<OwnerAnalytics />} />
             <Route path="/owner/finance" element={<OwnerFinance />} />
+            <Route path="/tenant/dashboard" element={<TenantDashboard />} />
         </Routes>
     );
 }

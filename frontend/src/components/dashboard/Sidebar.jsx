@@ -59,7 +59,7 @@ export default function Sidebar() {
                 </button>
             </div>
 
-            {/* ── Profile Footer ──────────────────────────────── */}
+            {/* ── Profile Footer ────────────────────────────────
             <div className="p-4 border-t border-emerald-100">
                 <div className="flex items-center gap-3 px-2">
                     <img
@@ -75,7 +75,7 @@ export default function Sidebar() {
                         <span className="material-symbols-outlined text-[20px]">logout</span>
                     </button>
                 </div>
-            </div>
+            </div> */}
         </>
     );
 

@@ -56,8 +56,11 @@ export default function Login() {
             const returnedRole = res.data.data.role;
             if (returnedRole === "ADMIN") {
                 navigate("/admin/dashboard");
+            } else if (returnedRole === "OWNER") {
+                navigate("/owner/dashboard");
+            } else if (returnedRole === "TENANT") {
+                navigate("/tenant/dashboard");
             } else {
-                // Both OWNER and TENANT go to landing page first
                 navigate("/");
             }
         } catch (err) {

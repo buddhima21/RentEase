@@ -12,6 +12,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.rentease.security.CustomUserDetails;
 import com.rentease.security.JwtUtil;
 
@@ -57,6 +60,12 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
         return mapToResponse(user, null);
+    }
+
+    public List<UserResponse> getAllTenants() {
+        return userRepository.findByRole(UserRole.TENANT).stream()
+                .map(user -> mapToResponse(user, null))
+                .collect(Collectors.toList());
     }
 
     private UserResponse mapToResponse(User user, String token) {
