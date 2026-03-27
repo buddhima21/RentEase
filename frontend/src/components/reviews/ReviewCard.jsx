@@ -11,9 +11,7 @@ export default function ReviewCard({ review, onEdit, onDelete }) {
     const reviewText = review.comment || review.text || review.content || "";
     const userName = review.reviewerName || review.user || "Verified Resident";
     const avatarUrl = review.avatar || `https://ui-avatars.com/api/?name=${userName}&background=0d9488&color=fff`;
-    const dateStr = review.createdAt 
-        ? new Date(review.createdAt).toLocaleString("en-LK", { timeZone: "Asia/Colombo", month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true }) 
-        : (review.date || "Recently");
+    const dateStr = review.createdAt ? new Date(review.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : (review.date || "Recently");
 
     const maxLength = 160;
     const shouldTruncate = reviewText.length > maxLength;
@@ -112,9 +110,9 @@ export default function ReviewCard({ review, onEdit, onDelete }) {
                 )}
             </div>
 
-            {/* Admin/Owner Response */}
+            {/* Admin Response (Mock display) */}
             {
-                (review.ownerReply || review.reply) && (
+                review.reply && (
                     <div className="mt-6 bg-gradient-to-br from-slate-50 to-white p-5 rounded-2xl border border-slate-100/80 relative z-10 shadow-sm">
                         <div className="flex items-center gap-2 mb-2">
                             <div className="bg-[#0d9488]/10 w-7 h-7 rounded-full flex items-center justify-center">
@@ -123,7 +121,7 @@ export default function ReviewCard({ review, onEdit, onDelete }) {
                             <span className="text-xs font-black text-slate-800 uppercase tracking-widest text-[#0d9488]">Property Owner</span>
                         </div>
                         <p className="text-sm text-slate-600 italic font-medium pl-9">
-                            "{review.ownerReply || review.reply}"
+                            "{review.reply}"
                         </p>
                     </div>
                 )

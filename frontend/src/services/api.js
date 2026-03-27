@@ -12,20 +12,7 @@ const API = axios.create({
 });
 
 API.interceptors.request.use((req) => {
-    let token = localStorage.getItem('token');
-    if (!token) {
-        const userStr = localStorage.getItem('user');
-        if (userStr) {
-            try {
-                const userObj = JSON.parse(userStr);
-                if (userObj && userObj.token) {
-                    token = userObj.token;
-                }
-            } catch (e) {
-                // ignore parse error
-            }
-        }
-    }
+    const token = localStorage.getItem('token');
     if (token) {
         req.headers.Authorization = `Bearer ${token}`;
     }
@@ -47,19 +34,11 @@ export const signupUser = (data) => API.post("/api/auth/signup", data);
 export const loginUser = (data) => API.post("/api/auth/login", data);
 
 /**
- * Fetch approved reviews for a specific property (supports getting all reviews too).
+ * Fetch approved reviews for a specific property.
  * @param {string} propertyId 
- * @param {boolean} onlyApproved 
  * @returns {Promise} Axios response
  */
-export const getPropertyReviews = (propertyId, onlyApproved = true) => API.get(`/api/v1/reviews/property/${propertyId}?onlyApproved=${onlyApproved}`);
-
-/**
- * Fetch properties by owner.
- * @param {string} ownerId 
- * @returns {Promise} Axios response
- */
-export const getOwnerProperties = (ownerId) => API.get(`/api/v1/properties/owner/${ownerId}`);
+export const getPropertyReviews = (propertyId) => API.get(`/api/v1/reviews/property/${propertyId}?onlyApproved=true`);
 
 /**
  * Submit a new property review (Starts as PENDING).
@@ -75,20 +54,12 @@ export const submitReview = (data) => API.post("/api/v1/reviews", data);
 export const getPendingReviews = () => API.get(`/api/v1/reviews/status/PENDING`);
 
 /**
- * Update the status of a review. (Requires Admin or Owner)
+ * Update the status of a review. (Requires Admin)
  * @param {string} reviewId 
  * @param {string} status 'APPROVED' | 'REJECTED'
  * @returns {Promise} Axios response
  */
 export const updateReviewStatus = (reviewId, status) => API.put(`/api/v1/reviews/${reviewId}/status?status=${status}`);
-
-/**
- * Reply to a review. (Requires Owner)
- * @param {string} reviewId 
- * @param {string} reply
- * @returns {Promise} Axios response
- */
-export const replyToReview = (reviewId, reply) => API.put(`/api/v1/reviews/${reviewId}/reply`, { reply });
 
 /**
  * Edit an existing review. (Requires Author)

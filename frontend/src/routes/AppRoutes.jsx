@@ -11,7 +11,6 @@ import ListingDetails from "../pages/ListingDetails";
 import PropertyDetails from "../pages/PropertyDetails";
 import AdminDashboard from "../pages/AdminDashboard";
 import OwnerAnalytics from "../pages/OwnerAnalytics";
-import OwnerReviews from "../pages/OwnerReviews";
 
 export default function AppRoutes() {
     return (
@@ -28,7 +27,6 @@ export default function AppRoutes() {
             <Route path="/owner/properties" element={<MyProperties />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/owner/analytics" element={<OwnerAnalytics />} />
-            <Route path="/owner/reviews" element={<OwnerReviews />} />
         </Routes>
     );
 }

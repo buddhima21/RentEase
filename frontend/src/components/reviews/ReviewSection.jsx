@@ -1,6 +1,6 @@
 import RatingOverview from "./RatingOverview";
 import ReviewCard from "./ReviewCard";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import WriteReviewModal from "./WriteReviewModal";
 import { submitReview, updateReview, deleteReview } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
@@ -10,11 +10,6 @@ export default function ReviewSection({ propertyId, reviews, rating }) {
     const [showModal, setShowModal] = useState(false);
     const [editingReview, setEditingReview] = useState(null);
     const [allReviews, setAllReviews] = useState(reviews);
-    
-    // Sync internal state with prop updates
-    useEffect(() => {
-        setAllReviews(reviews);
-    }, [reviews]);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState(false);
     const { user } = useAuth();
@@ -30,7 +25,6 @@ export default function ReviewSection({ propertyId, reviews, rating }) {
     }
 
     function handleEditClick(reviewData) {
-        console.log("Editing review data:", reviewData);
         setEditingReview(reviewData);
         setShowModal(true);
     }
@@ -42,13 +36,10 @@ export default function ReviewSection({ propertyId, reviews, rating }) {
 
     async function handleReviewSubmit(newReview) {
         setIsSubmitting(true);
-        console.log("Submitting review. editingReview:", editingReview);
         try {
             if (editingReview) {
                 // UPDATE logic
                 await updateReview(editingReview.id, {
-                    propertyId: propertyId,
-                    reviewerId: user.id,
                     rating: newReview.rating,
                     comment: newReview.review,
                     photos: newReview.photo ? [newReview.photo] : [],
@@ -82,7 +73,6 @@ export default function ReviewSection({ propertyId, reviews, rating }) {
     }
 
     async function handleReviewDelete(reviewId) {
-        console.log("Deleting review. ID:", reviewId);
         try {
             await deleteReview(reviewId);
             setAllReviews(prev => prev.filter(r => r.id !== reviewId));
@@ -129,14 +119,14 @@ export default function ReviewSection({ propertyId, reviews, rating }) {
                 </div>
             )}
 
-            <div className="grid lg:grid-cols-12 gap-6 lg:gap-8 relative z-10">
+            <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 relative z-10">
                 {/* Rating Overview (Left Col) */}
-                <div className="lg:col-span-5 lg:sticky lg:top-8 h-fit">
+                <div className="lg:col-span-4 lg:sticky lg:top-8 h-fit">
                     <RatingOverview rating={rating} totalReviews={allReviews.length > 0 ? allReviews.length : 2} />
                 </div>
 
                 {/* Review List (Right Col) */}
-                <div className="lg:col-span-7 flex flex-col gap-6">
+                <div className="lg:col-span-8 flex flex-col gap-6">
                     {allReviews.length > 0 ? (
                         allReviews.map((review) => (
                             <ReviewCard
@@ -147,29 +137,48 @@ export default function ReviewSection({ propertyId, reviews, rating }) {
                             />
                         ))
                     ) : (
-                        <div className="flex flex-col flex-1 items-center justify-center p-12 text-center bg-white/50 backdrop-blur-md rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden h-full min-h-[400px]">
-                            {/* Decorative background circle */}
-                            <div className="absolute w-40 h-40 bg-[#0d9488]/5 rounded-full blur-3xl pointer-events-none"></div>
-                            
-                            <div className="w-20 h-20 bg-slate-50 flex items-center justify-center rounded-full mb-6 relative z-10 border border-slate-100 shadow-sm">
-                                <span className="material-symbols-outlined text-4xl text-slate-300">rate_review</span>
-                            </div>
-                            
-                            <h3 className="text-xl font-bold text-slate-800 mb-2 relative z-10">No Reviews Yet</h3>
-                            <p className="text-slate-500 max-w-sm mx-auto leading-relaxed relative z-10">
-                                This property doesn't have any reviews right now. Be the first to share your experience and help future students!
-                            </p>
-                            
-                            {user && user.role === "TENANT" && (
-                                <button 
-                                    onClick={handleWriteReviewClick}
-                                    className="mt-6 font-bold text-[#0d9488] hover:text-[#0f766e] flex items-center gap-1.5 px-4 py-2 bg-[#0d9488]/5 hover:bg-[#0d9488]/10 rounded-xl transition-colors relative z-10"
-                                >
-                                    <span className="material-symbols-outlined text-sm">edit</span>
-                                    Write the first review
-                                </button>
-                            )}
-                        </div>
+                        <>
+                            <ReviewCard
+                                key="mock_1"
+                                review={{
+                                    reviewerId: "usr_ai492",
+                                    reviewerName: "Elena Rostova",
+                                    rating: 5,
+                                    comment: "The smart-home integration here is flawless. Everything from the biometric entry to the AI-optimized climate control makes living here feel truly next-gen. Perfect for remote tech workers.",
+                                    createdAt: new Date(Date.now() - 86400000 * 2).toISOString()
+                                }}
+                            />
+                            <ReviewCard
+                                key="mock_2"
+                                review={{
+                                    reviewerId: "usr_dev88",
+                                    reviewerName: "Marcus Chen",
+                                    rating: 4.5,
+                                    comment: "Incredible gigabit fiber connectivity and dedicated co-working spaces on the ground floor. The community dashboard app is super responsive. Dropped half a star because the VR lounge gets crowded on weekends.",
+                                    createdAt: new Date(Date.now() - 86400000 * 5).toISOString()
+                                }}
+                            />
+                            <ReviewCard
+                                key="mock_3"
+                                review={{
+                                    reviewerId: "usr_ds302",
+                                    reviewerName: "Sarah Jenkins",
+                                    rating: 5,
+                                    comment: "The automated drone delivery pad on the balcony is a game-changer for my meal prep subscriptions. Stunning minimalist aesthetic with sustainable aerogel insulation—my energy footprint has never been lower.",
+                                    createdAt: new Date(Date.now() - 86400000 * 12).toISOString()
+                                }}
+                            />
+                            <ReviewCard
+                                key="mock_4"
+                                review={{
+                                    reviewerId: "usr_cyb11",
+                                    reviewerName: "David O. Reynolds",
+                                    rating: 4,
+                                    comment: "Secure, quiet, and hyper-modern. The holographic concierge took some getting used to, but the 24/7 automated security protocols give me total peace of mind. Highly recommended.",
+                                    createdAt: new Date(Date.now() - 86400000 * 24).toISOString()
+                                }}
+                            />
+                        </>
                     )}
                 </div>
             </div>

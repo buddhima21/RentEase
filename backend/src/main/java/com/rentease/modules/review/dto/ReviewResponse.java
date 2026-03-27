@@ -18,7 +18,6 @@ public class ReviewResponse {
     private String id;
     private String propertyId;
     private String reviewerId;
-    private String reviewerName;
     private int rating;
     private String comment;
     private List<String> photos;
