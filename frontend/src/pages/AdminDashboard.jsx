@@ -4,43 +4,62 @@ import AdminSidebar from "../components/admin/dashboard/AdminSidebar";
 import AdminStatCard from "../components/admin/dashboard/AdminStatCard";
 import AdminActivityList from "../components/admin/dashboard/AdminActivityList";
 import ReviewModeration from "../components/admin/ReviewModeration";
+import AdminNotificationsBell from "../components/admin/dashboard/AdminNotificationsBell";
+import AdminProfileDropdown from "../components/admin/dashboard/AdminProfileDropdown";
 import { adminStatsData, platformOverview } from "../data/adminDashboardData";
+import { getAllPropertiesForAdmin } from "../services/api";
 
 /**
  * AdminDashboard — Full-featured admin dashboard page.
  * Route: /admin/dashboard
  * Auth: Guards using adminToken/adminUser from localStorage (separate from normal user auth).
- * Theme: Green (#1DBC60)
+ * Theme: Green (#26C289)
  */
 export default function AdminDashboard() {
     const [adminUser, setAdminUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
+    const [properties, setProperties] = useState([]);
 
-    // Hydrate admin user from localStorage
+    // Hydrate admin user from localStorage and fetch properties
     useEffect(() => {
-        try {
-            const token = localStorage.getItem("adminToken");
-            const stored = localStorage.getItem("adminUser");
-            if (token && stored) {
-                const parsed = JSON.parse(stored);
-                if (parsed.role === "ADMIN") {
-                    setAdminUser(parsed);
+        const checkAuthAndFetch = async () => {
+            let isAdmin = false;
+            try {
+                const token = localStorage.getItem("adminToken");
+                const stored = localStorage.getItem("adminUser");
+                if (token && stored) {
+                    const parsed = JSON.parse(stored);
+                    if (parsed.role === "ADMIN") {
+                        setAdminUser(parsed);
+                        isAdmin = true;
+                    }
+                }
+            } catch {
+                localStorage.removeItem("adminToken");
+                localStorage.removeItem("adminUser");
+            }
+
+            if (isAdmin) {
+                try {
+                    const res = await getAllPropertiesForAdmin();
+                    if (res.data.success) {
+                        setProperties(res.data.data);
+                    }
+                } catch (err) {
+                    console.error("Failed to fetch properties:", err);
                 }
             }
-        } catch {
-            localStorage.removeItem("adminToken");
-            localStorage.removeItem("adminUser");
-        } finally {
             setLoading(false);
-        }
+        };
+        checkAuthAndFetch();
     }, []);
 
     // Show nothing while checking auth
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-[#f6f8f7]">
-                <span className="material-symbols-outlined animate-spin text-4xl text-[#1DBC60]">progress_activity</span>
+                <span className="material-symbols-outlined animate-spin text-4xl text-[#26C289]">progress_activity</span>
             </div>
         );
     }
@@ -50,10 +69,18 @@ export default function AdminDashboard() {
         return <Navigate to="/admin/login" replace />;
     }
 
+    const totalProperties = properties.filter(p => p.status !== 'DELETED').length;
+    const activeListings = properties.filter(
+        p => p.status === 'APPROVED' || p.status === 'RENTED'
+    ).length;
+    const pendingProperties = properties.filter(
+        p => p.status === 'PENDING_APPROVAL' || p.status === 'PENDING_DELETE'
+    ).length;
+
     return (
         <div
-            className="flex min-h-screen bg-[#f6f8f7]"
-            style={{ "--color-primary": "#1DBC60" }}
+            className="flex h-screen overflow-hidden bg-[#f6f8f7]"
+            style={{ "--color-primary": "#26C289" }}
         >
             {/* ── Sidebar ─────────────────────────────────────── */}
             <AdminSidebar />
@@ -75,29 +102,18 @@ export default function AdminDashboard() {
                             <input
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2.5 bg-[#f6f8f7] border border-emerald-100 rounded-lg focus:ring-2 focus:ring-[#1DBC60] text-sm placeholder-slate-400 transition-all"
+                                className="w-full pl-10 pr-4 py-2.5 bg-[#f6f8f7] border border-emerald-100 rounded-lg focus:ring-2 focus:ring-[#26C289] text-sm placeholder-slate-400 transition-all"
                                 placeholder="Search platform..."
                                 type="text"
                             />
                         </div>
 
                         {/* Notifications */}
-                        <button className="relative p-2 rounded-full hover:bg-emerald-50 transition-colors text-slate-500 hover:text-slate-700">
-                            <span className="material-symbols-outlined text-[22px]">notifications</span>
-                            <span className="absolute top-1 right-1 w-2 h-2 bg-[#1DBC60] rounded-full" />
-                        </button>
+                        <AdminNotificationsBell />
 
-                        {/* Admin Avatar */}
-                        <div className="flex items-center gap-2">
-                            <img
-                                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(adminUser.fullName || "Admin")}&background=1DBC60&color=fff&bold=true&size=40`}
-                                alt="Admin"
-                                className="w-10 h-10 rounded-full ring-2 ring-[#1DBC60]/30"
-                            />
-                            <div className="hidden md:block">
-                                <p className="text-sm font-bold text-slate-900 leading-none">{adminUser.fullName || adminUser.email}</p>
-                                <p className="text-xs text-slate-500 mt-0.5">Administrator</p>
-                            </div>
+                        {/* Admin Avatar & Dropdown */}
+                        <div className="pl-2 lg:pl-4 border-l border-emerald-100/50 flex">
+                            {adminUser && <AdminProfileDropdown adminUser={adminUser} />}
                         </div>
                     </div>
                 </header>
@@ -112,7 +128,7 @@ export default function AdminDashboard() {
                                 Welcome back, {adminUser.fullName || "Admin"}! 👋
                             </h1>
                             <p className="text-emerald-100 text-sm lg:text-base max-w-xl">
-                                Here's an overview of the platform activity. You have <span className="font-bold text-white">12 pending reviews</span> and <span className="font-bold text-white">5 new user registrations</span> today.
+                                Here's an overview of the platform activity. You have <span className="font-bold text-white">{pendingProperties} pending property approvals</span> and <span className="font-bold text-white">5 new user registrations</span> today.
                             </p>
                         </div>
                         {/* Decorative circles */}
@@ -122,9 +138,17 @@ export default function AdminDashboard() {
 
                     {/* ── KPI Stats Grid ──────────────────────────── */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
-                        {adminStatsData.map((stat, i) => (
-                            <AdminStatCard key={i} {...stat} />
-                        ))}
+                        {adminStatsData.map((stat, i) => {
+                            let value = stat.value;
+                            let label = stat.label;
+                            if (i === 1) {
+                                value = totalProperties.toString();
+                            } else if (i === 2) {
+                                label = "Pending Approvals";
+                                value = pendingProperties.toString();
+                            }
+                            return <AdminStatCard key={i} {...stat} label={label} value={value} />;
+                        })}
                     </div>
 
                     {/* ── Quick Overview Cards ────────────────────── */}
@@ -140,7 +164,7 @@ export default function AdminDashboard() {
                             <span className="material-symbols-outlined text-emerald-600 bg-emerald-50 p-2 rounded-lg">check_circle</span>
                             <div>
                                 <p className="text-xs text-slate-500 font-medium">Active Listings</p>
-                                <p className="text-lg font-extrabold">{platformOverview.activeListings}</p>
+                                <p className="text-lg font-extrabold">{activeListings}</p>
                             </div>
                         </div>
                         <div className="bg-white rounded-xl border border-slate-100 p-4 flex items-center gap-3">

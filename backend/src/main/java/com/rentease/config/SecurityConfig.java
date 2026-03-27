@@ -52,9 +52,23 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
                 .authorizeHttpRequests(auth -> auth
+                        // ── Public endpoints (no auth needed) ──
+                        .requestMatchers("/api/v1/public/**").permitAll()
+                        .requestMatchers("/api/v1/auth/**").permitAll()
+
+                        // ── Owner endpoints ──
+                        .requestMatchers("/api/v1/owner/**").hasRole("OWNER")
+                        .requestMatchers(HttpMethod.PUT, "/api/properties/**").hasRole("OWNER")
+
+                        // ── Admin endpoints ──
+                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+
+                        // ── Review endpoints (existing) ──
                         .requestMatchers(HttpMethod.POST, "/api/v1/reviews/**").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/v1/reviews/**").authenticated()
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/reviews/**").authenticated()
+
+                        // ── All other requests ──
                         .anyRequest().permitAll())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

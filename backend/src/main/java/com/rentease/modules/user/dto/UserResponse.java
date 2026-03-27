@@ -20,6 +20,8 @@ public class UserResponse {
     private String phone;
     private UserRole role;
     private String profileImageUrl;
+    private String bio;
+    private String location;
     private LocalDateTime createdAt;
     private String token;
 }

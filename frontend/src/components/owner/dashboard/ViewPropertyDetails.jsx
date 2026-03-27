@@ -1,16 +1,107 @@
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import UserDropdown from "../../UserDropdown";
+import OwnerNotificationsBell from "./OwnerNotificationsBell";
 import { useAuth } from "../../../context/AuthContext";
 import { ownerProfile } from "../../../data/ownerDashboardData";
+import { getOwnerPropertyById } from "../../../services/api";
 
 export default function ViewPropertyDetails() {
     const { id } = useParams();
     const navigate = useNavigate();
     const { user, logout } = useAuth();
+    const [property, setProperty] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [activeImageIndex, setActiveImageIndex] = useState(0);
+    const formatLkr = useMemo(() => {
+        const formatter = new Intl.NumberFormat("en-LK");
+        return (value) => formatter.format(Number(value) || 0);
+    }, []);
+
+    const propertyImages = useMemo(() => {
+        const imageUrls = Array.isArray(property?.imageUrls) ? property.imageUrls : [];
+        const images = Array.isArray(property?.images) ? property.images : [];
+        const imageObjUrls = images
+            .map((img) => (typeof img === "string" ? img : img?.url))
+            .filter(Boolean);
+
+        const merged = [...imageUrls, ...imageObjUrls]
+            .filter((url) => typeof url === "string" && url.trim().length > 0);
+
+        return Array.from(new Set(merged));
+    }, [property]);
+
+    useEffect(() => {
+        setActiveImageIndex(0);
+    }, [id]);
+
+    useEffect(() => {
+        if (activeImageIndex >= propertyImages.length) {
+            setActiveImageIndex(0);
+        }
+    }, [activeImageIndex, propertyImages.length]);
+
+    useEffect(() => {
+        const loadProperty = async () => {
+            try {
+                const response = await getOwnerPropertyById(id);
+                setProperty(response.data?.data || null);
+            } catch (error) {
+                alert(error.response?.data?.message || "Failed to load property details");
+                navigate("/owner/properties");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadProperty();
+    }, [id, navigate]);
+
+    const statusLabel = useMemo(() => {
+        if (!property?.status) return "Draft";
+        switch (property.status) {
+            case "APPROVED":
+                return "Published";
+            case "PENDING_APPROVAL":
+                return "Pending";
+            case "PENDING_DELETE":
+                return "Pending Delete";
+            case "REJECTED":
+                return "Rejected";
+            default:
+                return "Draft";
+        }
+    }, [property]);
+
+    const amenityDefinitions = [
+        { key: "electricity", icon: "bolt", label: "Electricity" },
+        { key: "wifi", icon: "wifi", label: "WiFi" },
+        { key: "ac", icon: "ac_unit", label: "A/C" },
+        { key: "furnished", icon: "chair", label: "Furnished" },
+        { key: "parking", icon: "local_parking", label: "Parking" },
+        { key: "kitchen", icon: "countertops", label: "Kitchen" },
+        { key: "laundry", icon: "local_laundry_service", label: "Laundry" },
+        { key: "water", icon: "water_drop", label: "Water" },
+    ];
+
+    const activeAmenities = useMemo(() => {
+        const existing = (property?.amenities || []).map((item) => item.toLowerCase());
+        return amenityDefinitions.filter((item) => existing.includes(item.key));
+    }, [property]);
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen grid place-items-center bg-[#f6f8f7]">
+                <p className="text-slate-600 font-semibold">Loading property details...</p>
+            </div>
+        );
+    }
+
+    if (!property) return null;
 
     return (
-        <div className="flex min-h-screen bg-[#f6f8f7]" style={{ "--color-primary": "#1DBC60" }}>
+        <div className="flex min-h-screen bg-[#f6f8f7]" style={{ "--color-primary": "#26C289" }}>
             <Sidebar />
             <main className="flex-1 flex flex-col overflow-hidden min-w-0">
                 {/* ── Top Bar ───────────────────────────────────── */}
@@ -27,9 +118,7 @@ export default function ViewPropertyDetails() {
                         <h2 className="text-xl font-bold tracking-tight text-slate-800 hidden sm:block">Property Details</h2>
                     </div>
                     <div className="flex items-center gap-4">
-                        <button className="p-2 text-slate-500 hover:bg-emerald-50 rounded-full transition-colors flex items-center justify-center">
-                            <span className="material-symbols-outlined">notifications</span>
-                        </button>
+                        <OwnerNotificationsBell />
                         {user ? (
                             <UserDropdown user={user} onLogout={logout} />
                         ) : (
@@ -50,30 +139,31 @@ export default function ViewPropertyDetails() {
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-[100px] -mr-10 -mt-10 pointer-events-none"></div>
                                 <div>
                                     <div className="flex flex-wrap items-center gap-3 mb-4">
-                                        <span className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase">Active/Occupied</span>
-                                        <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase">ID: RE-40291</span>
+                                        <span className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase">{statusLabel}</span>
+                                        <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase">ID: {property.id}</span>
                                     </div>
-                                    <h1 className="text-3xl lg:text-4xl font-black text-slate-900 tracking-tight mb-2">The Emerald Suite - Unit 402</h1>
+                                    <h1 className="text-3xl lg:text-4xl font-black text-slate-900 tracking-tight mb-2">{property.title}</h1>
                                     <p className="text-slate-500 flex items-start sm:items-center gap-2 text-sm sm:text-base">
                                         <span className="material-symbols-outlined text-primary text-[20px] shrink-0">location_on</span>
-                                        422 Heritage Way, University District, North Wing, 90210
+                                        {property.address}
                                     </p>
                                 </div>
                                 <div className="mt-8 flex flex-wrap gap-3 relative z-10">
-                                    <button 
-                                        onClick={() => navigate(`/owner/properties/${id}/edit`)}
-                                        className="bg-primary hover:bg-emerald-600 text-white px-6 py-3 rounded-lg font-bold text-sm flex items-center gap-2 shadow-sm transition-all active:scale-[0.98] w-full sm:w-auto justify-center"
-                                    >
-                                        <span className="material-symbols-outlined text-[20px]">edit</span>
-                                        Edit Property
-                                    </button>
-                                    <button className="bg-slate-100 text-slate-700 px-6 py-3 rounded-lg font-bold text-sm flex items-center gap-2 hover:bg-slate-200 transition-all w-full sm:w-auto justify-center">
-                                        <span className="material-symbols-outlined text-[20px]">calendar_month</span>
-                                        Manage Bookings
-                                    </button>
-                                    <button className="sm:ml-auto text-red-600 font-bold text-sm px-4 py-3 hover:bg-red-50 rounded-lg transition-colors w-full sm:w-auto justify-center">
-                                        Deactivate Listing
-                                    </button>
+                                    {user?.role !== "ADMIN" && (
+                                        <>
+                                            <button 
+                                                onClick={() => navigate(`/edit-property/${id}`)}
+                                                className="bg-primary hover:bg-emerald-600 text-white px-6 py-3 rounded-lg font-bold text-sm flex items-center gap-2 shadow-sm transition-all active:scale-[0.98] w-full sm:w-auto justify-center"
+                                            >
+                                                <span className="material-symbols-outlined text-[20px]">edit</span>
+                                                Edit Property
+                                            </button>
+                                            <button className="bg-slate-100 text-slate-700 px-6 py-3 rounded-lg font-bold text-sm flex items-center gap-2 hover:bg-slate-200 transition-all w-full sm:w-auto justify-center">
+                                                <span className="material-symbols-outlined text-[20px]">calendar_month</span>
+                                                Manage Bookings
+                                            </button>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                             
@@ -89,21 +179,112 @@ export default function ViewPropertyDetails() {
                                         <div>
                                             <p className="text-slate-400 text-xs mb-1 font-medium">Monthly Rent</p>
                                             <div className="flex items-baseline gap-1.5">
-                                                <span className="text-3xl font-black tracking-tight text-white">$1250</span>
-                                                <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">USD</span>
+                                                <span className="text-3xl font-black tracking-tight text-white">LKR {formatLkr(property.price)}</span>
                                             </div>
                                         </div>
                                         <div className="h-[1px] bg-slate-800"></div>
                                         <div>
                                             <p className="text-slate-400 text-xs mb-1 font-medium">Security Deposit</p>
                                             <div className="flex items-baseline gap-1.5">
-                                                <span className="text-2xl font-bold tracking-tight text-slate-200">$1800</span>
-                                                <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider">USD</span>
+                                                <span className="text-2xl font-bold tracking-tight text-slate-200">LKR {formatLkr(property.securityDeposit ?? 0)}</span>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                        </div>
+
+                        {/* Photos */}
+                        <div className="bg-white rounded-xl p-6 lg:p-8 shadow-sm border border-emerald-100 mb-8">
+                            <div className="flex items-center justify-between gap-4 mb-6">
+                                <p className="text-slate-500 text-[10px] font-bold tracking-widest uppercase flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-[16px]">photo_library</span>
+                                    Property Photos
+                                </p>
+                                <span className="text-xs font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full">
+                                    {propertyImages.length} photos
+                                </span>
+                            </div>
+
+                            {propertyImages.length === 0 ? (
+                                <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-10 flex flex-col items-center justify-center text-center">
+                                    <span className="material-symbols-outlined text-slate-300 text-6xl">image</span>
+                                    <p className="mt-3 text-sm font-bold text-slate-600">No photos uploaded for this property.</p>
+                                    <p className="mt-1 text-xs text-slate-500">Add photos from “Edit Property” to improve your listing.</p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                                    <div className="lg:col-span-2">
+                                        <div className="relative rounded-xl overflow-hidden border border-slate-200 bg-slate-100 aspect-[16/10]">
+                                            <img
+                                                src={propertyImages[activeImageIndex]}
+                                                alt={`${property.title || "Property"} photo ${activeImageIndex + 1}`}
+                                                className="w-full h-full object-cover"
+                                                loading="lazy"
+                                            />
+                                            <div className="absolute bottom-3 right-3 bg-black/55 backdrop-blur-md px-2.5 py-1.5 rounded-lg flex items-center gap-1.5">
+                                                <span className="material-symbols-outlined text-white text-sm">photo</span>
+                                                <span className="text-[11px] text-white font-bold tracking-wide">
+                                                    {activeImageIndex + 1} / {propertyImages.length}
+                                                </span>
+                                            </div>
+
+                                            {propertyImages.length > 1 && (
+                                                <>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setActiveImageIndex((prev) => (prev - 1 + propertyImages.length) % propertyImages.length)}
+                                                        className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white shadow-sm border border-slate-200 flex items-center justify-center text-slate-700 active:scale-[0.98]"
+                                                        aria-label="Previous photo"
+                                                    >
+                                                        <span className="material-symbols-outlined">chevron_left</span>
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setActiveImageIndex((prev) => (prev + 1) % propertyImages.length)}
+                                                        className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white shadow-sm border border-slate-200 flex items-center justify-center text-slate-700 active:scale-[0.98]"
+                                                        aria-label="Next photo"
+                                                    >
+                                                        <span className="material-symbols-outlined">chevron_right</span>
+                                                    </button>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="lg:col-span-1">
+                                        <div className="grid grid-cols-3 lg:grid-cols-2 gap-3">
+                                            {propertyImages.slice(0, 8).map((url, idx) => {
+                                                const isActive = idx === activeImageIndex;
+                                                return (
+                                                    <button
+                                                        key={`${url}-${idx}`}
+                                                        type="button"
+                                                        onClick={() => setActiveImageIndex(idx)}
+                                                        className={[
+                                                            "relative rounded-xl overflow-hidden border bg-slate-100 aspect-square transition-all",
+                                                            isActive ? "border-primary ring-2 ring-emerald-200" : "border-slate-200 hover:border-emerald-200",
+                                                        ].join(" ")}
+                                                        aria-label={`View photo ${idx + 1}`}
+                                                    >
+                                                        <img
+                                                            src={url}
+                                                            alt={`${property.title || "Property"} thumbnail ${idx + 1}`}
+                                                            className="w-full h-full object-cover"
+                                                            loading="lazy"
+                                                        />
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                        {propertyImages.length > 8 && (
+                                            <p className="mt-4 text-xs text-slate-500 font-medium">
+                                                Showing 8 of {propertyImages.length} photos. Use arrows to browse.
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         {/* Detail Grid */}
@@ -123,7 +304,7 @@ export default function ViewPropertyDetails() {
                                             </div>
                                             <div>
                                                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Category</p>
-                                                <p className="font-bold text-slate-900 text-sm">Luxury Apartment</p>
+                                                <p className="font-bold text-slate-900 text-sm">{property.propertyType}</p>
                                             </div>
                                         </div>
                                         <div className="flex gap-4 items-center">
@@ -132,7 +313,7 @@ export default function ViewPropertyDetails() {
                                             </div>
                                             <div>
                                                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-0.5">Type</p>
-                                                <p className="font-bold text-slate-900 text-sm">Multi-Unit Residential</p>
+                                                <p className="font-bold text-slate-900 text-sm">{property.city}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -140,7 +321,7 @@ export default function ViewPropertyDetails() {
                                     <div className="pt-6 border-t border-slate-100">
                                         <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-3">Description</p>
                                         <p className="text-slate-600 leading-relaxed text-sm">
-                                            Experience elevated living in the heart of the University District. The Emerald Suite Unit 402 offers a refined architectural aesthetic with high ceilings, floor-to-ceiling windows overlooking the north wing, and designer finishes. This premium unit is optimized for graduate students or faculty members seeking a quiet, sophisticated sanctuary with all modern conveniences included.
+                                            {property.description}
                                         </p>
                                     </div>
                                 </div>
@@ -152,21 +333,16 @@ export default function ViewPropertyDetails() {
                                         Premium Amenities
                                     </p>
                                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                        {['wifi', 'ac_unit', 'chair', 'local_parking', 'countertops', 'local_laundry_service', 'water_drop', 'security'].map(icon => {
-                                            const labels = {
-                                                'wifi': 'WiFi',
-                                                'ac_unit': 'A/C',
-                                                'chair': 'Furnished',
-                                                'local_parking': 'Parking',
-                                                'countertops': 'Kitchen',
-                                                'local_laundry_service': 'Laundry',
-                                                'water_drop': 'Water',
-                                                'security': '24/7 Security'
-                                            };
+                                        {activeAmenities.length === 0 && (
+                                            <p className="col-span-full text-sm text-slate-500 font-medium">
+                                                No amenities listed for this property.
+                                            </p>
+                                        )}
+                                        {activeAmenities.map((amenity) => {
                                             return (
-                                                <div key={icon} className="bg-slate-50 p-4 rounded-lg flex flex-col items-center justify-center gap-2 hover:bg-emerald-50 transition-colors border border-slate-100 hover:border-emerald-200">
-                                                    <span className="material-symbols-outlined text-primary text-[28px]">{icon}</span>
-                                                    <span className="text-xs font-bold text-slate-700">{labels[icon]}</span>
+                                                <div key={amenity.key} className="bg-slate-50 p-4 rounded-lg flex flex-col items-center justify-center gap-2 hover:bg-emerald-50 transition-colors border border-slate-100 hover:border-emerald-200">
+                                                    <span className="material-symbols-outlined text-primary text-[28px]">{amenity.icon}</span>
+                                                    <span className="text-xs font-bold text-slate-700">{amenity.label}</span>
                                                 </div>
                                             );
                                         })}
@@ -179,30 +355,42 @@ export default function ViewPropertyDetails() {
                                 {/* Owner Profile Card */}
                                 <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-emerald-100">
                                     <div className="h-20 bg-slate-900 flex items-end px-6 pb-4 relative">
-                                        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "linear-gradient(45deg, #1DBC60 0%, transparent 100%)" }}></div>
+                                        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: "linear-gradient(45deg, #26C289 0%, transparent 100%)" }}></div>
                                         <p className="text-primary text-[10px] font-bold tracking-widest uppercase relative z-10">Verified Owner</p>
                                     </div>
                                     <div className="px-6 pb-6 -mt-10 relative z-10">
-                                        <img 
-                                            alt="Sarah Jenkins" 
-                                            className="w-20 h-20 rounded-2xl object-cover border-4 border-white mb-4 shadow-sm bg-white" 
-                                            src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-4.0.3&auto=format&fit=crop&w=256&q=80"
-                                        />
-                                        <h3 className="text-lg font-bold text-slate-900">Sarah Jenkins</h3>
-                                        <p className="text-xs text-slate-500 font-medium mb-6">Member since Jan 2021</p>
+                                        <div className="w-20 h-20 rounded-2xl border-4 border-white mb-4 shadow-sm bg-white overflow-hidden">
+                                            {(user?.profileImageUrl || user?.avatar) ? (
+                                                <img 
+                                                    src={user.profileImageUrl || user.avatar} 
+                                                    alt={user.fullName || "Owner"}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            ) : (
+                                                <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-2xl">
+                                                    {user?.fullName?.charAt(0) || "O"}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <h3 className="text-lg font-bold text-slate-900">{user?.fullName || property.ownerName || "Property Owner"}</h3>
+                                        <p className="text-xs text-slate-500 font-medium mb-6">RentEase Partner</p>
                                         
                                         <div className="space-y-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
                                                     <span className="material-symbols-outlined text-primary text-[18px]">mail</span>
                                                 </div>
-                                                <span className="text-sm text-slate-700 font-medium truncate">s.jenkins@rentez.com</span>
+                                                <span className="text-sm text-slate-700 font-medium truncate" title={user?.email || property.ownerEmail}>
+                                                    {user?.email || property.ownerEmail || "Email not available"}
+                                                </span>
                                             </div>
                                             <div className="flex items-center gap-3">
                                                 <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center shrink-0">
                                                     <span className="material-symbols-outlined text-primary text-[18px]">call</span>
                                                 </div>
-                                                <span className="text-sm text-slate-700 font-medium">+1 (555) 902-1042</span>
+                                                <span className="text-sm text-slate-700 font-medium">
+                                                    {user?.phone || "Phone not available"}
+                                                </span>
                                             </div>
                                             
                                             <button className="w-full mt-4 py-3 rounded-lg border border-emerald-200 text-primary font-bold text-sm hover:bg-emerald-50 transition-colors active:scale-[0.98]">
@@ -223,7 +411,7 @@ export default function ViewPropertyDetails() {
                                             <img 
                                                 alt="Location Map" 
                                                 className="w-full h-full object-cover" 
-                                                src="https://images.unsplash.com/photo-1524661135-423995f22d0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+                                                src={propertyImages?.[0] || "https://images.unsplash.com/photo-1524661135-423995f22d0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"} 
                                             />
                                             <div className="absolute inset-0 flex items-center justify-center bg-black/10">
                                                 <div className="w-10 h-10 bg-primary/30 rounded-full flex items-center justify-center animate-pulse">
@@ -232,8 +420,8 @@ export default function ViewPropertyDetails() {
                                             </div>
                                         </div>
                                         <div className="mt-4">
-                                            <p className="text-sm font-bold text-slate-900">422 Heritage Way</p>
-                                            <p className="text-xs text-slate-500 mt-0.5">North Wing, University District</p>
+                                            <p className="text-sm font-bold text-slate-900">{property.address}</p>
+                                            <p className="text-xs text-slate-500 mt-0.5">{property.city}</p>
                                             <button className="mt-4 flex items-center gap-1.5 text-primary text-xs font-bold hover:text-emerald-700 transition-colors">
                                                 <span className="material-symbols-outlined text-[16px]">open_in_new</span>
                                                 Open in Google Maps

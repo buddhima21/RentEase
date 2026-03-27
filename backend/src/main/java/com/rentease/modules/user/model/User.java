@@ -35,6 +35,8 @@ public class User {
     private UserRole role = UserRole.TENANT;
 
     private String profileImageUrl;
+    private String bio;
+    private String location;
 
     @CreatedDate
     private LocalDateTime createdAt;

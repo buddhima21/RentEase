@@ -6,14 +6,6 @@ const Step2PricingAmenities = ({ formData, updateFormData, prevStep, nextStep })
     updateFormData(name, type === 'checkbox' ? checked : value);
   };
 
-  const handleUtilityChange = (e) => {
-    const { name, checked } = e.target;
-    updateFormData('utilities', {
-      ...formData.utilities,
-      [name]: checked
-    });
-  };
-
   const handleAmenityChange = (e) => {
     const { name, checked } = e.target;
     updateFormData('amenities', {
@@ -102,41 +94,6 @@ const Step2PricingAmenities = ({ formData, updateFormData, prevStep, nextStep })
           </div>
         </div>
 
-        {/* Utilities Section */}
-        <div className="space-y-3">
-          <h3 className="text-slate-900 text-lg font-extrabold flex items-center gap-2 mb-4">
-            <div className="bg-primary/10 text-primary p-1.5 rounded-lg flex items-center justify-center">
-              <span className="material-symbols-outlined text-xl">bolt</span>
-            </div>
-            Included Utilities
-          </h3>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {['electricity', 'water', 'wifi'].map((utility) => (
-              <label
-                key={utility}
-                className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
-                  formData.utilities[utility]
-                    ? 'border-primary bg-primary/5 shadow-sm shadow-primary/10'
-                    : 'border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50'
-                }`}
-              >
-                <div className="relative flex items-center">
-                  <input
-                    type="checkbox"
-                    name={utility}
-                    checked={formData.utilities[utility]}
-                    onChange={handleUtilityChange}
-                    className="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary focus:ring-offset-0 transition-all cursor-pointer"
-                  />
-                </div>
-                <span className={`font-bold capitalize ${formData.utilities[utility] ? 'text-primary' : 'text-slate-600'}`}>
-                  {utility}
-                </span>
-              </label>
-            ))}
-          </div>
-        </div>
-
         {/* Amenities Section */}
         <div className="space-y-3 pt-2">
           <h3 className="text-slate-900 text-lg font-extrabold flex items-center gap-2 mb-4">
@@ -146,7 +103,7 @@ const Step2PricingAmenities = ({ formData, updateFormData, prevStep, nextStep })
             Amenities
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {['furnished', 'ac', 'kitchen', 'parking', 'laundry'].map((amenity) => (
+            {['electricity', 'water', 'wifi', 'furnished', 'ac', 'kitchen', 'parking', 'laundry'].map((amenity) => (
               <label 
                 key={amenity} 
                 className={`flex items-center gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition-all duration-200 ${

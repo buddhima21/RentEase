@@ -20,8 +20,8 @@ export default function Bookings() {
 
     return (
         <div
-            className="flex min-h-screen bg-[#f6f8f7]"
-            style={{ "--color-primary": "#1DBC60" }}
+            className="flex h-screen overflow-hidden bg-[#f6f8f7]"
+            style={{ "--color-primary": "#26C289" }}
         >
             <Sidebar />
 

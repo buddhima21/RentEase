@@ -1,19 +1,33 @@
 import React, { useRef } from 'react';
 
-const Step3Photos = ({ formData, updateFormData, prevStep, submitForm }) => {
+const Step3Photos = ({ formData, updateFormData, prevStep, submitForm, isSubmitting }) => {
   const fileInputRef = useRef(null);
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
 
-    const newImages = files.map((file) => ({
-      file,
-      url: URL.createObjectURL(file),
-      id: Math.random().toString(36).substring(7),
-    }));
+    // Persist images as data URLs so they survive refresh and can be saved to DB as strings.
+    // (Note: this is suitable for dev/small images; for production use real file storage.)
+    const readers = files.map((file) => {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          resolve({
+            url: reader.result,
+            id: Math.random().toString(36).substring(7),
+            name: file.name,
+          });
+        };
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(file);
+      });
+    });
 
-    updateFormData('images', [...formData.images, ...newImages]);
+    Promise.all(readers).then((results) => {
+      const newImages = results.filter(Boolean);
+      updateFormData('images', [...formData.images, ...newImages]);
+    });
   };
 
   const removeImage = (id) => {
@@ -208,10 +222,11 @@ const Step3Photos = ({ formData, updateFormData, prevStep, submitForm }) => {
             <button
                 type="button"
                 onClick={submitForm}
-                className="w-full py-4 rounded-xl bg-primary text-white font-extrabold shadow-[0_8px_20px_rgb(29,188,96,0.30)] hover:bg-primary/95 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 text-base"
+                disabled={isSubmitting}
+                className="w-full py-4 rounded-xl bg-primary text-white font-extrabold shadow-[0_8px_20px_rgb(29,188,96,0.30)] hover:bg-primary/95 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 text-base disabled:opacity-70 disabled:cursor-not-allowed"
             >
-                Publish Listing
-                <span className="material-symbols-outlined text-xl">rocket_launch</span>
+                {isSubmitting ? 'Publishing...' : 'Publish Listing'}
+                {!isSubmitting && <span className="material-symbols-outlined text-xl">rocket_launch</span>}
             </button>
             <button
                 type="button"

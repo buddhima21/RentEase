@@ -1,17 +1,45 @@
 import { Link } from "react-router-dom";
 import SearchBar from "./SearchBar";
+import { useRef, useLayoutEffect } from "react";
+import gsap from "gsap";
 
 /**
  * HeroSection – Split hero with headline, subtext, search bar, and feature image.
  * Desktop: side-by-side layout. Mobile: stacked vertically.
  */
 export default function HeroSection() {
+    const heroRef = useRef(null);
+    const leftColRef = useRef(null);
+    const rightColRef = useRef(null);
+
+    useLayoutEffect(() => {
+        const ctx = gsap.context(() => {
+            const tl = gsap.timeline({ defaults: { ease: "power3.out", duration: 1 } });
+
+            tl.from(leftColRef.current.children, {
+                y: 50,
+                opacity: 0,
+                stagger: 0.2,
+                duration: 0.8
+            })
+            .from(rightColRef.current, {
+                x: 50,
+                opacity: 0,
+                scale: 0.95,
+                duration: 1
+            }, "-=0.6");
+
+        }, heroRef);
+
+        return () => ctx.revert();
+    }, []);
+
     return (
-        <section className="relative py-12 lg:py-20 px-4 overflow-hidden">
+        <section ref={heroRef} className="relative py-12 lg:py-20 px-4 overflow-hidden">
             <div className="max-w-7xl mx-auto">
                 <div className="grid lg:grid-cols-2 gap-12 items-center">
                     {/* Left Column – Text & Search */}
-                    <div className="z-10">
+                    <div ref={leftColRef} className="z-10">
                         <h1 className="text-4xl lg:text-6xl font-black leading-tight mb-6">
                             Find Your Perfect Stay in{" "}
                             <span className="text-primary">Colombo &amp; Malabe</span>
@@ -22,27 +50,13 @@ export default function HeroSection() {
                         </p>
 
                         {/* Embedded Search Bar */}
-                        <SearchBar />
-
-                        {/* Auth CTA Buttons */}
-                        <div className="flex items-center gap-4 mt-6">
-                            <Link
-                                to="/signup"
-                                className="px-8 py-3 rounded-xl text-base font-bold text-white bg-primary hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 transform active:scale-[0.98]"
-                            >
-                                Sign Up
-                            </Link>
-                            <Link
-                                to="/login"
-                                className="px-8 py-3 rounded-xl text-base font-bold text-slate-700 border border-slate-200 hover:bg-slate-50 transition-all"
-                            >
-                                Log In
-                            </Link>
+                        <div className="hero-search-wrapper">
+                            <SearchBar />
                         </div>
                     </div>
 
                     {/* Right Column – Hero Image & Badge */}
-                    <div className="relative">
+                    <div ref={rightColRef} className="relative">
                         <div className="aspect-square rounded-3xl overflow-hidden shadow-2xl rotate-3">
                             <img
                                 className="w-full h-full object-cover"

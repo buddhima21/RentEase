@@ -24,9 +24,9 @@ public class AnalyticsService {
     private final PaymentRepository paymentRepository;
 
     public AnalyticsOverview getOverview() {
-        long totalProperties = propertyRepository.findByDeletedFalse().size();
-        long availableProperties = propertyRepository.findByStatusAndDeletedFalse(PropertyStatus.AVAILABLE).size();
-        long rentedProperties = propertyRepository.findByStatusAndDeletedFalse(PropertyStatus.RENTED).size();
+        long totalProperties = propertyRepository.count();
+        long availableProperties = propertyRepository.countByStatus(PropertyStatus.APPROVED);
+        long rentedProperties = propertyRepository.countByStatus(PropertyStatus.PENDING_APPROVAL);
         long totalUsers = userRepository.count();
         long totalBookings = bookingRepository.count();
         long activeBookings = bookingRepository.findAll().stream()

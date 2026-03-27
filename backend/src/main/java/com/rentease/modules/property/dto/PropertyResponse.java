@@ -21,14 +21,30 @@ public class PropertyResponse {
     private String address;
     private String city;
     private double price;
+    private double securityDeposit;
     private int bedrooms;
     private int bathrooms;
     private double area;
     private String propertyType;
     private List<String> amenities;
     private List<String> imageUrls;
+
+    // Owner info
     private String ownerId;
+    private String ownerName;
+    private String ownerEmail;
+    private String ownerPhone;
+    private String ownerProfileImageUrl;
+
+    // Moderation info
     private PropertyStatus status;
+    private String adminRemarks;
+    private String deleteReason;
+    private LocalDateTime statusChangedAt;
+    private LocalDateTime deleteRequestedAt;
+    private boolean deleted;
+
+    // Audit
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

@@ -1,45 +1,130 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import UserDropdown from "../../UserDropdown";
 import { useAuth } from "../../../context/AuthContext";
 import { ownerProfile } from "../../../data/ownerDashboardData";
+import OwnerNotificationsBell from "./OwnerNotificationsBell";
+import { getOwnerPropertyById, updateProperty } from "../../../services/api";
 
 export default function UpdateProperty() {
     const { id } = useParams();
     const navigate = useNavigate();
     const { user, logout } = useAuth();
+    const [isLoading, setIsLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
+    const [propertyData, setPropertyData] = useState(null);
 
-    // Form state initialized with mock data
     const [formData, setFormData] = useState({
-        title: "The Emerald Suite - Unit 402",
-        category: "Luxury Apartment",
-        description: "Spacious, light-filled luxury apartment featuring modern finishes, floor-to-ceiling windows, and a private balcony. Fully furnished with high-end appliances, perfect for students seeking a quiet but connected living space.",
-        rent: 1250,
-        deposit: 1800,
+        title: "",
+        category: "",
+        description: "",
+        rent: "",
+        deposit: 0,
         amenities: {
-            wifi: true,
-            ac: true,
-            furnished: true,
+            electricity: false,
+            wifi: false,
+            ac: false,
+            furnished: false,
             parking: false,
-            kitchen: true,
+            kitchen: false,
             laundry: false,
-            water: true
-        }
+            water: false,
+        },
     });
 
-    const handleSave = () => {
-        // Mock save logic, then redirect
-        console.log("Saving property updates:", formData);
-        navigate("/owner/properties");
+    useEffect(() => {
+        const loadProperty = async () => {
+            try {
+                const response = await getOwnerPropertyById(id);
+                const property = response.data?.data;
+                setPropertyData(property);
+
+                const amenitiesMap = (property?.amenities || []).reduce((acc, amenity) => {
+                    const key = (amenity || "").toLowerCase();
+                    acc[key] = true;
+                    return acc;
+                }, {});
+
+                setFormData({
+                    title: property?.title || "",
+                    category: property?.propertyType || "",
+                    description: property?.description || "",
+                    rent: property?.price ?? "",
+                    deposit: property?.securityDeposit ?? 0,
+                    amenities: {
+                        electricity: !!amenitiesMap.electricity,
+                        wifi: !!amenitiesMap.wifi,
+                        ac: !!amenitiesMap.ac,
+                        furnished: !!amenitiesMap.furnished,
+                        parking: !!amenitiesMap.parking,
+                        kitchen: !!amenitiesMap.kitchen,
+                        laundry: !!amenitiesMap.laundry,
+                        water: !!amenitiesMap.water,
+                    },
+                });
+            } catch (error) {
+                alert(error.response?.data?.message || "Failed to load property details");
+                navigate("/owner/properties");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadProperty();
+    }, [id, navigate]);
+
+    const categoryOptions = useMemo(() => {
+        const base = ["Premium Studio", "Luxury Apartment", "Shared Student Housing", "Penthouse Suite"];
+        if (formData.category && !base.includes(formData.category)) {
+            return [formData.category, ...base];
+        }
+        return base;
+    }, [formData.category]);
+
+    const handleSave = async () => {
+        try {
+            setIsSaving(true);
+            const payload = {
+                title: formData.title?.trim(),
+                description: formData.description?.trim(),
+                price: Number(formData.rent) || 0,
+                securityDeposit: Number(formData.deposit) || 0,
+                propertyType: formData.category,
+                amenities: Object.entries(formData.amenities)
+                    .filter(([_, enabled]) => enabled)
+                    .map(([key]) => key),
+            };
+
+            await updateProperty(id, payload);
+            navigate("/owner/properties", {
+                state: { successMessage: "Property updated successfully." },
+            });
+        } catch (error) {
+            const message =
+                error.response?.data?.message ||
+                (error.response?.data?.errors && Object.values(error.response.data.errors).join(", ")) ||
+                "Failed to update property";
+            alert(message);
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const handleCancel = () => {
         navigate("/owner/properties");
     };
 
+    if (isLoading) {
+        return (
+            <div className="min-h-screen grid place-items-center bg-[#f6f8f7]">
+                <p className="text-slate-600 font-semibold">Loading property details...</p>
+            </div>
+        );
+    }
+
     return (
-        <div className="flex min-h-screen bg-[#f6f8f7]" style={{ "--color-primary": "#1DBC60" }}>
+        <div className="flex min-h-screen bg-[#f6f8f7]" style={{ "--color-primary": "#26C289" }}>
             {/* ── Sidebar ─────────────────────────────────────── */}
             <Sidebar />
 
@@ -51,9 +136,7 @@ export default function UpdateProperty() {
                         <h2 className="text-xl font-bold whitespace-nowrap pl-12 lg:pl-0">Update Property</h2>
                     </div>
                     <div className="flex items-center gap-4 ml-4 lg:ml-8">
-                        <button className="p-2 text-slate-500 hover:bg-emerald-50 rounded-full transition-colors flex items-center justify-center">
-                            <span className="material-symbols-outlined">notifications</span>
-                        </button>
+                        <OwnerNotificationsBell />
                         {user ? (
                             <UserDropdown user={user} onLogout={logout} />
                         ) : (
@@ -106,10 +189,9 @@ export default function UpdateProperty() {
                                             value={formData.category}
                                             onChange={(e) => setFormData({...formData, category: e.target.value})}
                                         >
-                                            <option>Premium Studio</option>
-                                            <option>Luxury Apartment</option>
-                                            <option>Shared Student Housing</option>
-                                            <option>Penthouse Suite</option>
+                                            {categoryOptions.map((option) => (
+                                                <option key={option} value={option}>{option}</option>
+                                            ))}
                                         </select>
                                     </div>
                                 </div>
@@ -134,10 +216,10 @@ export default function UpdateProperty() {
                                     <div className="flex flex-col gap-2 relative">
                                         <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Monthly Rent</label>
                                         <div className="relative">
-                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">$</span>
+                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">LKR</span>
                                             <input 
                                                 name="rent"
-                                                className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 py-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary transition-all text-slate-900 font-bold font-mono text-base" 
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-14 pr-3 py-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary transition-all text-slate-900 font-bold font-mono text-base" 
                                                 type="number" 
                                                 value={formData.rent} 
                                                 onChange={(e) => setFormData({...formData, rent: Number(e.target.value)})}
@@ -147,10 +229,10 @@ export default function UpdateProperty() {
                                     <div className="flex flex-col gap-2 relative">
                                         <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Security Deposit</label>
                                         <div className="relative">
-                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">$</span>
+                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">LKR</span>
                                             <input 
                                                 name="deposit"
-                                                className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-8 pr-3 py-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary transition-all text-slate-900 font-bold font-mono text-base" 
+                                                className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-14 pr-3 py-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary transition-all text-slate-900 font-bold font-mono text-base" 
                                                 type="number" 
                                                 value={formData.deposit} 
                                                 onChange={(e) => setFormData({...formData, deposit: Number(e.target.value)})}
@@ -190,9 +272,10 @@ export default function UpdateProperty() {
                             <div className="flex flex-col sm:flex-row items-center gap-4 pt-4 pb-12 lg:pb-0">
                                 <button 
                                     onClick={handleSave}
+                                    disabled={isSaving}
                                     className="w-full sm:w-auto px-10 py-3.5 bg-primary text-white rounded-lg font-bold shadow-md hover:bg-emerald-600 hover:shadow-lg transition-all active:scale-[0.98]"
                                 >
-                                    Save Changes
+                                    {isSaving ? "Saving..." : "Save Changes"}
                                 </button>
                                 <button 
                                     onClick={handleCancel}
@@ -215,13 +298,13 @@ export default function UpdateProperty() {
                                     </div>
                                     <div>
                                         <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 block mb-2">Address</label>
-                                        <p className="text-base lg:text-lg font-bold leading-snug">422 Heritage Way, University District, North Wing, 90210</p>
+                                        <p className="text-base lg:text-lg font-bold leading-snug">{propertyData?.address || "N/A"}</p>
                                     </div>
                                     <div>
                                         <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 block mb-2">Property Type</label>
                                         <div className="flex items-center gap-2">
                                             <span className="material-symbols-outlined text-slate-400">apartment</span>
-                                            <p className="text-base font-bold">Multi-Unit Residential</p>
+                                            <p className="text-base font-bold">{propertyData?.propertyType || "N/A"}</p>
                                         </div>
                                     </div>
                                     <div className="pt-6 border-t border-white/10">
@@ -252,7 +335,7 @@ export default function UpdateProperty() {
                                 <img 
                                     alt="Property Location Map" 
                                     className="w-full h-full object-cover" 
-                                    src="https://images.unsplash.com/photo-1524661135-423995f22d0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" 
+                                    src={propertyData?.imageUrls?.[0] || "https://images.unsplash.com/photo-1524661135-423995f22d0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"} 
                                 />
                                 <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
                                     <span className="bg-white/90 backdrop-blur-md px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest text-slate-900 flex items-center gap-1.5 shadow-sm">

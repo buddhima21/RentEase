@@ -1,10 +1,16 @@
+import { useNavigate } from "react-router-dom";
+
 /**
  * ListingModerationCard — Reusable listing card for the moderation queue.
  * Displays listing image, info, submitter, and action buttons.
  * Props: listing object from listingModerationData.js
  */
-export default function ListingModerationCard({ listing }) {
+export default function ListingModerationCard({ listing, onModerate, onViewDetails }) {
+    const navigate = useNavigate();
     const isFlagged = listing.status === "flagged";
+    const isApproved = listing.status === "approved";
+    const isRejected = listing.status === "rejected";
+    const isDeleted = listing.status === "deleted";
 
     return (
         <div
@@ -25,6 +31,18 @@ export default function ListingModerationCard({ listing }) {
                         <span className="bg-amber-100 text-amber-700 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded flex items-center gap-1 backdrop-blur-sm">
                             <span className="material-symbols-outlined text-sm">flag</span> Flagged Content
                         </span>
+                    ) : isApproved ? (
+                        <span className="bg-emerald-100 text-emerald-700 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded flex items-center gap-1 backdrop-blur-sm">
+                            <span className="material-symbols-outlined text-sm">check_circle</span> Approved
+                        </span>
+                    ) : isRejected ? (
+                        <span className="bg-red-100 text-red-700 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded flex items-center gap-1 backdrop-blur-sm">
+                            <span className="material-symbols-outlined text-sm">cancel</span> Rejected
+                        </span>
+                    ) : isDeleted ? (
+                        <span className="bg-slate-200 text-slate-700 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded flex items-center gap-1 backdrop-blur-sm">
+                            <span className="material-symbols-outlined text-sm">delete</span> Deleted
+                        </span>
                     ) : (
                         <span className="bg-blue-100 text-blue-700 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded flex items-center gap-1 backdrop-blur-sm">
                             <span className="material-symbols-outlined text-sm">schedule</span> Pending Review
@@ -44,16 +62,16 @@ export default function ListingModerationCard({ listing }) {
                             {listing.location}
                         </div>
 
-                        {isFlagged && listing.flagReason ? (
+                        {isFlagged ? (
                             <div className="p-3 bg-red-50 rounded-lg border border-red-100">
                                 <p className="text-xs font-bold text-red-700 uppercase tracking-tighter mb-1">Reason for Flag</p>
-                                <p className="text-xs text-red-600">{listing.flagReason}</p>
+                                <p className="text-xs text-red-600">{listing.flagReason || "No reason provided."}</p>
                             </div>
                         ) : (
                             <div className="space-y-1.5">
                                 <p className="text-xs text-slate-400 uppercase font-bold tracking-widest">Submitted By</p>
                                 <div className="flex items-center gap-2">
-                                    <div className="w-8 h-8 rounded-full bg-[#1DBC60]/10 text-[#1DBC60] flex items-center justify-center font-bold text-xs uppercase">
+                                    <div className="w-8 h-8 rounded-full bg-[#26C289]/10 text-[#26C289] flex items-center justify-center font-bold text-xs uppercase">
                                         {listing.submittedBy.initials}
                                     </div>
                                     <p className="text-sm font-medium">{listing.submittedBy.name}</p>
@@ -73,7 +91,7 @@ export default function ListingModerationCard({ listing }) {
                                 <p className="text-xs text-slate-400 uppercase font-bold tracking-widest">Submitted By</p>
                                 <div className="flex items-center md:justify-end gap-2">
                                     <p className="text-sm font-medium">{listing.submittedBy.name}</p>
-                                    <div className="w-8 h-8 rounded-full bg-[#1DBC60]/10 text-[#1DBC60] flex items-center justify-center font-bold text-xs uppercase">
+                                    <div className="w-8 h-8 rounded-full bg-[#26C289]/10 text-[#26C289] flex items-center justify-center font-bold text-xs uppercase">
                                         {listing.submittedBy.initials}
                                     </div>
                                 </div>
@@ -87,23 +105,38 @@ export default function ListingModerationCard({ listing }) {
                     </div>
                 </div>
 
-                {/* Actions */}
                 <div className="mt-6 pt-5 border-t border-slate-100 flex flex-wrap gap-3 justify-end">
-                    <button className="px-4 py-2 text-sm font-semibold rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors flex items-center gap-2">
+                    <button 
+                        onClick={() => onViewDetails(listing.id)}
+                        className="px-4 py-2 text-sm font-semibold rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors flex items-center gap-2"
+                    >
                         <span className="material-symbols-outlined text-lg">visibility</span> View Details
                     </button>
-                    <button className="px-4 py-2 text-sm font-semibold rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2">
-                        <span className="material-symbols-outlined text-lg">block</span>
-                        {isFlagged ? "Reject" : "Reject with Reason"}
-                    </button>
-                    {isFlagged ? (
-                        <button className="px-6 py-2 text-sm font-semibold rounded-lg bg-slate-800 text-white hover:bg-slate-900 transition-all flex items-center gap-2">
-                            <span className="material-symbols-outlined text-lg">edit</span> Request Fix
-                        </button>
-                    ) : (
-                        <button className="px-6 py-2 text-sm font-semibold rounded-lg bg-[#1DBC60] text-white hover:bg-[#1DBC60]/90 shadow-sm shadow-[#1DBC60]/20 transition-all flex items-center gap-2">
-                            <span className="material-symbols-outlined text-lg">check</span> Approve
-                        </button>
+                    {!isApproved && !isRejected && !isDeleted && (
+                        <>
+                            <button 
+                                onClick={() => onModerate(listing.id, "REJECT")}
+                                className="px-4 py-2 text-sm font-semibold rounded-lg border border-red-200 text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
+                            >
+                                <span className="material-symbols-outlined text-lg">block</span>
+                                {isFlagged ? "Reject Deletion" : "Reject with Reason"}
+                            </button>
+                            {isFlagged ? (
+                                <button 
+                                    onClick={() => onModerate(listing.id, "APPROVE")}
+                                    className="px-6 py-2 text-sm font-semibold rounded-lg bg-red-600 text-white hover:bg-red-700 transition-all flex items-center gap-2"
+                                >
+                                    <span className="material-symbols-outlined text-lg">delete_forever</span> Approve Deletion
+                                </button>
+                            ) : (
+                                <button 
+                                    onClick={() => onModerate(listing.id, "APPROVE")}
+                                    className="px-6 py-2 text-sm font-semibold rounded-lg bg-[#26C289] text-white hover:bg-[#26C289]/90 shadow-sm shadow-[#26C289]/20 transition-all flex items-center gap-2"
+                                >
+                                    <span className="material-symbols-outlined text-lg">check</span> Approve
+                                </button>
+                            )}
+                        </>
                     )}
                 </div>
             </div>

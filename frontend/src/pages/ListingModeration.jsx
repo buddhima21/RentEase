@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import AdminSidebar from "../components/admin/dashboard/AdminSidebar";
 import ListingModerationCard from "../components/admin/dashboard/ListingModerationCard";
-import { moderationListings, moderationTabs } from "../data/listingModerationData";
+import ListingDetailsModal from "../components/admin/dashboard/ListingDetailsModal";
+import AdminNotificationsBell from "../components/admin/dashboard/AdminNotificationsBell";
+import { getAllPropertiesForAdmin, moderateProperty } from "../services/api";
 
 /**
  * ListingModeration — Admin page for reviewing and moderating property listings.
@@ -12,8 +14,71 @@ import { moderationListings, moderationTabs } from "../data/listingModerationDat
 export default function ListingModeration() {
     const [adminUser, setAdminUser] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState("pending");
+    const [activeTab, setActiveTab] = useState("all");
     const [searchQuery, setSearchQuery] = useState("");
+    const [listings, setListings] = useState([]);
+    const [errorMessage, setErrorMessage] = useState("");
+    const [viewPropertyId, setViewPropertyId] = useState(null);
+
+    const mapPropertyToListing = (prop) => {
+        try {
+            // Helper to parse dates (handles both ISO string and array formats)
+            const parseDate = (d) => {
+                if (!d) return new Date(0);
+                if (Array.isArray(d)) {
+                    // [yyyy, mm, dd, hh, mm, ss] -> JS Date (month is 0-indexed)
+                    return new Date(d[0], (d[1] || 1) - 1, d[2] || 1, d[3] || 0, d[4] || 0, d[5] || 0);
+                }
+                return new Date(d);
+            };
+
+            const createdDate = parseDate(prop.createdAt);
+            
+            return {
+                id: prop.id,
+                title: prop.title || "Untitled Property",
+                image: prop.imageUrls?.[0] || `https://source.unsplash.com/featured/?house&sig=${encodeURIComponent(prop.id)}`,
+                status: prop.status === 'PENDING_DELETE' ? 'flagged' :
+                    prop.status === 'PENDING_APPROVAL' ? 'pending' :
+                        prop.status === 'APPROVED' ? 'approved' :
+                            prop.status === 'RENTED' ? 'approved' :
+                                prop.status === 'REJECTED' ? 'rejected' :
+                                    prop.status === 'DELETED' ? 'deleted' : 'pending',
+                location: `${prop.address || ""}, ${prop.city || ""}`,
+                listingType: prop.propertyType || "Apartment",
+                submittedBy: {
+                    name: prop.ownerName || "Unknown Owner",
+                    initials: (prop.ownerName || "UO").substring(0, 2).toUpperCase()
+                },
+                submittedDate: createdDate.toLocaleDateString(),
+                createdAt: createdDate.toISOString(), 
+                flagReason: prop.status === 'PENDING_DELETE' ? prop.deleteReason || 'Owner requested deletion.' : null
+            };
+        } catch (err) {
+            console.error("Error mapping property:", prop, err);
+            return null;
+        }
+    };
+
+    const fetchPendingListings = async () => {
+        try {
+            setErrorMessage("");
+            const response = await getAllPropertiesForAdmin();
+            if (response.data && response.data.success && Array.isArray(response.data.data)) {
+                // filter(Boolean) removes any nulls from failed mappings
+                const mapped = response.data.data.map(mapPropertyToListing).filter(Boolean);
+                setListings(mapped);
+            } else {
+                console.warn("Unexpected API response format:", response);
+                setErrorMessage("Invalid data received from server.");
+            }
+        } catch (error) {
+            console.error("Failed to fetch properties:", error);
+            // Detailed error message
+            const msg = error.response?.data?.message || error.message || "Failed to load listings";
+            setErrorMessage(msg);
+        }
+    };
 
     // Hydrate admin user from localStorage
     useEffect(() => {
@@ -34,6 +99,12 @@ export default function ListingModeration() {
         }
     }, []);
 
+    useEffect(() => {
+        if (adminUser) {
+            fetchPendingListings();
+        }
+    }, [adminUser]);
+
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-[#f6f8f7]">
@@ -46,19 +117,48 @@ export default function ListingModeration() {
         return <Navigate to="/admin/login" replace />;
     }
 
-    // Filter listings by active tab
-    const filteredListings = moderationListings.filter((listing) => {
-        if (activeTab === "pending") return listing.status === "pending";
-        if (activeTab === "flagged") return listing.status === "flagged";
-        if (activeTab === "approved") return listing.status === "approved";
-        if (activeTab === "rejected") return listing.status === "rejected";
-        return true;
-    });
+    // Filter listings by active tab & search
+    const filteredListings = listings
+        .filter((listing) => {
+            if (searchQuery && !listing.title.toLowerCase().includes(searchQuery.toLowerCase())) {
+                return false;
+            }
+            if (activeTab === "all") return true; // Show all listings
+            if (activeTab === "pending") return listing.status === "pending";
+            if (activeTab === "flagged") return listing.status === "flagged";
+            if (activeTab === "approved") return listing.status === "approved";
+            if (activeTab === "rejected") return listing.status === "rejected";
+            if (activeTab === "deleted") return listing.status === "deleted";
+            return true;
+        })
+        .sort((a, b) => {
+            // Primary Sort: Pending Status First
+            if (a.status === 'pending' && b.status !== 'pending') return -1;
+            if (a.status !== 'pending' && b.status === 'pending') return 1;
+            
+            // Secondary Sort: Newest Date First
+            return new Date(b.createdAt) - new Date(a.createdAt);
+        });
+
+    const handleModerate = async (id, action) => {
+        try {
+            const remarks = prompt(`Enter optional remarks for ${action}:`);
+            const response = await moderateProperty(id, { action, remarks: remarks || "" });
+            if (response.data.success) {
+                // Refresh listings
+                fetchPendingListings();
+            }
+        } catch (error) {
+            const status = error.response?.status ? ` (HTTP ${error.response.status})` : "";
+            const msg = error.response?.data?.message || `Failed to ${action} property`;
+            alert(`${msg}${status}`);
+        }
+    };
 
     return (
         <div
-            className="flex min-h-screen bg-[#f6f8f7]"
-            style={{ "--color-primary": "#1DBC60" }}
+            className="flex h-screen overflow-hidden bg-[#f6f8f7]"
+            style={{ "--color-primary": "#26C289" }}
         >
             {/* ── Sidebar ─────────────────────────────────────── */}
             <AdminSidebar />
@@ -87,10 +187,7 @@ export default function ListingModeration() {
                         </div>
 
                         {/* Notifications */}
-                        <button className="relative p-2 rounded-full hover:bg-emerald-50 transition-colors text-slate-500 hover:text-slate-700">
-                            <span className="material-symbols-outlined text-[22px]">notifications</span>
-                            <span className="absolute top-1 right-1 w-2 h-2 bg-[#1DBC60] rounded-full" />
-                        </button>
+                        <AdminNotificationsBell />
 
                         {/* Admin Avatar */}
                         <img
@@ -108,31 +205,41 @@ export default function ListingModeration() {
                         {/* ── Tabs ─────────────────────────────────── */}
                         <div className="mb-8 border-b border-slate-200">
                             <div className="flex gap-8 overflow-x-auto pb-px">
-                                {moderationTabs.map((tab) => (
-                                    <button
-                                        key={tab.key}
-                                        onClick={() => setActiveTab(tab.key)}
-                                        className={`flex items-center gap-2 border-b-2 pb-3 font-semibold whitespace-nowrap transition-colors ${
-                                            activeTab === tab.key
-                                                ? "border-[#1DBC60] text-[#1DBC60]"
-                                                : "border-transparent text-slate-500 hover:text-slate-700"
-                                        }`}
-                                    >
-                                        <span className="material-symbols-outlined text-xl">{tab.icon}</span>
-                                        {tab.label}
-                                        {tab.count !== null && (
-                                            <span
-                                                className={`px-2 py-0.5 rounded-full text-xs ${
-                                                    activeTab === tab.key
-                                                        ? "bg-[#1DBC60]/10 text-[#1DBC60]"
-                                                        : "bg-slate-100"
+                                {[
+                                    { label: "All Listings", icon: "dashboard", key: "all" },
+                                    { label: "Pending Review", icon: "pending_actions", key: "pending" },
+                                    { label: "Flagged", icon: "flag", key: "flagged" },
+                                    { label: "Approved", icon: "check_circle", key: "approved" },
+                                    { label: "Rejected", icon: "cancel", key: "rejected" },
+                                    { label: "Deleted", icon: "delete", key: "deleted" },
+                                ].map((tab) => {
+                                    const count = tab.key === "all" 
+                                        ? listings.length 
+                                        : listings.filter(l => l.status === tab.key).length;
+                                    return (
+                                        <button
+                                            key={tab.key}
+                                            onClick={() => setActiveTab(tab.key)}
+                                            className={`flex items-center gap-2 border-b-2 pb-3 font-semibold whitespace-nowrap transition-colors ${activeTab === tab.key
+                                                    ? "border-[#1DBC60] text-[#1DBC60]"
+                                                    : "border-transparent text-slate-500 hover:text-slate-700"
                                                 }`}
-                                            >
-                                                {tab.count}
-                                            </span>
-                                        )}
-                                    </button>
-                                ))}
+                                        >
+                                            <span className="material-symbols-outlined text-xl">{tab.icon}</span>
+                                            {tab.label}
+                                            {count > 0 && (
+                                                <span
+                                                    className={`px-2 py-0.5 rounded-full text-xs ${activeTab === tab.key
+                                                            ? "bg-[#1DBC60]/10 text-[#1DBC60]"
+                                                            : "bg-slate-100"
+                                                        }`}
+                                                >
+                                                    {count}
+                                                </span>
+                                            )}
+                                        </button>
+                                    )
+                                })}
                             </div>
                         </div>
 
@@ -152,9 +259,25 @@ export default function ListingModeration() {
 
                         {/* ── Moderation Queue ─────────────────────── */}
                         <div className="space-y-6">
+                            {errorMessage && (
+                                <div className="text-center py-6 bg-red-50 rounded-xl border border-red-200">
+                                    <p className="text-red-600 font-medium">{errorMessage}</p>
+                                    <button
+                                        onClick={fetchPendingListings}
+                                        className="mt-3 px-4 py-2 rounded-lg border border-red-200 text-red-700 hover:bg-red-100 transition-colors"
+                                    >
+                                        Retry
+                                    </button>
+                                </div>
+                            )}
                             {filteredListings.length > 0 ? (
                                 filteredListings.map((listing) => (
-                                    <ListingModerationCard key={listing.id} listing={listing} />
+                                    <ListingModerationCard 
+                                        key={listing.id} 
+                                        listing={listing} 
+                                        onModerate={handleModerate} 
+                                        onViewDetails={(id) => setViewPropertyId(id)}
+                                    />
                                 ))
                             ) : (
                                 <div className="text-center py-16 bg-white rounded-xl border border-slate-200">
@@ -169,7 +292,7 @@ export default function ListingModeration() {
                         {filteredListings.length > 0 && (
                             <div className="mt-12 flex flex-col md:flex-row items-center justify-between gap-6 border-t border-slate-200 pt-8">
                                 <p className="text-sm text-slate-500">
-                                    Showing 1 to {filteredListings.length} of 15 pending listings
+                                    Showing 1 to {filteredListings.length} of {listings.filter(l => l.status === activeTab).length} listings
                                 </p>
                                 <div className="flex gap-2">
                                     <button className="h-10 w-10 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 cursor-not-allowed">
@@ -190,6 +313,11 @@ export default function ListingModeration() {
                                 </div>
                             </div>
                         )}
+                        <ListingDetailsModal 
+                            isOpen={!!viewPropertyId} 
+                            onClose={() => setViewPropertyId(null)} 
+                            propertyId={viewPropertyId} 
+                        />
                     </div>
                 </div>
             </main>

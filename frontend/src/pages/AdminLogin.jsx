@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function AdminLogin() {
@@ -9,6 +9,22 @@ export default function AdminLogin() {
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
+
+    // Check if user is already logged in as admin
+    useEffect(() => {
+        const token = localStorage.getItem('adminToken');
+        const user = localStorage.getItem('adminUser');
+        if (token && user) {
+            try {
+                const userObj = JSON.parse(user);
+                if (userObj.role === 'ADMIN') {
+                    navigate('/admin/dashboard', { replace: true });
+                }
+            } catch (e) {
+                // Invalid user data, safe to ignore
+            }
+        }
+    }, [navigate]);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -47,7 +63,8 @@ export default function AdminLogin() {
                 id: userData.id,
                 fullName: userData.fullName,
                 email: userData.email,
-                role: userData.role
+                role: userData.role,
+                token: userData.token
             }));
 
             navigate('/admin/dashboard');
@@ -63,20 +80,19 @@ export default function AdminLogin() {
                 <div className="flex h-full grow flex-col">
                     {/* Top Navigation Bar */}
                     <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 px-6 md:px-10 py-3 bg-white">
-                        <div className="flex items-center gap-4 text-slate-900">
-                            <div className="w-8 h-8 text-[#1DBC60]">
-                                <svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-                                    <path 
-                                        d="M8.57829 8.57829C5.52816 11.6284 3.451 15.5145 2.60947 19.7452C1.76794 23.9758 2.19984 28.361 3.85056 32.3462C5.50128 36.3314 8.29667 39.7376 11.8832 42.134C15.4698 44.5305 19.6865 45.8096 24 45.8096C28.3135 45.8096 32.5302 44.5305 36.1168 42.134C39.7033 39.7375 42.4987 36.3314 44.1494 32.3462C45.8002 28.361 46.2321 23.9758 45.3905 19.7452C44.549 15.5145 42.4718 11.6284 39.4217 8.57829L24 24L8.57829 8.57829Z" 
-                                        fill="currentColor"
-                                    />
+                        <div className="flex items-center gap-3">
+                            <div className="relative flex items-center justify-center w-10 h-10 bg-emerald-50/50 rounded-xl">
+                                <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M4 10L12 4L20 10V18C20 19.1046 19.1046 20 18 20H6C4.89543 20 4 19.1046 4 18V10Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-900"/>
+                                    <path d="M12 14C13.1046 14 14 13.1046 14 12C14 10.8954 13.1046 10 12 10C10.8954 10 10 10.8954 10 12C10 13.1046 10.8954 14 12 14Z" fill="currentColor" className="text-emerald-500"/>
+                                    <path d="M12 14V17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-emerald-500"/>
                                 </svg>
                             </div>
-                            <h2 className="text-slate-900 text-lg font-bold leading-tight tracking-tight">
-                                RentEase Admin
+                            <h2 className="text-xl font-extrabold tracking-tight text-slate-900">
+                                Rent<span className="text-[#26C289]">Ease</span> <span className="text-slate-500 font-medium text-base ml-1">Admin</span>
                             </h2>
                         </div>
-                        <button className="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 bg-[#1DBC60] text-slate-900 text-sm font-bold transition-colors hover:bg-[#1DBC60]/90">
+                        <button className="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 bg-[#26C289] text-slate-900 text-sm font-bold transition-colors hover:bg-[#26C289]/90">
                             <span className="truncate">Support</span>
                         </button>
                     </header>
@@ -100,11 +116,11 @@ export default function AdminLogin() {
                                     ></div>
                                 </div>
                                 <div className="relative z-10 flex gap-4 mt-12">
-                                    <div className="flex items-center gap-2 px-3 py-1.5 bg-[#1DBC60]/10 text-emerald-700 rounded-full text-xs font-bold uppercase tracking-wider">
+                                    <div className="flex items-center gap-2 px-3 py-1.5 bg-[#26C289]/10 text-emerald-700 rounded-full text-xs font-bold uppercase tracking-wider">
                                         <span className="material-symbols-outlined text-sm">verified_user</span>
                                         MFA Protected
                                     </div>
-                                    <div className="flex items-center gap-2 px-3 py-1.5 bg-[#1DBC60]/10 text-emerald-700 rounded-full text-xs font-bold uppercase tracking-wider">
+                                    <div className="flex items-center gap-2 px-3 py-1.5 bg-[#26C289]/10 text-emerald-700 rounded-full text-xs font-bold uppercase tracking-wider">
                                         <span className="material-symbols-outlined text-sm">lock</span>
                                         Encrypted
                                     </div>
@@ -133,7 +149,7 @@ export default function AdminLogin() {
                                         <div className="relative">
                                             <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">mail</span>
                                             <input 
-                                                className="w-full pl-12 pr-4 py-3.5 rounded-lg border border-slate-300 bg-white text-slate-900 focus:ring-2 focus:ring-[#1DBC60] focus:border-transparent transition-all outline-none" 
+                                                className="w-full pl-12 pr-4 py-3.5 rounded-lg border border-slate-300 bg-white text-slate-900 focus:ring-2 focus:ring-[#26C289] focus:border-transparent transition-all outline-none" 
                                                 placeholder="admin@rentease.com" 
                                                 required 
                                                 type="email"
@@ -151,7 +167,7 @@ export default function AdminLogin() {
                                         <div className="relative">
                                             <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">lock</span>
                                             <input 
-                                                className="w-full pl-12 pr-12 py-3.5 rounded-lg border border-slate-300 bg-white text-slate-900 focus:ring-2 focus:ring-[#1DBC60] focus:border-transparent transition-all outline-none" 
+                                                className="w-full pl-12 pr-12 py-3.5 rounded-lg border border-slate-300 bg-white text-slate-900 focus:ring-2 focus:ring-[#26C289] focus:border-transparent transition-all outline-none" 
                                                 placeholder="••••••••" 
                                                 required 
                                                 type={showPassword ? "text" : "password"}
@@ -176,7 +192,7 @@ export default function AdminLogin() {
                                             type="checkbox"
                                             checked={remember}
                                             onChange={(e) => setRemember(e.target.checked)}
-                                            className="rounded border-slate-300 text-[#1DBC60] focus:ring-[#1DBC60] h-4 w-4 cursor-pointer" 
+                                            className="rounded border-slate-300 text-[#26C289] focus:ring-[#26C289] h-4 w-4 cursor-pointer" 
                                         />
                                         <label className="text-sm text-slate-600 cursor-pointer select-none" htmlFor="remember">
                                             Keep me logged in for 30 days
@@ -186,7 +202,7 @@ export default function AdminLogin() {
                                     <button 
                                         type="submit"
                                         disabled={isLoading}
-                                        className="w-full bg-[#1DBC60] hover:bg-[#1DBC60]/90 text-white font-bold py-4 rounded-lg shadow-sm transition-all flex items-center justify-center gap-2 text-lg disabled:opacity-70 disabled:cursor-not-allowed"
+                                        className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-lg shadow-sm transition-all flex items-center justify-center gap-2 text-lg disabled:opacity-70 disabled:cursor-not-allowed"
                                     >
                                         {isLoading ? (
                                             <>
@@ -205,11 +221,11 @@ export default function AdminLogin() {
                                 {/* Mobile Security Badges */}
                                 <div className="lg:hidden flex flex-wrap gap-3 mt-8 pt-8 border-t border-slate-100">
                                     <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                                        <span className="material-symbols-outlined text-sm text-[#1DBC60]">verified_user</span>
+                                        <span className="material-symbols-outlined text-sm text-[#26C289]">verified_user</span>
                                         MFA Protected
                                     </div>
                                     <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                                        <span className="material-symbols-outlined text-sm text-[#1DBC60]">lock</span>
+                                        <span className="material-symbols-outlined text-sm text-[#26C289]">lock</span>
                                         256-bit Encryption
                                     </div>
                                 </div>

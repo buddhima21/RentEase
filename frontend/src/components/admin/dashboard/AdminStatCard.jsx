@@ -6,8 +6,8 @@
  */
 export default function AdminStatCard({
     icon,
-    iconBg,
-    iconColor,
+    iconBg=bg-red-100,
+    iconColor=text-red-500,
     label,
     value,
     badge,

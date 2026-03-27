@@ -69,9 +69,9 @@ export default function UserDropdown({ user, onLogout }) {
                 </span>
 
                 {/* Avatar */}
-                {user.avatar ? (
+                {(user.profileImageUrl || user.avatar) ? (
                     <img
-                        src={user.avatar}
+                        src={user.profileImageUrl || user.avatar}
                         alt="Profile"
                         className="w-8 h-8 rounded-full object-cover shrink-0"
                     />
@@ -92,9 +92,9 @@ export default function UserDropdown({ user, onLogout }) {
             >
                 {/* User Info Header */}
                 <div className="px-5 py-4 flex items-center gap-3 border-b border-slate-100">
-                    {user.avatar ? (
+                    {(user.profileImageUrl || user.avatar) ? (
                         <img
-                            src={user.avatar}
+                            src={user.profileImageUrl || user.avatar}
                             alt="Profile"
                             className="w-11 h-11 rounded-full object-cover shrink-0"
                         />
@@ -133,7 +133,7 @@ export default function UserDropdown({ user, onLogout }) {
                     </Link>
 
                     <Link
-                        to="#"
+                        to="/profile"
                         onClick={() => setOpen(false)}
                         className="flex items-center gap-4 px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors group"
                         role="menuitem"
@@ -141,11 +141,11 @@ export default function UserDropdown({ user, onLogout }) {
                         <span className="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-primary transition-colors">
                             person
                         </span>
-                        Profile Details
+                        My Profile
                     </Link>
 
                     <Link
-                        to="#"
+                        to="/profile"
                         onClick={() => setOpen(false)}
                         className="flex items-center gap-4 px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors group"
                         role="menuitem"

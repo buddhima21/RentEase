@@ -13,15 +13,20 @@ public class CustomUserDetails implements UserDetails {
 
     @Getter
     private final String id;
+    @Getter
+    private final String fullName;
     private final String email;
     private final String password;
     private final Collection<? extends GrantedAuthority> authorities;
 
     public CustomUserDetails(User user) {
         this.id = user.getId();
+        this.fullName = user.getFullName();
         this.email = user.getEmail();
         this.password = user.getPassword();
-        this.authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
+        this.authorities = Collections.singletonList(
+            new SimpleGrantedAuthority("ROLE_" + (user.getRole() != null ? user.getRole().name() : "TENANT"))
+        );
     }
 
     @Override

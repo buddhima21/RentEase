@@ -1,116 +1,167 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import Sidebar from "../components/owner/dashboard/Sidebar";
 import StatCard from "../components/owner/dashboard/StatCard";
 import PropertyTable from "../components/owner/dashboard/PropertyTable";
 import ActionCard from "../components/owner/dashboard/ActionCard";
 import ActivityList from "../components/owner/dashboard/ActivityList";
 import RevenueChart from "../components/owner/dashboard/RevenueChart";
+import OwnerNotificationsBell from "../components/owner/dashboard/OwnerNotificationsBell";
 import { statsData, pendingActions, ownerProfile } from "../data/ownerDashboardData";
 import { useAuth } from "../context/AuthContext";
 import UserDropdown from "../components/UserDropdown";
 
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.08,
+            delayChildren: 0.1,
+        },
+    },
+};
+
+const itemVariants = {
+    hidden: { opacity: 0, y: 25 },
+    visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 80, damping: 15 } },
+};
+
 /**
- * OwnerDashboard — Full-featured property owner dashboard page.
+ * OwnerDashboard — Modern, professional property owner dashboard.
  * Route: /owner/dashboard
- * Theme: Green (#1DBC60) — overrides global primary for dashboard scope.
+ * Theme: Emerald/Teal with glassmorphism
  */
 export default function OwnerDashboard() {
     const [searchQuery, setSearchQuery] = useState("");
     const { user, logout } = useAuth();
 
+    const getGreeting = () => {
+        const hour = new Date().getHours();
+        if (hour < 12) return "Good morning";
+        if (hour < 17) return "Good afternoon";
+        return "Good evening";
+    };
+
     return (
         <div
-            className="flex min-h-screen bg-[#f6f8f7]"
-            style={{ "--color-primary": "#1DBC60" }}
+            className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-emerald-50/30"
+            style={{ "--color-primary": "#26C289" }}
         >
             {/* ── Sidebar ─────────────────────────────────────── */}
             <Sidebar />
 
             {/* ── Main Content ────────────────────────────────── */}
-            <main className="flex-1 flex flex-col min-w-0">
+            <main className="flex-1 flex flex-col min-w-0 font-sans">
                 {/* ── Header ────────────────────────────────────── */}
-                <header className="sticky top-0 z-30 h-20 border-b border-emerald-100 bg-white/90 backdrop-blur-md px-6 lg:px-8 flex items-center justify-between gap-4 shrink-0">
-                    <h2 className="text-xl lg:text-2xl font-bold tracking-tight whitespace-nowrap pl-12 lg:pl-0">
-                        Owner Dashboard
+                <motion.header
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4 }}
+                    className="sticky top-0 z-30 h-[72px] border-b border-slate-100/80 bg-white/70 backdrop-blur-2xl px-6 lg:px-8 flex items-center justify-between gap-4 shrink-0"
+                >
+                    <h2 className="text-xl lg:text-2xl font-bold tracking-tight whitespace-nowrap pl-12 lg:pl-0 text-slate-800">
+                        Dashboard
                     </h2>
 
                     <div className="flex items-center gap-3 ml-auto">
                         {/* Search */}
-                        <div className="relative hidden sm:block w-52 lg:w-72">
-                            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">
+                        <div className="relative hidden sm:block w-64 lg:w-72 group">
+                            <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px] group-focus-within:text-emerald-500 transition-colors duration-200">
                                 search
                             </span>
                             <input
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2.5 bg-[#f6f8f7] border border-emerald-100 rounded-lg focus:ring-2 focus:ring-primary text-sm placeholder-slate-400 transition-all"
+                                className="w-full pl-10 pr-4 py-2.5 bg-slate-50/80 border border-slate-200/80 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 text-sm placeholder-slate-400 transition-all duration-200 hover:border-slate-300"
                                 placeholder="Search properties..."
                                 type="text"
                             />
                         </div>
 
                         {/* Notifications */}
-                        <button className="relative p-2 rounded-full hover:bg-emerald-50 transition-colors text-slate-500 hover:text-slate-700">
-                            <span className="material-symbols-outlined text-[22px]">notifications</span>
-                            <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full" />
-                        </button>
+                        <div className="relative">
+                            <OwnerNotificationsBell />
+                        </div>
+
+                        {/* Divider */}
+                        <div className="h-8 w-px bg-slate-200 hidden sm:block" />
 
                         {/* Avatar / Dropdown */}
                         {user ? (
                             <UserDropdown user={user} onLogout={logout} />
                         ) : (
                             <div
-                                className="w-10 h-10 rounded-full border-2 border-primary bg-cover bg-center shrink-0"
+                                className="w-10 h-10 rounded-full border-2 border-emerald-500 bg-cover bg-center shrink-0 shadow-md ring-2 ring-emerald-100"
                                 style={{ backgroundImage: `url('${ownerProfile.avatar}')` }}
                             />
                         )}
                     </div>
-                </header>
+                </motion.header>
 
                 {/* ── Dashboard Content ─────────────────────────── */}
-                <div className="flex-1 overflow-y-auto p-5 lg:p-8 space-y-8">
+                <motion.div
+                    className="flex-1 overflow-y-auto p-6 lg:p-8 space-y-8 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent"
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                >
+
                     {/* ── KPI Stats Grid ──────────────────────────── */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+                    <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
                         {statsData.map((stat, i) => (
-                            <StatCard key={i} {...stat} />
+                            <StatCard key={i} {...stat} index={i} />
                         ))}
-                    </div>
+                    </motion.div>
 
                     {/* ── Main Content Grid ───────────────────────── */}
                     <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
                         {/* LEFT: Properties + Revenue */}
                         <div className="xl:col-span-2 space-y-6">
-                            <PropertyTable />
-                            <RevenueChart />
+                            <motion.div variants={itemVariants}>
+                                <PropertyTable />
+                            </motion.div>
+                            <motion.div variants={itemVariants}>
+                                <RevenueChart />
+                            </motion.div>
                         </div>
 
                         {/* RIGHT: Pending Actions + Activity */}
                         <div className="space-y-6">
                             {/* Pending Actions */}
-                            <div className="bg-white rounded-2xl border border-emerald-100 shadow-sm p-6">
-                                <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                                    <span className="material-symbols-outlined text-emerald-600 text-xl">
-                                        assignment_late
-                                    </span>
+                            <motion.div
+                                variants={itemVariants}
+                                className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 shadow-lg p-6 hover:shadow-xl transition-shadow duration-500"
+                            >
+                                <h3 className="font-bold text-lg mb-5 flex items-center gap-2.5 text-slate-800">
+                                    <div className="p-2 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl text-white">
+                                        <span className="material-symbols-outlined text-lg">assignment_late</span>
+                                    </div>
                                     Pending Actions
-                                    <span className="ml-auto bg-primary/15 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-full">
+                                    <motion.span
+                                        initial={{ scale: 0 }}
+                                        animate={{ scale: 1 }}
+                                        transition={{ delay: 0.5, type: "spring", stiffness: 300 }}
+                                        className="ml-auto bg-amber-100 text-amber-700 text-xs font-bold px-3 py-1 rounded-full border border-amber-200"
+                                    >
                                         {pendingActions.length}
-                                    </span>
+                                    </motion.span>
                                 </h3>
                                 <div className="space-y-3">
-                                    {pendingActions.map((action) => (
-                                        <ActionCard key={action.id} {...action} />
+                                    {pendingActions.map((action, i) => (
+                                        <ActionCard key={action.id} {...action} index={i} />
                                     ))}
                                 </div>
-                            </div>
+                            </motion.div>
 
-                            {/* Activity Feed */}
-                            <ActivityList />
+                            {/* Activity List */}
+                            <motion.div variants={itemVariants}>
+                                <ActivityList />
+                            </motion.div>
                         </div>
                     </div>
-                </div>
+                </motion.div>
             </main>
         </div>
     );
 }
-
