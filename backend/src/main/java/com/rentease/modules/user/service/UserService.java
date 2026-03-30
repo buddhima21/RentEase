@@ -59,6 +59,24 @@ public class UserService {
         return mapToResponse(user, null);
     }
 
+    public UserResponse updateUser(String id, com.rentease.modules.user.dto.UpdateUserRequest request) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+        
+        if(request.getFullName() != null) user.setFullName(request.getFullName());
+        if(request.getPhone() != null) user.setPhone(request.getPhone());
+        if(request.getProfileImageUrl() != null) user.setProfileImageUrl(request.getProfileImageUrl());
+        if(request.getBio() != null) user.setBio(request.getBio());
+        if(request.getLocation() != null) user.setLocation(request.getLocation());
+        
+        if(user.getRole() == null) {
+            user.setRole(UserRole.TENANT);
+        }
+
+        User updated = userRepository.save(user);
+        return mapToResponse(updated, jwtUtil.generateToken(new CustomUserDetails(updated), updated.getId()));
+    }
+
     private UserResponse mapToResponse(User user, String token) {
         return UserResponse.builder()
                 .id(user.getId())
@@ -67,6 +85,8 @@ public class UserService {
                 .phone(user.getPhone())
                 .role(user.getRole())
                 .profileImageUrl(user.getProfileImageUrl())
+                .bio(user.getBio())
+                .location(user.getLocation())
                 .createdAt(user.getCreatedAt())
                 .token(token)
                 .build();

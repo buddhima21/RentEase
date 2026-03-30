@@ -1,6 +1,5 @@
 import {
     propertyTypes,
-    genderOptions,
     amenityOptions,
     distanceOptions,
 } from "../data/filterOptions";
@@ -93,28 +92,6 @@ export default function FilterSidebar({ filters, onFilterChange, onClearAll, isO
                             >
                                 {type}
                             </button>
-                        ))}
-                    </div>
-                </div>
-
-                <div className="mb-8">
-                    <label className="block text-xs font-bold mb-4 uppercase tracking-wider text-slate-500">
-                        Gender Preference
-                    </label>
-                    <div className="space-y-2">
-                        {genderOptions.map((gender) => (
-                            <label key={gender} className="flex items-center gap-3 cursor-pointer group">
-                                <input
-                                    type="radio"
-                                    name="gender"
-                                    checked={filters.gender === gender}
-                                    onChange={() => onFilterChange("gender", gender)}
-                                    className="text-primary focus:ring-primary h-4 w-4"
-                                />
-                                <span className="text-sm group-hover:text-primary transition-colors">
-                                    {gender}
-                                </span>
-                            </label>
                         ))}
                     </div>
                 </div>

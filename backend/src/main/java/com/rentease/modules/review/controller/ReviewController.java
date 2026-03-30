@@ -61,7 +61,7 @@ public class ReviewController {
     @PutMapping("/{reviewId}/status")
     public ResponseEntity<ApiResponse<ReviewResponse>> updateReviewStatus(
             @PathVariable String reviewId,
-            @RequestParam com.rentease.common.enums.ReviewStatus status,
+            @RequestParam(name = "status") com.rentease.common.enums.ReviewStatus status,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         
         // Ensure only an admin can perform this action
@@ -77,7 +77,7 @@ public class ReviewController {
 
     @GetMapping("/status/{status}")
     public ResponseEntity<ApiResponse<List<ReviewResponse>>> getReviewsByStatus(
-            @PathVariable com.rentease.common.enums.ReviewStatus status) {
+            @PathVariable(name = "status") com.rentease.common.enums.ReviewStatus status) {
         List<ReviewResponse> reviews = reviewService.getReviewsByStatus(status);
         return ResponseEntity.ok(ApiResponse.success(reviews));
     }

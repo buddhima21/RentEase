@@ -1,8 +1,7 @@
 export default function BookingCard({ property }) {
     const formattedPrice = new Intl.NumberFormat("en-LK").format(property.price);
     const deposit = new Intl.NumberFormat("en-LK").format(property.price * 2);
-    const serviceFee = new Intl.NumberFormat("en-LK").format(1500);
-    const total = new Intl.NumberFormat("en-LK").format(property.price * 2 + property.price + 1500);
+    const total = new Intl.NumberFormat("en-LK").format(property.price * 2 + property.price);
 
     return (
         <div className="lg:w-[400px] shrink-0">
@@ -60,10 +59,6 @@ export default function BookingCard({ property }) {
                         <div className="flex justify-between text-sm">
                             <span className="text-slate-600">Security Deposit</span>
                             <span className="font-medium">LKR {deposit}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                            <span className="text-slate-600">RentEase Service Fee</span>
-                            <span className="font-medium">LKR {serviceFee}</span>
                         </div>
                         <div className="border-t border-slate-200 pt-4 flex justify-between font-black text-lg">
                             <span>Total to pay now</span>

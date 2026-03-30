@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import { signupUser } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 
@@ -133,31 +134,43 @@ export default function Signup() {
                     )}
 
                     {/* ── Role Selector ── */}
-                    <div className="flex p-1 bg-slate-200/50 rounded-xl" role="radiogroup" aria-label="Account type">
+                    <div className="relative flex h-14 w-full items-center rounded-2xl bg-slate-200/50 p-1.5 ring-1 ring-slate-200" role="radiogroup" aria-label="Account type">
+                        {/* Sliding Background */}
+                        <motion.div
+                            className="absolute top-1.5 bottom-1.5 left-1.5 rounded-xl bg-white shadow-sm border border-slate-100"
+                            initial={false}
+                            animate={{
+                                x: role === "TENANT" ? "0%" : "100%"
+                            }}
+                            style={{ width: "calc(50% - 0.375rem)" }}
+                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                        />
+
+                        {/* Tenant Button */}
                         <button
                             type="button"
                             role="radio"
                             aria-checked={role === "TENANT"}
                             onClick={() => setRole("TENANT")}
-                            className={`flex-1 flex items-center justify-center py-2.5 px-4 rounded-lg text-sm font-semibold transition-all cursor-pointer ${role === "TENANT"
-                                ? "bg-white text-[#13ec6d] shadow-sm"
-                                : "text-slate-600 hover:text-slate-800"
-                                }`}
+                            className={`relative z-10 w-1/2 flex items-center justify-center gap-2 text-sm font-bold transition-colors duration-200 cursor-pointer ${
+                                role === "TENANT" ? "text-[#13ec6d]" : "text-slate-500 hover:text-slate-700"
+                            }`}
                         >
-                            <span className="material-symbols-outlined mr-2 text-lg">person</span>
+                            <span className="material-symbols-outlined text-[20px]">person</span>
                             Tenant
                         </button>
+
+                        {/* Owner Button */}
                         <button
                             type="button"
                             role="radio"
                             aria-checked={role === "OWNER"}
                             onClick={() => setRole("OWNER")}
-                            className={`flex-1 flex items-center justify-center py-2.5 px-4 rounded-lg text-sm font-semibold transition-all cursor-pointer ${role === "OWNER"
-                                ? "bg-white text-[#13ec6d] shadow-sm"
-                                : "text-slate-600 hover:text-slate-800"
-                                }`}
+                            className={`relative z-10 w-1/2 flex items-center justify-center gap-2 text-sm font-bold transition-colors duration-200 cursor-pointer ${
+                                role === "OWNER" ? "text-blue-600" : "text-slate-500 hover:text-slate-700"
+                            }`}
                         >
-                            <span className="material-symbols-outlined mr-2 text-lg">real_estate_agent</span>
+                            <span className="material-symbols-outlined text-[20px]">real_estate_agent</span>
                             Owner
                         </button>
                     </div>
@@ -409,3 +422,4 @@ export default function Signup() {
         </div>
     );
 }
+

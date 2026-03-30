@@ -9,9 +9,18 @@ export default function Navbar({ showSearch = false, searchQuery = "", onSearchC
         <header className="relative flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3 shrink-0 z-20">
             {/* Left Section */}
             <div className="flex items-center gap-8 z-10">
-                <Link to="/" className="flex items-center gap-2 text-primary">
-                    <span className="material-symbols-outlined text-3xl font-bold">diamond</span>
-                    <h2 className="text-xl font-bold tracking-tight">RentEase</h2>
+                <Link to="/" className="flex items-center gap-3 group">
+                    {/* Brand Logo - Black & Green - Modern & Simple */}
+                    <div className="relative flex items-center justify-center w-10 h-10 bg-emerald-50/50 rounded-xl group-hover:bg-emerald-100 transition-colors">
+                        <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 10L12 4L20 10V18C20 19.1046 19.1046 20 18 20H6C4.89543 20 4 19.1046 4 18V10Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-900"/>
+                            <path d="M12 14C13.1046 14 14 13.1046 14 12C14 10.8954 13.1046 10 12 10C10.8954 10 10 10.8954 10 12C10 13.1046 10.8954 14 12 14Z" fill="currentColor" className="text-emerald-500"/>
+                            <path d="M12 14V17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-emerald-500"/>
+                        </svg>
+                    </div>
+                    <span className="text-2xl font-extrabold tracking-tight text-slate-900">
+                        Rent<span className="text-primary">Ease</span>
+                    </span>
                 </Link>
                 {showSearch && (
                     <div className="hidden md:flex items-center border border-slate-200 rounded-xl bg-slate-50 px-3 py-1.5 w-80">

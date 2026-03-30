@@ -1,24 +1,64 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import FilterSidebar from "../components/FilterSidebar";
 import PropertyCard from "../components/PropertyCard";
 import SortBar from "../components/SortBar";
-import properties from "../data/properties";
+import { getApprovedProperties } from "../services/api";
 
 const INITIAL_FILTERS = {
     search: "",
     priceMin: "",
     priceMax: "",
     types: [],
-    gender: "Any",
     amenities: [],
     distance: Infinity,
 };
 
 export default function Listings() {
+    const [properties, setProperties] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState(INITIAL_FILTERS);
     const [sortBy, setSortBy] = useState("featured");
     const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    useEffect(() => {
+        const fetchProperties = async () => {
+            try {
+                const response = await getApprovedProperties();
+                if (response.data.success) {
+                    const mapped = response.data.data.map((p) => ({
+                        id: p.id,
+                        title: p.title,
+                        type: p.propertyType || "Apartment",
+                        price: p.price,
+                        rating: 0,
+                        reviewsCount: 0,
+                        address: p.address,
+                        city: p.city,
+                        bedrooms: p.bedrooms,
+                        bathrooms: p.bathrooms,
+                        area: p.area,
+                        genderPreference: "Any",
+                        distanceKm: 0,
+                        amenities: p.amenities || [],
+                        images: p.imageUrls && p.imageUrls.length > 0 ? p.imageUrls : [
+                            `https://source.unsplash.com/featured/?apartment&sig=${encodeURIComponent(p.id)}`
+                        ],
+                        image: (p.imageUrls && p.imageUrls.length > 0)
+                            ? p.imageUrls[0]
+                            : `https://source.unsplash.com/featured/?apartment&sig=${encodeURIComponent(p.id)}`,
+                        featured: false
+                    }));
+                    setProperties(mapped);
+                }
+            } catch (error) {
+                console.error("Failed to fetch public properties:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchProperties();
+    }, []);
 
     const handleFilterChange = useCallback((key, value) => {
         setFilters((prev) => ({ ...prev, [key]: value }));
@@ -30,6 +70,8 @@ export default function Listings() {
 
     const filteredAndSorted = useMemo(() => {
         let result = properties.filter((p) => {
+            const priceValue = Number(p.price) || 0;
+
             if (filters.search) {
                 const q = filters.search.toLowerCase();
                 const match =
@@ -39,13 +81,15 @@ export default function Listings() {
                 if (!match) return false;
             }
 
-            if (filters.priceMin && p.price < Number(filters.priceMin)) return false;
-            if (filters.priceMax && p.price > Number(filters.priceMax)) return false;
+            const min = filters.priceMin !== "" ? Number(filters.priceMin) : null;
+            const max = filters.priceMax !== "" ? Number(filters.priceMax) : null;
+            if (min !== null && !Number.isNaN(min) && priceValue < min) return false;
+            if (max !== null && !Number.isNaN(max) && priceValue > max) return false;
 
-            if (filters.types.length > 0 && !filters.types.includes(p.type)) return false;
-
-            if (filters.gender !== "Any" && p.genderPreference !== "Any" && p.genderPreference !== filters.gender) {
-                return false;
+            if (filters.types.length > 0) {
+                const normalizedType = String(p.type || "").trim().toLowerCase();
+                const selected = filters.types.map((t) => String(t).trim().toLowerCase());
+                if (!selected.includes(normalizedType)) return false;
             }
 
             if (filters.amenities.length > 0) {
@@ -79,7 +123,7 @@ export default function Listings() {
         }
 
         return result;
-    }, [filters, sortBy]);
+    }, [filters, sortBy, properties]);
 
     const mapPins = useMemo(() => {
         return filteredAndSorted.slice(0, 12).map((p, i) => ({
@@ -116,7 +160,11 @@ export default function Listings() {
                             onToggleFilters={() => setSidebarOpen(true)}
                         />
 
-                        {filteredAndSorted.length > 0 ? (
+                        {loading ? (
+                            <div className="flex-1 flex items-center justify-center min-h-[400px]">
+                                <span className="material-symbols-outlined animate-spin text-4xl text-primary">progress_activity</span>
+                            </div>
+                        ) : filteredAndSorted.length > 0 ? (
                             <div className="p-6 space-y-6">
                                 {filteredAndSorted.map((property) => (
                                     <PropertyCard key={property.id} property={property} />
@@ -146,7 +194,7 @@ export default function Listings() {
                             <div
                                 className="absolute inset-0 opacity-10"
                                 style={{
-                                    backgroundImage: "radial-gradient(#221610 1px, transparent 1px)",
+                                    backgroundImage: "radial-gradient(#1a2e25 1px, transparent 1px)",
                                     backgroundSize: "20px 20px",
                                 }}
                             />
@@ -192,3 +240,4 @@ export default function Listings() {
         </div>
     );
 }
+
