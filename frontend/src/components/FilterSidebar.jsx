@@ -1,6 +1,5 @@
 import {
     propertyTypes,
-    genderOptions,
     amenityOptions,
     distanceOptions,
 } from "../data/filterOptions";
@@ -96,8 +95,6 @@ export default function FilterSidebar({ filters, onFilterChange, onClearAll, isO
                         ))}
                     </div>
                 </div>
-
-
 
                 <div className="mb-8">
                     <label className="block text-xs font-bold mb-4 uppercase tracking-wider text-slate-500">

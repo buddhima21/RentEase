@@ -1,50 +1,202 @@
-import { Link, Navigate } from "react-router-dom";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+import { useState, useEffect } from "react";
+import { Navigate } from "react-router-dom";
+import AdminSidebar from "../components/admin/dashboard/AdminSidebar";
+import AdminStatCard from "../components/admin/dashboard/AdminStatCard";
+import AdminActivityList from "../components/admin/dashboard/AdminActivityList";
 import ReviewModeration from "../components/admin/ReviewModeration";
-import { useAuth } from "../context/AuthContext";
+import AdminNotificationsBell from "../components/admin/dashboard/AdminNotificationsBell";
+import AdminProfileDropdown from "../components/admin/dashboard/AdminProfileDropdown";
+import { adminStatsData, platformOverview } from "../data/adminDashboardData";
+import { getAllPropertiesForAdmin } from "../services/api";
 
 /**
- * AdminDashboard – The central hub for administrators.
+ * AdminDashboard — Full-featured admin dashboard page.
+ * Route: /admin/dashboard
+ * Auth: Guards using adminToken/adminUser from localStorage (separate from normal user auth).
+ * Theme: Green (#26C289)
  */
 export default function AdminDashboard() {
-    const { user } = useAuth();
+    const [adminUser, setAdminUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [properties, setProperties] = useState([]);
 
-    // Redirect non-admins
-    if (!user || user.role !== "ADMIN") {
-        return <Navigate to="/" replace />;
+    // Hydrate admin user from localStorage and fetch properties
+    useEffect(() => {
+        const checkAuthAndFetch = async () => {
+            let isAdmin = false;
+            try {
+                const token = localStorage.getItem("adminToken");
+                const stored = localStorage.getItem("adminUser");
+                if (token && stored) {
+                    const parsed = JSON.parse(stored);
+                    if (parsed.role === "ADMIN") {
+                        setAdminUser(parsed);
+                        isAdmin = true;
+                    }
+                }
+            } catch {
+                localStorage.removeItem("adminToken");
+                localStorage.removeItem("adminUser");
+            }
+
+            if (isAdmin) {
+                try {
+                    const res = await getAllPropertiesForAdmin();
+                    if (res.data.success) {
+                        setProperties(res.data.data);
+                    }
+                } catch (err) {
+                    console.error("Failed to fetch properties:", err);
+                }
+            }
+            setLoading(false);
+        };
+        checkAuthAndFetch();
+    }, []);
+
+    // Show nothing while checking auth
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-[#f6f8f7]">
+                <span className="material-symbols-outlined animate-spin text-4xl text-[#26C289]">progress_activity</span>
+            </div>
+        );
     }
 
+    // Redirect to admin login if not authenticated
+    if (!adminUser) {
+        return <Navigate to="/admin/login" replace />;
+    }
+
+    const totalProperties = properties.filter(p => p.status !== 'DELETED').length;
+    const activeListings = properties.filter(
+        p => p.status === 'APPROVED' || p.status === 'RENTED'
+    ).length;
+    const pendingProperties = properties.filter(
+        p => p.status === 'PENDING_APPROVAL' || p.status === 'PENDING_DELETE'
+    ).length;
+
     return (
-        <div className="bg-[#f0f9ff]/50 text-slate-900 min-h-screen flex flex-col font-sans">
-            <Navbar />
-            <main className="flex-1 w-full flex flex-col items-center px-4 py-12 md:py-20">
-                <div className="w-full max-w-7xl flex flex-col md:flex-row justify-between items-center mb-12">
-                    <div>
-                        <h1 className="text-3xl md:text-5xl font-extrabold mb-2 tracking-tight text-slate-900 flex items-center gap-3">
-                            <span className="material-symbols-outlined text-blue-600 bg-blue-100 p-2 rounded-xl text-3xl">admin_panel_settings</span>
-                            Admin Dashboard
-                        </h1>
-                        <p className="text-slate-500 font-medium text-lg lg:ml-12">
-                            Oversee platform operations, moderate reviews, and maintain community standards.
-                        </p>
+        <div
+            className="flex h-screen overflow-hidden bg-[#f6f8f7]"
+            style={{ "--color-primary": "#26C289" }}
+        >
+            {/* ── Sidebar ─────────────────────────────────────── */}
+            <AdminSidebar />
+
+            {/* ── Main Content ────────────────────────────────── */}
+            <main className="flex-1 flex flex-col min-w-0">
+                {/* ── Header ────────────────────────────────────── */}
+                <header className="sticky top-0 z-30 h-20 border-b border-emerald-100 bg-white/90 backdrop-blur-md px-6 lg:px-8 flex items-center justify-between gap-4 shrink-0">
+                    <h2 className="text-xl lg:text-2xl font-bold tracking-tight whitespace-nowrap pl-12 lg:pl-0">
+                        Admin Dashboard
+                    </h2>
+
+                    <div className="flex items-center gap-3 ml-auto">
+                        {/* Search */}
+                        <div className="relative hidden sm:block w-52 lg:w-72">
+                            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[20px]">
+                                search
+                            </span>
+                            <input
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="w-full pl-10 pr-4 py-2.5 bg-[#f6f8f7] border border-emerald-100 rounded-lg focus:ring-2 focus:ring-[#26C289] text-sm placeholder-slate-400 transition-all"
+                                placeholder="Search platform..."
+                                type="text"
+                            />
+                        </div>
+
+                        {/* Notifications */}
+                        <AdminNotificationsBell />
+
+                        {/* Admin Avatar & Dropdown */}
+                        <div className="pl-2 lg:pl-4 border-l border-emerald-100/50 flex">
+                            {adminUser && <AdminProfileDropdown adminUser={adminUser} />}
+                        </div>
                     </div>
-                    <div className="mt-6 md:mt-0">
-                        <Link
-                            to="/"
-                            className="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 px-6 py-3 rounded-xl font-bold transition-all shadow-sm flex items-center gap-2"
-                        >
-                            <span className="material-symbols-outlined text-xl">home</span>
-                            Back to Home
-                        </Link>
+                </header>
+
+                {/* ── Dashboard Content ─────────────────────────── */}
+                <div className="flex-1 overflow-y-auto p-5 lg:p-8 space-y-8">
+
+                    {/* ── Welcome Banner ────────────────────────── */}
+                    <div className="bg-gradient-to-r from-[#1DBC60] to-emerald-600 rounded-2xl p-6 lg:p-8 text-white relative overflow-hidden">
+                        <div className="relative z-10">
+                            <h1 className="text-2xl lg:text-3xl font-extrabold tracking-tight mb-2">
+                                Welcome back, {adminUser.fullName || "Admin"}! 👋
+                            </h1>
+                            <p className="text-emerald-100 text-sm lg:text-base max-w-xl">
+                                Here's an overview of the platform activity. You have <span className="font-bold text-white">{pendingProperties} pending property approvals</span> and <span className="font-bold text-white">5 new user registrations</span> today.
+                            </p>
+                        </div>
+                        {/* Decorative circles */}
+                        <div className="absolute -right-8 -top-8 w-40 h-40 bg-white/10 rounded-full" />
+                        <div className="absolute -right-4 -bottom-12 w-28 h-28 bg-white/5 rounded-full" />
+                    </div>
+
+                    {/* ── KPI Stats Grid ──────────────────────────── */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+                        {adminStatsData.map((stat, i) => {
+                            let value = stat.value;
+                            let label = stat.label;
+                            if (i === 1) {
+                                value = totalProperties.toString();
+                            } else if (i === 2) {
+                                label = "Pending Approvals";
+                                value = pendingProperties.toString();
+                            }
+                            return <AdminStatCard key={i} {...stat} label={label} value={value} />;
+                        })}
+                    </div>
+
+                    {/* ── Quick Overview Cards ────────────────────── */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="bg-white rounded-xl border border-slate-100 p-4 flex items-center gap-3">
+                            <span className="material-symbols-outlined text-blue-600 bg-blue-50 p-2 rounded-lg">calendar_month</span>
+                            <div>
+                                <p className="text-xs text-slate-500 font-medium">Total Bookings</p>
+                                <p className="text-lg font-extrabold">{platformOverview.totalBookings}</p>
+                            </div>
+                        </div>
+                        <div className="bg-white rounded-xl border border-slate-100 p-4 flex items-center gap-3">
+                            <span className="material-symbols-outlined text-emerald-600 bg-emerald-50 p-2 rounded-lg">check_circle</span>
+                            <div>
+                                <p className="text-xs text-slate-500 font-medium">Active Listings</p>
+                                <p className="text-lg font-extrabold">{activeListings}</p>
+                            </div>
+                        </div>
+                        <div className="bg-white rounded-xl border border-slate-100 p-4 flex items-center gap-3">
+                            <span className="material-symbols-outlined text-amber-600 bg-amber-50 p-2 rounded-lg">hotel</span>
+                            <div>
+                                <p className="text-xs text-slate-500 font-medium">Occupancy Rate</p>
+                                <p className="text-lg font-extrabold">{platformOverview.occupancyRate}</p>
+                            </div>
+                        </div>
+                        <div className="bg-white rounded-xl border border-slate-100 p-4 flex items-center gap-3">
+                            <span className="material-symbols-outlined text-purple-600 bg-purple-50 p-2 rounded-lg">star</span>
+                            <div>
+                                <p className="text-xs text-slate-500 font-medium">Avg. Rating</p>
+                                <p className="text-lg font-extrabold">{platformOverview.avgRating}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* ── Main Content Grid ───────────────────────── */}
+                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
+                        {/* LEFT: Review Moderation */}
+                        <div className="xl:col-span-2">
+                            <ReviewModeration />
+                        </div>
+
+                        {/* RIGHT: Activity Feed */}
+                        <div className="space-y-6">
+                            <AdminActivityList />
+                        </div>
                     </div>
                 </div>
-
-                {/* Moderation Component */}
-                <ReviewModeration />
-
             </main>
-            <Footer />
         </div>
     );
 }

@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useRef, useLayoutEffect } from "react";
 import { Link } from "react-router-dom";
+import gsap from "gsap";
 
 /**
  * ListingCard – A single property listing card.
@@ -9,9 +10,43 @@ import { Link } from "react-router-dom";
  */
 export default function ListingCard({ listing }) {
     const [liked, setLiked] = useState(false);
+    const cardRef = useRef(null);
+
+    useLayoutEffect(() => {
+        const el = cardRef.current;
+        if (!el) return;
+
+        const ctx = gsap.context(() => {
+            // Hover Animation: Scale & Float
+            el.addEventListener("mouseenter", () => {
+                gsap.to(el, { 
+                    y: -8, 
+                    scale: 1.02,
+                    boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)",
+                    duration: 0.4, 
+                    ease: "power3.out" 
+                });
+            });
+            
+            el.addEventListener("mouseleave", () => {
+                gsap.to(el, { 
+                    y: 0, 
+                    scale: 1,
+                    boxShadow: "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+                    duration: 0.4, 
+                    ease: "power3.out" 
+                });
+            });
+        }, cardRef);
+
+        return () => ctx.revert();
+    }, []);
 
     return (
-        <div className="group bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300">
+        <div 
+            ref={cardRef} 
+            className="group relative bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm transition-colors duration-300"
+        >
             {/* Image Container */}
             <Link to={`/property/${listing.id}`} className="block relative h-64 overflow-hidden">
                 <img
@@ -49,7 +84,7 @@ export default function ListingCard({ listing }) {
                     <h3 className="text-lg font-bold group-hover:text-primary transition-colors line-clamp-1">
                         {listing.title}
                     </h3>
-                    <div className="flex items-center gap-1 text-sm font-bold bg-amber-50 text-amber-600 px-2 py-0.5 rounded">
+                    <div className="flex items-center gap-1 text-sm font-bold bg-primary/10 text-primary px-2 py-0.5 rounded">
                         <span className="material-symbols-outlined text-sm">star</span>
                         {listing.rating}
                     </div>

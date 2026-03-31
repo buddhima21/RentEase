@@ -17,12 +17,7 @@ public class MongoConfig {
     public static class PropertyStatusReadConverter implements Converter<String, PropertyStatus> {
         @Override
         public PropertyStatus convert(String source) {
-            if (source == null) return PropertyStatus.AVAILABLE;
-            try {
-                return PropertyStatus.valueOf(source.toUpperCase());
-            } catch (IllegalArgumentException e) {
-                return PropertyStatus.AVAILABLE;
-            }
+            return PropertyStatus.fromValue(source);
         }
     }
 

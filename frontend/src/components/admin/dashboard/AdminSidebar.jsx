@@ -1,32 +1,40 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { sidebarLinks, ownerProfile } from "../../data/ownerDashboardData";
+import { adminSidebarLinks, adminProfile } from "../../../data/adminDashboardData";
+import { useAuth } from "../../../context/AuthContext";
 
 /**
- * Sidebar — Collapsible sidebar navigation for owner pages.
+ * AdminSidebar — Collapsible sidebar navigation for admin pages.
  * Desktop: fixed left column.  Mobile: slide-over drawer with backdrop.
- * Theme: Green (emerald) consistent with dashboard design.
+ * Theme: Green (#26C289) consistent with platform design.
  */
-export default function Sidebar() {
+export default function AdminSidebar() {
     const [open, setOpen] = useState(false);
     const location = useLocation();
+    const { user } = useAuth();
 
     const navContent = (
         <>
             {/* ── Brand ───────────────────────────────────────── */}
             <div className="px-6 py-5 border-b border-emerald-100 flex items-center gap-3">
-                <div className="bg-primary p-2 rounded-lg text-slate-900 shrink-0">
-                    <span className="material-symbols-outlined block text-xl">domain</span>
+                <div className="relative flex items-center justify-center w-10 h-10 bg-emerald-50/50 rounded-xl shrink-0">
+                    <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 10L12 4L20 10V18C20 19.1046 19.1046 20 18 20H6C4.89543 20 4 19.1046 4 18V10Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-900"/>
+                        <path d="M12 14C13.1046 14 14 13.1046 14 12C14 10.8954 13.1046 10 12 10C10.8954 10 10 10.8954 10 12C10 13.1046 10.8954 14 12 14Z" fill="currentColor" className="text-emerald-500"/>
+                        <path d="M12 14V17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-emerald-500"/>
+                    </svg>
                 </div>
                 <div>
-                    <h1 className="text-lg font-bold tracking-tight leading-none">RentEase</h1>
-                    <p className="text-xs text-emerald-600 font-medium mt-1">Owner Portal</p>
+                    <h1 className="text-lg font-extrabold tracking-tight leading-none text-slate-900">
+                        Rent<span className="text-[#26C289]">Ease</span>
+                    </h1>
+                    <p className="text-xs text-emerald-600 font-medium mt-1">Admin Portal</p>
                 </div>
             </div>
 
             {/* ── Nav Links ───────────────────────────────────── */}
             <nav className="flex-1 px-4 py-5 space-y-1 overflow-y-auto">
-                {sidebarLinks.map((link) => {
+                {adminSidebarLinks.map((link) => {
                     const isActive = location.pathname === link.path;
                     return (
                         <Link
@@ -35,14 +43,14 @@ export default function Sidebar() {
                             onClick={() => setOpen(false)}
                             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200
                 ${isActive
-                                    ? "bg-primary/10 text-emerald-700 font-bold"
+                                    ? "bg-[#26C289]/10 text-emerald-700 font-bold"
                                     : "text-slate-600 font-medium hover:bg-emerald-50 hover:text-emerald-700"
                                 }`}
                         >
                             <span className="material-symbols-outlined text-[22px]">{link.icon}</span>
                             {link.label}
                             {link.badge && (
-                                <span className="ml-auto bg-primary text-slate-900 text-[10px] leading-none px-2 py-1 rounded-full font-bold">
+                                <span className="ml-auto bg-[#26C289] text-white text-[10px] leading-none px-2 py-1 rounded-full font-bold">
                                     {link.badge}
                                 </span>
                             )}
@@ -51,31 +59,7 @@ export default function Sidebar() {
                 })}
             </nav>
 
-            {/* ── Add Property CTA ────────────────────────────── */}
-            <div className="px-4 pb-4">
-                <button className="w-full flex items-center justify-center gap-2 py-3 bg-primary text-slate-900 rounded-lg font-bold text-sm hover:brightness-105 transition-all shadow-sm">
-                    <span className="material-symbols-outlined text-lg">add</span>
-                    Add New Property
-                </button>
-            </div>
 
-            {/* ── Profile Footer ──────────────────────────────── */}
-            <div className="p-4 border-t border-emerald-100">
-                <div className="flex items-center gap-3 px-2">
-                    <img
-                        src={ownerProfile.avatar}
-                        alt={ownerProfile.name}
-                        className="w-10 h-10 rounded-full object-cover ring-2 ring-primary/30"
-                    />
-                    <div className="min-w-0">
-                        <p className="text-sm font-bold truncate">{ownerProfile.name}</p>
-                        <p className="text-xs text-slate-500">{ownerProfile.role}</p>
-                    </div>
-                    <button className="ml-auto text-slate-400 hover:text-slate-600 transition-colors">
-                        <span className="material-symbols-outlined text-[20px]">logout</span>
-                    </button>
-                </div>
-            </div>
         </>
     );
 

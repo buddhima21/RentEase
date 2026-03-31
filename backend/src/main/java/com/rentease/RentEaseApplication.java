@@ -14,4 +14,3 @@ public class RentEaseApplication {
         SpringApplication.run(RentEaseApplication.class, args);
     }
 }
-

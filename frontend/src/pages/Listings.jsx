@@ -3,7 +3,7 @@ import Navbar from "../components/Navbar";
 import FilterSidebar from "../components/FilterSidebar";
 import PropertyCard from "../components/PropertyCard";
 import SortBar from "../components/SortBar";
-import { getAllProperties } from "../services/api";
+import { getApprovedProperties } from "../services/api";
 
 const INITIAL_FILTERS = {
     search: "",
@@ -16,7 +16,6 @@ const INITIAL_FILTERS = {
 
 /**
  * Normalise a backend Property into the shape PropertyCard expects.
- * (The card uses 'type', 'image', 'rating', 'reviewsCount', 'distanceKm', etc.)
  */
 function normaliseProperty(p) {
     return {
@@ -47,32 +46,35 @@ function normaliseProperty(p) {
 }
 
 export default function Listings() {
-    const [filters, setFilters] = useState(INITIAL_FILTERS);
-    const [sortBy, setSortBy] = useState("featured");
-    const [sidebarOpen, setSidebarOpen] = useState(false);
     const [allProperties, setAllProperties] = useState([]);
     const [loading, setLoading] = useState(true);
     const [fetchError, setFetchError] = useState(null);
+    const [filters, setFilters] = useState(INITIAL_FILTERS);
+    const [sortBy, setSortBy] = useState("featured");
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
-    useEffect(() => {
-        fetchProperties();
-    }, []);
-
-    const fetchProperties = async () => {
+    const fetchProperties = useCallback(async () => {
         try {
             setLoading(true);
             setFetchError(null);
-            const res = await getAllProperties();
-            const raw = res.data.data || [];
-            // Only show AVAILABLE properties to tenants
-            const available = raw.filter((p) => !p.deleted && p.status === "AVAILABLE");
-            setAllProperties(available.map(normaliseProperty));
-        } catch {
+            const response = await getApprovedProperties();
+            if (response.data.success) {
+                const mapped = response.data.data.map(normaliseProperty);
+                setAllProperties(mapped);
+            } else {
+                setAllProperties([]);
+            }
+        } catch (error) {
+            console.error("Failed to fetch public properties:", error);
             setFetchError("Failed to load properties. Please try again.");
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        fetchProperties();
+    }, [fetchProperties]);
 
     const handleFilterChange = useCallback((key, value) => {
         setFilters((prev) => ({ ...prev, [key]: value }));
@@ -84,6 +86,8 @@ export default function Listings() {
 
     const filteredAndSorted = useMemo(() => {
         let result = allProperties.filter((p) => {
+            const priceValue = Number(p.price) || 0;
+
             if (filters.search) {
                 const q = filters.search.toLowerCase();
                 const match =
@@ -93,10 +97,16 @@ export default function Listings() {
                 if (!match) return false;
             }
 
-            if (filters.priceMin && p.price < Number(filters.priceMin)) return false;
-            if (filters.priceMax && p.price > Number(filters.priceMax)) return false;
+            const min = filters.priceMin !== "" ? Number(filters.priceMin) : null;
+            const max = filters.priceMax !== "" ? Number(filters.priceMax) : null;
+            if (min !== null && !Number.isNaN(min) && priceValue < min) return false;
+            if (max !== null && !Number.isNaN(max) && priceValue > max) return false;
 
-            if (filters.types.length > 0 && !filters.types.includes(p.type)) return false;
+            if (filters.types.length > 0) {
+                const normalizedType = String(p.type || "").trim().toLowerCase();
+                const selected = filters.types.map((t) => String(t).trim().toLowerCase());
+                if (!selected.includes(normalizedType)) return false;
+            }
 
             if (filters.amenities.length > 0) {
                 const hasAll = filters.amenities.every((a) => p.amenities.includes(a));
@@ -215,7 +225,7 @@ export default function Listings() {
                             <div
                                 className="absolute inset-0 opacity-10"
                                 style={{
-                                    backgroundImage: "radial-gradient(#221610 1px, transparent 1px)",
+                                    backgroundImage: "radial-gradient(#1a2e25 1px, transparent 1px)",
                                     backgroundSize: "20px 20px",
                                 }}
                             />

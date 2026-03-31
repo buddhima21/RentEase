@@ -28,6 +28,9 @@ export function AuthProvider({ children }) {
     /** Clear everything and reset state */
     const logout = () => {
         localStorage.removeItem("user");
+        localStorage.removeItem("token");
+        localStorage.removeItem("adminToken");
+        localStorage.removeItem("adminUser");
         sessionStorage.clear();
         setUser(null);
     };

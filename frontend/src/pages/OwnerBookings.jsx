@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getOwnerBookings, approveBooking, rejectBooking, removeAllocation, hardDeleteBooking } from "../services/api";
-import Sidebar from "../components/dashboard/Sidebar";
+import Sidebar from "../components/owner/dashboard/Sidebar";
 import UserDropdown from "../components/UserDropdown";
 
 const STATUS_CONFIG = {
