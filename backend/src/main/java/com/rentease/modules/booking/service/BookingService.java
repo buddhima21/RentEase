@@ -14,6 +14,7 @@ import com.rentease.modules.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -36,12 +37,25 @@ public class BookingService {
             Arrays.asList(BookingStatus.PENDING, BookingStatus.APPROVED, BookingStatus.ALLOCATED);
 
     public BookingResponse createBooking(BookingRequest request) {
+        // ── Date validation: start date must not be in the past ──
+        if (request.getStartDate() == null) {
+            throw new BadRequestException("Move-in date is required");
+        }
+        if (request.getStartDate().isBefore(LocalDate.now())) {
+            throw new BadRequestException("Move-in date cannot be in the past. Please choose today or a future date.");
+        }
+
         // Validate property exists
         Property property = propertyRepository.findById(request.getPropertyId())
                 .orElseThrow(() -> new ResourceNotFoundException("Property", "id", request.getPropertyId()));
 
         if (property.isDeleted()) {
             throw new BadRequestException("Property is not available");
+        }
+
+        // ── Owner identity check: submitted ownerId must match the property's actual owner ──
+        if (!property.getOwnerId().equals(request.getOwnerId())) {
+            throw new BadRequestException("Invalid owner information. Please try again.");
         }
 
         // Check if tenant already has an active booking for this property
@@ -66,7 +80,7 @@ public class BookingService {
         Booking booking = Booking.builder()
                 .propertyId(request.getPropertyId())
                 .tenantId(request.getTenantId())
-                .ownerId(request.getOwnerId())
+                .ownerId(property.getOwnerId())
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
                 .monthlyRent(request.getMonthlyRent())
@@ -77,8 +91,14 @@ public class BookingService {
         return mapToResponse(saved);
     }
 
-    public BookingResponse approveBooking(String id) {
+    public BookingResponse approveBooking(String id, String requestingOwnerId) {
         Booking booking = findBookingOrThrow(id);
+
+        // ── Owner-only guard: only this property's owner can approve ──
+        if (!booking.getOwnerId().equals(requestingOwnerId)) {
+            throw new BadRequestException("You are not authorized to approve this booking. Only the property owner can do this.");
+        }
+
         if (booking.getStatus() != BookingStatus.PENDING) {
             throw new BadRequestException("Only PENDING bookings can be approved");
         }
@@ -97,8 +117,14 @@ public class BookingService {
         return mapToResponse(bookingRepository.save(booking));
     }
 
-    public BookingResponse rejectBooking(String id) {
+    public BookingResponse rejectBooking(String id, String requestingOwnerId) {
         Booking booking = findBookingOrThrow(id);
+
+        // ── Owner-only guard: only this property's owner can reject ──
+        if (!booking.getOwnerId().equals(requestingOwnerId)) {
+            throw new BadRequestException("You are not authorized to reject this booking. Only the property owner can do this.");
+        }
+
         if (booking.getStatus() != BookingStatus.PENDING) {
             throw new BadRequestException("Only PENDING bookings can be rejected");
         }
@@ -106,8 +132,14 @@ public class BookingService {
         return mapToResponse(bookingRepository.save(booking));
     }
 
-    public BookingResponse cancelAllocation(String id) {
+    public BookingResponse cancelAllocation(String id, String requestingOwnerId) {
         Booking booking = findBookingOrThrow(id);
+
+        // ── Owner-only guard: only this property's owner can remove a tenant ──
+        if (!booking.getOwnerId().equals(requestingOwnerId)) {
+            throw new BadRequestException("You are not authorized to remove this tenant. Only the property owner can do this.");
+        }
+
         if (booking.getStatus() != BookingStatus.ALLOCATED) {
             throw new BadRequestException("Only ALLOCATED bookings can have the tenant removed");
         }

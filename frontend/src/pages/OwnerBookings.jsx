@@ -238,7 +238,7 @@ export default function OwnerBookings() {
     const handleApprove = async (id) => {
         setActionLoading(id);
         try {
-            await approveBooking(id);
+            await approveBooking(id, user.id);
             showToast("Booking approved! Tenant has been allocated.");
             await fetchBookings();
         } catch (err) {
@@ -251,7 +251,7 @@ export default function OwnerBookings() {
     const handleReject = async (id) => {
         setActionLoading(id);
         try {
-            await rejectBooking(id);
+            await rejectBooking(id, user.id);
             showToast("Booking rejected.", "info");
             await fetchBookings();
         } catch (err) {
@@ -265,7 +265,7 @@ export default function OwnerBookings() {
         if (!confirm("Are you sure you want to remove this tenant? This will free up the bedroom slot.")) return;
         setActionLoading(id);
         try {
-            await removeAllocation(id);
+            await removeAllocation(id, user.id);
             showToast("Tenant removed. Bedroom slot is now available.", "info");
             await fetchBookings();
         } catch (err) {

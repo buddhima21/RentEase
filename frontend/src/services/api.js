@@ -179,16 +179,16 @@ export const getTenantBookings = (tenantId) => API.get(`/api/v1/bookings/tenant/
 export const getOwnerBookings = (ownerId) => API.get(`/api/v1/bookings/owner/${ownerId}`);
 
 /** Owner approves a pending booking */
-export const approveBooking = (bookingId) => API.patch(`/api/v1/bookings/${bookingId}/approve`);
+export const approveBooking = (bookingId, ownerId) => API.patch(`/api/v1/bookings/${bookingId}/approve`, null, { params: { ownerId } });
 
 /** Owner rejects a pending booking */
-export const rejectBooking = (bookingId) => API.patch(`/api/v1/bookings/${bookingId}/reject`);
+export const rejectBooking = (bookingId, ownerId) => API.patch(`/api/v1/bookings/${bookingId}/reject`, null, { params: { ownerId } });
 
 /** Tenant cancels their own booking */
 export const tenantCancelBooking = (bookingId, data) => API.patch(`/api/v1/bookings/${bookingId}/cancel`, data);
 
 /** Owner removes an allocated tenant (soft remove) */
-export const removeAllocation = (bookingId) => API.delete(`/api/v1/bookings/${bookingId}`);
+export const removeAllocation = (bookingId, ownerId) => API.delete(`/api/v1/bookings/${bookingId}`, { params: { ownerId } });
 
 /** Owner permanently deletes a booking from history */
 export const hardDeleteBooking = (bookingId) => API.delete(`/api/v1/bookings/${bookingId}/hard-delete`);

@@ -33,22 +33,28 @@ public class BookingController {
 
     /** Owner approves a pending booking → sets status to ALLOCATED */
     @PatchMapping("/{id}/approve")
-    public ResponseEntity<ApiResponse<BookingResponse>> approveBooking(@PathVariable("id") String id) {
-        BookingResponse response = bookingService.approveBooking(id);
+    public ResponseEntity<ApiResponse<BookingResponse>> approveBooking(
+            @PathVariable("id") String id,
+            @RequestParam("ownerId") String ownerId) {
+        BookingResponse response = bookingService.approveBooking(id, ownerId);
         return ResponseEntity.ok(ApiResponse.success(response, "Booking approved and tenant allocated"));
     }
 
     /** Owner rejects a pending booking */
     @PatchMapping("/{id}/reject")
-    public ResponseEntity<ApiResponse<BookingResponse>> rejectBooking(@PathVariable("id") String id) {
-        BookingResponse response = bookingService.rejectBooking(id);
+    public ResponseEntity<ApiResponse<BookingResponse>> rejectBooking(
+            @PathVariable("id") String id,
+            @RequestParam("ownerId") String ownerId) {
+        BookingResponse response = bookingService.rejectBooking(id, ownerId);
         return ResponseEntity.ok(ApiResponse.success(response, "Booking rejected"));
     }
 
     /** Owner removes an allocated tenant → sets status to CANCELLED */
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<BookingResponse>> cancelAllocation(@PathVariable("id") String id) {
-        BookingResponse response = bookingService.cancelAllocation(id);
+    public ResponseEntity<ApiResponse<BookingResponse>> cancelAllocation(
+            @PathVariable("id") String id,
+            @RequestParam("ownerId") String ownerId) {
+        BookingResponse response = bookingService.cancelAllocation(id, ownerId);
         return ResponseEntity.ok(ApiResponse.success(response, "Tenant removed from property"));
     }
 

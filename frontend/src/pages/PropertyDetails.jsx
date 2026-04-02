@@ -4,7 +4,7 @@ import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import ReviewSection from "../components/reviews/ReviewSection";
 import BookingCard from "../components/BookingCard";
-import { getApprovedPropertyById, getPropertyReviews } from "../services/api";
+import { getApprovedPropertyById, getPropertyReviews, getPropertyAvailableSlots } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 
 const FALLBACK_IMAGE = "https://placehold.co/1200x800/f1f5f9/94a3b8?text=No+Image";
@@ -45,6 +45,7 @@ export default function PropertyDetails() {
     const [isLoadingReviews, setIsLoadingReviews] = useState(true);
     const [averageRating, setAverageRating] = useState(0);
     const [showContact, setShowContact] = useState(false);
+    const [availableSlots, setAvailableSlots] = useState(null); // null = loading
 
     const propertyImages = Array.isArray(property?.imageUrls) && property.imageUrls.length > 0
         ? property.imageUrls
@@ -66,6 +67,17 @@ export default function PropertyDetails() {
         };
 
         loadProperty();
+    }, [id]);
+
+    // Fetch available bedroom slots whenever the property id changes
+    useEffect(() => {
+        setAvailableSlots(null);
+        getPropertyAvailableSlots(id)
+            .then((res) => {
+                const slots = res.data?.data?.availableSlots;
+                setAvailableSlots(typeof slots === "number" ? slots : null);
+            })
+            .catch(() => setAvailableSlots(null));
     }, [id]);
 
     useEffect(() => {
@@ -481,7 +493,7 @@ export default function PropertyDetails() {
                     </div>
 
                     {/* Right column */}
-                    <BookingCard property={propertyForBooking} />
+                    <BookingCard property={propertyForBooking} user={user} availableSlots={availableSlots} />
                 </div>
             </main>
             <Footer />
