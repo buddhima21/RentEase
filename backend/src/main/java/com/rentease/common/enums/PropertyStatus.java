@@ -1,13 +1,20 @@
 package com.rentease.common.enums;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 public enum PropertyStatus {
     PENDING_APPROVAL,
     APPROVED,
+    AVAILABLE,
+    BOOKED,
     RENTED,
+    UNDER_MAINTENANCE,
+    INACTIVE,
     REJECTED,
     PENDING_DELETE,
     DELETED;
 
+    @JsonCreator
     public static PropertyStatus fromValue(String raw) {
         if (raw == null || raw.isBlank()) {
             return PENDING_APPROVAL;

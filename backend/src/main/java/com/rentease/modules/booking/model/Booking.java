@@ -30,6 +30,8 @@ public class Booking {
     private LocalDate endDate;
     private double monthlyRent;
 
+    private String cancellationReason;
+
     @Builder.Default
     private BookingStatus status = BookingStatus.PENDING;
 
@@ -39,3 +41,4 @@ public class Booking {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 }
+
