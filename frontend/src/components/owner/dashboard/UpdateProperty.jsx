@@ -19,6 +19,7 @@ export default function UpdateProperty() {
         title: "",
         category: "",
         description: "",
+        termsAndConditions: "",
         rent: "",
         deposit: 0,
         amenities: {
@@ -50,6 +51,7 @@ export default function UpdateProperty() {
                     title: property?.title || "",
                     category: property?.propertyType || "",
                     description: property?.description || "",
+                    termsAndConditions: property?.termsAndConditions || "",
                     rent: property?.price ?? "",
                     deposit: property?.securityDeposit ?? 0,
                     amenities: {
@@ -88,6 +90,7 @@ export default function UpdateProperty() {
             const payload = {
                 title: formData.title?.trim(),
                 description: formData.description?.trim(),
+                termsAndConditions: formData.termsAndConditions?.trim() || undefined,
                 price: Number(formData.rent) || 0,
                 securityDeposit: Number(formData.deposit) || 0,
                 propertyType: formData.category,
@@ -203,6 +206,18 @@ export default function UpdateProperty() {
                                         value={formData.description}
                                         onChange={(e) => setFormData({...formData, description: e.target.value})}
                                     ></textarea>
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                        Terms &amp; conditions <span className="font-normal text-slate-400">(visible to tenants)</span>
+                                    </label>
+                                    <textarea
+                                        name="termsAndConditions"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary transition-all text-slate-900 font-medium resize-none min-h-[140px]"
+                                        value={formData.termsAndConditions}
+                                        onChange={(e) => setFormData({ ...formData, termsAndConditions: e.target.value })}
+                                        placeholder="House rules, deposit terms, notice period, etc."
+                                    />
                                 </div>
                             </section>
 

@@ -210,4 +210,17 @@ export const updateReviewStatus = (reviewId, status) => API.put(`/api/v1/reviews
 export const updateReview = (reviewId, reviewData) => API.put(`/api/v1/reviews/${reviewId}`, reviewData);
 export const deleteReview = (reviewId) => API.delete(`/api/v1/reviews/${reviewId}`);
 
+// ── Rental agreements (JWT required) ───────────────────
+export const createAgreement = (data) => API.post("/api/v1/agreements", data);
+export const getTenantAgreements = (tenantId) => API.get(`/api/v1/agreements/tenant/${tenantId}`);
+export const getOwnerAgreements = (ownerId) => API.get(`/api/v1/agreements/owner/${ownerId}`);
+export const getEligibleAgreementBookings = (tenantId) =>
+    API.get(`/api/v1/agreements/eligible-bookings/${tenantId}`);
+export const getAgreementById = (id) => API.get(`/api/v1/agreements/${id}`);
+/** Returns axios response with blob data — use responseType blob */
+export const downloadAgreementPdf = (id) =>
+    API.get(`/api/v1/agreements/${id}/pdf`, { responseType: "blob" });
+export const terminateAgreementEarly = (id, data) =>
+    API.patch(`/api/v1/agreements/${id}/terminate`, data ?? {});
+
 export default API;

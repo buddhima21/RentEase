@@ -28,6 +28,7 @@ public class PropertyResponse {
     private String propertyType;
     private List<String> amenities;
     private List<String> imageUrls;
+    private String termsAndConditions;
 
     // Owner info
     private String ownerId;

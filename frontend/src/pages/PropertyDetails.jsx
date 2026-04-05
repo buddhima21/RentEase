@@ -315,6 +315,17 @@ export default function PropertyDetails() {
                         </section>
 
                         <section>
+                            <h3 className="text-xl font-bold mb-4">Terms &amp; conditions</h3>
+                            {property.termsAndConditions ? (
+                                <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-5 text-slate-700 text-sm leading-relaxed whitespace-pre-wrap">
+                                    {property.termsAndConditions}
+                                </div>
+                            ) : (
+                                <p className="text-slate-500 text-sm">The owner has not added custom terms for this listing yet.</p>
+                            )}
+                        </section>
+
+                        <section>
                             <h3 className="text-xl font-bold mb-4">House Rules</h3>
                             <ul className="space-y-3">
                                 {HOUSE_RULES.map((rule) => (

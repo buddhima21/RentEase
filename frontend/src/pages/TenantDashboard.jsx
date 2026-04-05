@@ -313,13 +313,22 @@ export default function TenantDashboard() {
                             {user?.fullName ? `Welcome back, ${user.fullName.split(" ")[0]}!` : "Track your rental booking requests"}
                         </p>
                     </div>
-                    <Link
-                        to="/listings"
-                        className="inline-flex items-center gap-2 bg-primary text-white font-bold px-5 py-2.5 rounded-xl hover:bg-primary/90 transition-all text-sm"
-                    >
-                        <span className="material-symbols-outlined text-[18px]">search</span>
-                        Browse Properties
-                    </Link>
+                    <div className="flex flex-wrap gap-2">
+                        <Link
+                            to="/tenant/agreements"
+                            className="inline-flex items-center gap-2 bg-white border border-slate-200 text-slate-800 font-bold px-5 py-2.5 rounded-xl hover:bg-slate-50 transition-all text-sm"
+                        >
+                            <span className="material-symbols-outlined text-[18px]">description</span>
+                            Agreements
+                        </Link>
+                        <Link
+                            to="/listings"
+                            className="inline-flex items-center gap-2 bg-primary text-white font-bold px-5 py-2.5 rounded-xl hover:bg-primary/90 transition-all text-sm"
+                        >
+                            <span className="material-symbols-outlined text-[18px]">search</span>
+                            Browse Properties
+                        </Link>
+                    </div>
                 </div>
 
 

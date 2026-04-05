@@ -19,6 +19,7 @@ const AddProperty = () => {
     nearbyUniversity: '',
     fullAddress: '',
     description: '',
+    termsAndConditions: '',
     monthlyRent: '',
     securityDeposit: '',
     maxOccupants: '',
@@ -82,6 +83,7 @@ const AddProperty = () => {
         propertyType: formData.category || 'Apartment',
         amenities: selectedAmenities,
         imageUrls,
+        termsAndConditions: formData.termsAndConditions?.trim() || undefined,
       };
 
       const response = await createProperty(payload);

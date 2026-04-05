@@ -16,6 +16,10 @@ import OwnerAnalytics from "../pages/OwnerAnalytics";
 import TenantDashboard from "../pages/TenantDashboard";
 import OwnerBookings from "../pages/OwnerBookings";
 import Bookings from "../pages/Bookings";
+import TenantAgreements from "../pages/TenantAgreements";
+import CreateAgreement from "../pages/CreateAgreement";
+import AgreementDetail from "../pages/AgreementDetail";
+import OwnerAgreements from "../pages/OwnerAgreements";
 import ListingModeration from "../pages/ListingModeration";
 import UpdateProperty from "../components/owner/dashboard/UpdateProperty";
 import ViewPropertyDetails from "../components/owner/dashboard/ViewPropertyDetails";
@@ -44,10 +48,14 @@ export default function AppRoutes() {
             <Route path="/edit-property/:id" element={<UpdateProperty />} />
             <Route path="/owner/properties/:id/edit" element={<UpdateProperty />} />
             <Route path="/owner/analytics" element={<OwnerAnalytics />} />
+            <Route path="/owner/agreements" element={<OwnerAgreements />} />
 
             {/* Tenant Routes */}
             <Route path="/tenant/dashboard" element={<TenantDashboard />} />
             <Route path="/tenant/bookings" element={<Bookings />} />
+            <Route path="/tenant/agreements" element={<TenantAgreements />} />
+            <Route path="/tenant/agreements/new" element={<CreateAgreement />} />
+            <Route path="/tenant/agreements/:id" element={<AgreementDetail />} />
 
             {/* Admin Routes */}
             <Route path="/admin/login" element={<AdminLogin />} />

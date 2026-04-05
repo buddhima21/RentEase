@@ -47,4 +47,7 @@ public class PropertyUpdateRequest {
     private String propertyType;
     private List<String> amenities;
     private List<String> imageUrls;
+
+    @Size(max = 10000, message = "Terms and conditions cannot exceed 10000 characters")
+    private String termsAndConditions;
 }

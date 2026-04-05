@@ -127,6 +127,20 @@ const Step2PricingAmenities = ({ formData, updateFormData, prevStep, nextStep })
           </div>
         </div>
 
+        <div className="space-y-1 pt-4">
+          <label className={labelClasses}>
+            Terms &amp; conditions <span className="text-slate-400 font-normal">(optional — shown to tenants)</span>
+          </label>
+          <textarea
+            name="termsAndConditions"
+            value={formData.termsAndConditions || ''}
+            onChange={handleChange}
+            rows={5}
+            className={`${inputClasses} resize-none`}
+            placeholder="e.g. Notice period, guest policy, utility responsibilities…"
+          />
+        </div>
+
         {/* Action Buttons */}
         <div className="pt-8 border-t border-slate-100 flex flex-col sm:flex-row gap-4 justify-between items-center mt-10">
           <button

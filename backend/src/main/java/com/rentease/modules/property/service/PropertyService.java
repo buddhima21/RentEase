@@ -51,6 +51,7 @@ public class PropertyService {
                 .propertyType(request.getPropertyType())
                 .amenities(request.getAmenities())
                 .imageUrls(request.getImageUrls())
+                .termsAndConditions(request.getTermsAndConditions())
                 .ownerId(ownerId)
                 .ownerName(ownerName)
                 .ownerEmail(ownerEmail)
@@ -93,6 +94,7 @@ public class PropertyService {
         if (request.getPropertyType() != null) property.setPropertyType(request.getPropertyType());
         if (request.getAmenities() != null) property.setAmenities(request.getAmenities());
         if (request.getImageUrls() != null) property.setImageUrls(request.getImageUrls());
+        if (request.getTermsAndConditions() != null) property.setTermsAndConditions(request.getTermsAndConditions());
 
         Property updated = propertyRepository.save(property);
         log.info("Property updated [id={}, owner={}]", propertyId, ownerId);
@@ -351,6 +353,7 @@ public class PropertyService {
                 .propertyType(property.getPropertyType())
                 .amenities(property.getAmenities())
                 .imageUrls(property.getImageUrls())
+                .termsAndConditions(property.getTermsAndConditions())
                 .ownerId(property.getOwnerId())
                 .ownerName(owner != null ? owner.getFullName() : property.getOwnerName())
                 .ownerEmail(owner != null ? owner.getEmail() : property.getOwnerEmail())

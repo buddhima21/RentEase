@@ -37,6 +37,9 @@ public class Property {
     private List<String> amenities;
     private List<String> imageUrls;
 
+    /** Owner-defined terms & conditions (visible to tenants; editable only by owner). */
+    private String termsAndConditions;
+
     // ── Owner Info ──────────────────────────────────────
     @Indexed
     private String ownerId;
