@@ -1,0 +1,107 @@
+package com.rentease.modules.agreement.service;
+
+import com.lowagie.text.Document;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.Font;
+import com.lowagie.text.FontFactory;
+import com.lowagie.text.Paragraph;
+import com.lowagie.text.Phrase;
+import com.lowagie.text.pdf.PdfWriter;
+import com.rentease.common.enums.AgreementStatus;
+import com.rentease.modules.agreement.model.Agreement;
+import com.rentease.modules.property.model.Property;
+import com.rentease.modules.user.model.User;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.awt.Color;
+import java.io.ByteArrayOutputStream;
+import java.time.format.DateTimeFormatter;
+
+/**
+ * Builds a simple, printable PDF for a rental agreement (OpenPDF / OpenPDF).
+ */
+@Service
+@Slf4j
+public class AgreementPdfService {
+
+    private static final DateTimeFormatter DF = DateTimeFormatter.ofPattern("dd MMM yyyy");
+
+    public byte[] buildPdf(Agreement agreement, Property property, User tenant, User owner) {
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Document doc = new Document();
+            PdfWriter.getInstance(doc, out);
+            doc.open();
+
+            Font titleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 18, Color.DARK_GRAY);
+            Font hFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, Color.DARK_GRAY);
+            Font bodyFont = FontFactory.getFont(FontFactory.HELVETICA, 11, Color.BLACK);
+
+            doc.add(new Paragraph("RentEase — Digital Rental Agreement", titleFont));
+            doc.add(new Paragraph(" ", bodyFont));
+            doc.add(new Paragraph("Agreement No: " + agreement.getAgreementNumber(), hFont));
+            doc.add(new Paragraph("Status: " + agreement.getStatus(), bodyFont));
+            doc.add(new Paragraph(" ", bodyFont));
+
+            doc.add(new Paragraph("Parties", hFont));
+            doc.add(new Phrase("Tenant: ", bodyFont));
+            doc.add(new Phrase(tenant != null ? tenant.getFullName() + " (" + tenant.getEmail() + ")" : agreement.getTenantId(), bodyFont));
+            doc.add(new Paragraph(" ", bodyFont));
+            doc.add(new Phrase("Owner: ", bodyFont));
+            doc.add(new Phrase(owner != null ? owner.getFullName() + " (" + owner.getEmail() + ")" : agreement.getOwnerId(), bodyFont));
+            doc.add(new Paragraph(" ", bodyFont));
+
+            doc.add(new Paragraph("Property", hFont));
+            String propLine = property != null
+                    ? property.getTitle() + " — " + property.getAddress() + ", " + property.getCity()
+                    : agreement.getPropertyId();
+            doc.add(new Paragraph(propLine, bodyFont));
+            doc.add(new Paragraph(" ", bodyFont));
+
+            doc.add(new Paragraph("Terms of lease", hFont));
+            doc.add(new Paragraph("Start date: " + DF.format(agreement.getStartDate()), bodyFont));
+            doc.add(new Paragraph("End date: " + DF.format(agreement.getEndDate()), bodyFont));
+            doc.add(new Paragraph("Duration (months): " + agreement.getDurationMonths(), bodyFont));
+            doc.add(new Paragraph("Monthly rent (LKR): " + agreement.getRentAmount(), bodyFont));
+            doc.add(new Paragraph(" ", bodyFont));
+
+            if (agreement.getRulesNotes() != null && !agreement.getRulesNotes().isBlank()) {
+                doc.add(new Paragraph("Additional rules / notes", hFont));
+                doc.add(new Paragraph(agreement.getRulesNotes(), bodyFont));
+                doc.add(new Paragraph(" ", bodyFont));
+            }
+
+            doc.add(new Paragraph("Property terms & conditions (as recorded at signing)", hFont));
+            String terms = agreement.getPropertyTermsSnapshot();
+            if (terms == null || terms.isBlank()) {
+                doc.add(new Paragraph("(No property-level terms were set at the time of this agreement.)", bodyFont));
+            } else {
+                doc.add(new Paragraph(terms, bodyFont));
+            }
+            doc.add(new Paragraph(" ", bodyFont));
+
+            if (agreement.getStatus() == AgreementStatus.TERMINATED) {
+                doc.add(new Paragraph("Early termination", hFont));
+                doc.add(new Paragraph("Terminated at: " + (agreement.getTerminatedAt() != null ? agreement.getTerminatedAt().toString() : "—"), bodyFont));
+                if (agreement.getEarlyTerminationPenalty() != null) {
+                    doc.add(new Paragraph("Early termination penalty (LKR): " + agreement.getEarlyTerminationPenalty(), bodyFont));
+                }
+                if (agreement.getTerminationReason() != null && !agreement.getTerminationReason().isBlank()) {
+                    doc.add(new Paragraph("Reason: " + agreement.getTerminationReason(), bodyFont));
+                }
+            }
+
+            doc.add(new Paragraph(" ", bodyFont));
+            doc.add(new Paragraph("Generated by RentEase. This document is for reference; keep a copy for your records.", bodyFont));
+
+            doc.close();
+            return out.toByteArray();
+        } catch (DocumentException e) {
+            log.error("PDF generation failed", e);
+            throw new IllegalStateException("Could not generate agreement PDF", e);
+        } catch (java.io.IOException e) {
+            log.error("PDF output failed", e);
+            throw new IllegalStateException("Could not generate agreement PDF", e);
+        }
+    }
+}
