@@ -1,9 +1,8 @@
-import { useParams, Link } from "react-router-dom";
-import properties from "../data/properties";
+import { useState, useEffect } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import { getPropertyById, getPropertyAvailableSlots, createBookingRequest, getTenantBookings } from "../services/api";
 import Navbar from "../components/Navbar";
-import BookingCard from "../components/BookingCard";
-
-const FALLBACK_IMAGE = "https://placehold.co/800x500/f1f5f9/94a3b8?text=No+Image";
 
 const AMENITY_DETAILS = {
     WiFi: { icon: "wifi", label: "High-speed Wi-Fi" },
@@ -21,22 +20,199 @@ const HOUSE_RULES = [
     { icon: "volume_off", text: "Quiet hours after 10:00 PM" },
 ];
 
-const REVIEWS = [
-    {
-        name: "Kasun Silva",
-        date: "September 2023",
-        text: "Stayed here for my final semester at SLIIT. The place is very quiet, and the host is wonderful. Very safe for students!",
-    },
-    {
-        name: "Dilini Fernando",
-        date: "July 2023",
-        text: "Clean, tidy, and has all the basics needed. The separate entrance is a big plus for privacy. Highly recommend!",
-    },
-];
+function BookingModal({ property, onClose, onSubmit, submitting, error }) {
+    const [startDate, setStartDate] = useState("");
+
+    const today = new Date().toISOString().split("T")[0];
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!startDate) return;
+        onSubmit(startDate);
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+            <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 z-10 animate-fade-in">
+                <div className="flex items-center justify-between mb-5">
+                    <h2 className="text-xl font-black text-slate-900">Request Booking</h2>
+                    <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100 transition-colors text-slate-400">
+                        <span className="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+
+                {/* Property Summary */}
+                <div className="bg-slate-50 rounded-xl p-4 mb-5 border border-slate-200">
+                    <h3 className="font-bold text-slate-900 mb-1 line-clamp-1">{property.title}</h3>
+                    <p className="text-sm text-slate-500 flex items-center gap-1 mb-2">
+                        <span className="material-symbols-outlined text-sm text-primary">location_on</span>
+                        {property.address}, {property.city}
+                    </p>
+                    <div className="flex items-center gap-4 text-sm">
+                        <span className="font-bold text-primary text-base">
+                            LKR {new Intl.NumberFormat("en-LK").format(property.price)}
+                            <span className="text-slate-400 font-normal text-xs">/mo</span>
+                        </span>
+                        <span className="flex items-center gap-1 text-slate-500">
+                            <span className="material-symbols-outlined text-sm">bed</span>
+                            {property.bedrooms} Bedroom{property.bedrooms > 1 ? "s" : ""}
+                        </span>
+                    </div>
+                </div>
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-bold text-slate-700 mb-1.5">
+                            Requested Move-in Date
+                        </label>
+                        <input
+                            type="date"
+                            value={startDate}
+                            min={today}
+                            onChange={(e) => setStartDate(e.target.value)}
+                            required
+                            className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+                        />
+                    </div>
+
+                    {error && (
+                        <div className="bg-red-50 border border-red-200 rounded-xl p-3 flex items-start gap-2">
+                            <span className="material-symbols-outlined text-red-500 text-lg mt-0.5">error</span>
+                            <p className="text-sm text-red-700">{error}</p>
+                        </div>
+                    )}
+
+                    <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 flex items-start gap-2">
+                        <span className="material-symbols-outlined text-amber-500 text-lg mt-0.5">info</span>
+                        <p className="text-xs text-amber-700">
+                            Your request will be sent to the property owner for review. You'll see the status on your dashboard.
+                        </p>
+                    </div>
+
+                    <div className="flex gap-3 pt-1">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="flex-1 bg-slate-100 text-slate-700 font-bold py-3 rounded-xl hover:bg-slate-200 transition-all text-sm"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={submitting || !startDate}
+                            className="flex-1 bg-primary text-white font-bold py-3 rounded-xl hover:bg-primary/90 disabled:opacity-60 transition-all text-sm flex items-center justify-center gap-2"
+                        >
+                            {submitting ? (
+                                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                                <span className="material-symbols-outlined text-[18px]">send</span>
+                            )}
+                            Submit Request
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
 
 export default function ListingDetails() {
     const { id } = useParams();
-    const property = properties.find((p) => p.id === Number(id));
+    const { user } = useAuth();
+    const navigate = useNavigate();
+
+    const [property, setProperty] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [availableSlots, setAvailableSlots] = useState(null);
+    const [existingBooking, setExistingBooking] = useState(null);
+    const [showModal, setShowModal] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [bookingError, setBookingError] = useState(null);
+    const [successMsg, setSuccessMsg] = useState(null);
+
+    useEffect(() => {
+        fetchProperty();
+    }, [id]);
+
+    useEffect(() => {
+        if (property && user?.role === "TENANT") {
+            fetchSlots();
+            checkExistingBooking();
+        }
+    }, [property, user]);
+
+    const fetchProperty = async () => {
+        try {
+            setLoading(true);
+            const res = await getPropertyById(id);
+            setProperty(res.data.data);
+        } catch {
+            setProperty(null);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchSlots = async () => {
+        try {
+            const res = await getPropertyAvailableSlots(id);
+            setAvailableSlots(res.data.data.availableSlots);
+        } catch {
+            setAvailableSlots(null);
+        }
+    };
+
+    const checkExistingBooking = async () => {
+        try {
+            const res = await getTenantBookings(user.id);
+            const bookings = res.data.data || [];
+            const active = bookings.find(
+                (b) => b.propertyId === id && ["PENDING", "APPROVED", "ALLOCATED"].includes(b.status)
+            );
+            setExistingBooking(active || null);
+        } catch {
+            // ignore
+        }
+    };
+
+    const handleBookingSubmit = async (startDate) => {
+        setSubmitting(true);
+        setBookingError(null);
+        try {
+            await createBookingRequest({
+                propertyId: id,
+                tenantId: user.id,
+                ownerId: property.ownerId,
+                monthlyRent: property.price,
+                startDate: startDate,
+            });
+            setShowModal(false);
+            setSuccessMsg("Booking request submitted! Check your dashboard for updates.");
+            setExistingBooking({ status: "PENDING" });
+            fetchSlots();
+        } catch (err) {
+            setBookingError(
+                err?.response?.data?.message || "Failed to submit booking. Please try again."
+            );
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-slate-50 flex flex-col">
+                <Navbar />
+                <div className="flex-1 flex items-center justify-center">
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                        <p className="text-slate-500">Loading property...</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     if (!property) {
         return (
@@ -60,11 +236,70 @@ export default function ListingDetails() {
     }
 
     const formattedPrice = new Intl.NumberFormat("en-LK").format(property.price);
-    const galleryImages = [property.image, property.image, property.image, property.image, property.image];
+    const galleryImages = property.imageUrls && property.imageUrls.length > 0
+        ? property.imageUrls
+        : [null, null, null, null, null];
+    while (galleryImages.length < 5) galleryImages.push(null);
+
+    const isTenant = user?.role === "TENANT";
+    const isFullyBooked = availableSlots !== null && availableSlots === 0;
+    const hasActiveBooking = !!existingBooking;
+
+    const renderBookingButton = () => {
+        if (!isTenant) return null;
+
+        if (hasActiveBooking) {
+            const statusLabels = {
+                PENDING: { label: "Request Pending", icon: "hourglass_top", cls: "bg-amber-100 text-amber-700 border-amber-200" },
+                APPROVED: { label: "Booking Approved", icon: "thumb_up", cls: "bg-blue-100 text-blue-700 border-blue-200" },
+                ALLOCATED: { label: "You are Allocated", icon: "check_circle", cls: "bg-emerald-100 text-emerald-700 border-emerald-200" },
+            };
+            const cfg = statusLabels[existingBooking.status] || statusLabels["PENDING"];
+            return (
+                <div className={`flex items-center gap-2 px-5 py-3 rounded-xl border ${cfg.cls} font-bold text-sm`}>
+                    <span className="material-symbols-outlined text-[18px]">{cfg.icon}</span>
+                    {cfg.label}
+                </div>
+            );
+        }
+
+        if (isFullyBooked) {
+            return (
+                <div className="flex items-center gap-2 px-5 py-3 rounded-xl bg-red-50 border border-red-200 text-red-600 font-bold text-sm">
+                    <span className="material-symbols-outlined text-[18px]">bed_off</span>
+                    Fully Booked — All Rooms Occupied
+                </div>
+            );
+        }
+
+        return (
+            <button
+                onClick={() => {
+                    if (!user) { navigate("/login"); return; }
+                    setShowModal(true);
+                }}
+                className="flex items-center gap-2 bg-primary text-white font-bold px-6 py-3 rounded-xl hover:bg-primary/90 transition-all text-sm shadow-md"
+            >
+                <span className="material-symbols-outlined text-[18px]">calendar_add_on</span>
+                Request Booking
+            </button>
+        );
+    };
 
     return (
         <div className="min-h-screen bg-background-light">
-            <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-background-light/80 backdrop-blur-md px-4 md:px-20 py-3">
+            {/* Booking Modal */}
+            {showModal && (
+                <BookingModal
+                    property={property}
+                    onClose={() => { setShowModal(false); setBookingError(null); }}
+                    onSubmit={handleBookingSubmit}
+                    submitting={submitting}
+                    error={bookingError}
+                />
+            )}
+
+            <header className="sticky top-0 z-40 w-full border-b border-slate-200 bg-background-light/80 backdrop-blur-md px-4 md:px-20 py-3">
                 <div className="max-w-7xl mx-auto flex items-center justify-between">
                     <div className="flex items-center gap-8">
                         <Link to="/" className="flex items-center gap-2 text-primary">
@@ -95,37 +330,54 @@ export default function ListingDetails() {
                     Back to Listings
                 </Link>
 
-                <div className="grid grid-cols-4 grid-rows-2 gap-3 h-[300px] md:h-[500px] rounded-2xl overflow-hidden mb-8">
-                    <div className="col-span-4 md:col-span-2 row-span-2 relative group cursor-pointer overflow-hidden">
-                        <img
-                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                            src={galleryImages[0]}
-                            alt={property.title}
-                            onError={(e) => { e.target.onerror = null; e.target.src = FALLBACK_IMAGE; }}
-                        />
-                        <div className="absolute top-3 left-3 flex items-center gap-2">
-                            {property.featured && (
-                                <span className="bg-primary text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg">
-                                    Featured
-                                </span>
-                            )}
-                            {property.verified && (
-                                <span className="bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg">
-                                    Verified
-                                </span>
-                            )}
-                        </div>
+                {/* Success Alert */}
+                {successMsg && (
+                    <div className="mb-6 bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-center gap-3">
+                        <span className="material-symbols-outlined text-emerald-600">check_circle</span>
+                        <p className="text-emerald-800 font-medium text-sm flex-1">{successMsg}</p>
+                        <Link to="/tenant/dashboard" className="text-emerald-700 font-bold text-sm underline hover:no-underline">
+                            View Dashboard
+                        </Link>
                     </div>
-                    {galleryImages.slice(1).map((img, i) => (
-                        <div key={i} className="hidden md:block col-span-1 row-span-1 relative group cursor-pointer overflow-hidden">
+                )}
+
+                {/* Gallery */}
+                <div className="grid grid-cols-4 grid-rows-2 gap-3 h-[300px] md:h-[500px] rounded-2xl overflow-hidden mb-8">
+                    <div className="col-span-4 md:col-span-2 row-span-2 relative group cursor-pointer overflow-hidden bg-slate-200 flex items-center justify-center">
+                        <span className="material-symbols-outlined text-6xl text-slate-300 absolute z-0">home_work</span>
+                        {galleryImages[0] && (
                             <img
-                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                src={img}
-                                alt={`${property.title} view ${i + 2}`}
-                                onError={(e) => { e.target.onerror = null; e.target.src = FALLBACK_IMAGE; }}
+                                className="relative z-10 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 text-transparent"
+                                src={galleryImages[0]}
+                                alt={property.title}
+                                onError={(e) => { e.target.style.display = 'none'; }}
                             />
+                        )}
+                        {property.status && property.status !== "AVAILABLE" && (
+                            <div className="absolute z-20 top-3 left-3">
+                                <span className={`px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg ${
+                                    property.status === "BOOKED" ? "bg-amber-500 text-white" :
+                                    property.status === "UNDER_MAINTENANCE" ? "bg-orange-500 text-white" :
+                                    "bg-slate-500 text-white"
+                                }`}>
+                                    {property.status.replace("_", " ")}
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                    {galleryImages.slice(1, 5).map((img, i) => (
+                        <div key={i} className="hidden md:block col-span-1 row-span-1 relative group cursor-pointer overflow-hidden bg-slate-200 flex items-center justify-center">
+                            <span className="material-symbols-outlined text-4xl text-slate-300 absolute z-0">home_work</span>
+                            {img && (
+                                <img
+                                    className="relative z-10 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 text-transparent"
+                                    src={img}
+                                    alt={`${property.title} view ${i + 2}`}
+                                    onError={(e) => { e.target.style.display = 'none'; }}
+                                />
+                            )}
                             {i === 3 && (
-                                <div className="absolute bottom-4 right-4 bg-white/90 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 shadow-lg">
+                                <div className="absolute z-20 bottom-4 right-4 bg-white/90 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 shadow-lg">
                                     <span className="material-symbols-outlined text-sm">grid_view</span> Show all photos
                                 </div>
                             )}
@@ -135,6 +387,7 @@ export default function ListingDetails() {
 
                 <div className="flex flex-col lg:flex-row gap-12">
                     <div className="flex-1 space-y-10">
+                        {/* Title + Booking Button */}
                         <section>
                             <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
                                 <div>
@@ -158,17 +411,51 @@ export default function ListingDetails() {
                                     <span className="material-symbols-outlined text-primary">bathtub</span>
                                     <span className="font-medium">{property.bathrooms} Bathroom{property.bathrooms > 1 ? "s" : ""}</span>
                                 </div>
-                                {property.amenities.includes("Furnished") && (
+                                {property.area > 0 && (
                                     <div className="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-xl">
-                                        <span className="material-symbols-outlined text-primary">chair</span>
-                                        <span className="font-medium">Furnished</span>
+                                        <span className="material-symbols-outlined text-primary">square_foot</span>
+                                        <span className="font-medium">{property.area} sq ft</span>
                                     </div>
                                 )}
-                                <div className="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-xl">
-                                    <span className="material-symbols-outlined text-primary">directions_walk</span>
-                                    <span className="font-medium">{property.distanceKm} km to campus</span>
-                                </div>
+                                {property.propertyType && (
+                                    <div className="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-xl">
+                                        <span className="material-symbols-outlined text-primary">home</span>
+                                        <span className="font-medium">{property.propertyType}</span>
+                                    </div>
+                                )}
                             </div>
+
+                            {/* Availability Info */}
+                            {isTenant && availableSlots !== null && (
+                                <div className={`mt-4 p-4 rounded-xl border flex items-center gap-3 ${
+                                    isFullyBooked
+                                        ? "bg-red-50 border-red-200"
+                                        : "bg-emerald-50 border-emerald-200"
+                                }`}>
+                                    <span className={`material-symbols-outlined ${isFullyBooked ? "text-red-500" : "text-emerald-600"}`}>
+                                        {isFullyBooked ? "bed_off" : "bed"}
+                                    </span>
+                                    <div>
+                                        <p className={`font-bold text-sm ${isFullyBooked ? "text-red-700" : "text-emerald-700"}`}>
+                                            {isFullyBooked
+                                                ? "Fully Booked — No rooms available"
+                                                : `${availableSlots} bedroom${availableSlots > 1 ? "s" : ""} available`}
+                                        </p>
+                                        <p className={`text-xs ${isFullyBooked ? "text-red-500" : "text-emerald-600"}`}>
+                                            {isFullyBooked
+                                                ? `All ${property.bedrooms} rooms are currently allocated`
+                                                : `Out of ${property.bedrooms} total bedrooms`}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Booking CTA */}
+                            {isTenant && (
+                                <div className="mt-5">
+                                    {renderBookingButton()}
+                                </div>
+                            )}
                         </section>
 
                         <section className="bg-primary/5 p-6 rounded-2xl border border-primary/20">
@@ -199,39 +486,22 @@ export default function ListingDetails() {
                             <p className="text-slate-600 leading-relaxed">{property.description}</p>
                         </section>
 
-                        <section>
-                            <h3 className="text-xl font-bold mb-6">What this place offers</h3>
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-y-5">
-                                {property.amenities.map((amenity) => {
-                                    const detail = AMENITY_DETAILS[amenity] || { icon: "check_circle", label: amenity };
-                                    return (
-                                        <div key={amenity} className="flex items-center gap-3">
-                                            <span className="material-symbols-outlined text-slate-500">{detail.icon}</span>
-                                            <span>{detail.label}</span>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </section>
-
-                        <section>
-                            <h3 className="text-xl font-bold mb-4">Availability</h3>
-                            <div className="bg-white p-6 rounded-2xl border border-slate-200">
-                                <div className="flex items-center gap-3 text-slate-600">
-                                    <span className="material-symbols-outlined text-primary">event_available</span>
-                                    <p className="text-sm">
-                                        Available from{" "}
-                                        <span className="font-bold text-slate-900">
-                                            {new Date(property.availableFrom).toLocaleDateString("en-GB", {
-                                                day: "numeric",
-                                                month: "long",
-                                                year: "numeric",
-                                            })}
-                                        </span>
-                                    </p>
+                        {property.amenities && property.amenities.length > 0 && (
+                            <section>
+                                <h3 className="text-xl font-bold mb-6">What this place offers</h3>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-y-5">
+                                    {property.amenities.map((amenity) => {
+                                        const detail = AMENITY_DETAILS[amenity] || { icon: "check_circle", label: amenity };
+                                        return (
+                                            <div key={amenity} className="flex items-center gap-3">
+                                                <span className="material-symbols-outlined text-slate-500">{detail.icon}</span>
+                                                <span>{detail.label}</span>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
-                            </div>
-                        </section>
+                            </section>
+                        )}
 
                         <section>
                             <h3 className="text-xl font-bold mb-4">House Rules</h3>
@@ -245,31 +515,6 @@ export default function ListingDetails() {
                             </ul>
                         </section>
 
-                        <section>
-                            <h3 className="text-xl font-bold mb-4">Where you'll be</h3>
-                            <div className="w-full h-80 rounded-2xl overflow-hidden bg-slate-200 relative">
-                                <div
-                                    className="w-full h-full bg-[radial-gradient(circle_at_center,_#e2e8f0,_#cbd5e1)]"
-                                    style={{
-                                        backgroundImage: "radial-gradient(#221610 1px, transparent 1px)",
-                                        backgroundSize: "20px 20px",
-                                        opacity: 0.1,
-                                        position: "absolute",
-                                        inset: 0,
-                                    }}
-                                />
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <div className="bg-primary p-3 rounded-full shadow-2xl animate-bounce">
-                                        <span className="material-symbols-outlined text-white text-3xl">location_on</span>
-                                    </div>
-                                </div>
-                                <div className="absolute bottom-4 left-4 bg-white p-4 rounded-xl shadow-lg max-w-xs">
-                                    <p className="font-bold text-sm">{property.city}</p>
-                                    <p className="text-xs text-slate-500 mt-1">{property.distanceKm} km from nearby campuses.</p>
-                                </div>
-                            </div>
-                        </section>
-
                         <section className="flex flex-col md:flex-row gap-6 items-center p-8 bg-slate-100 rounded-2xl border border-slate-200">
                             <div className="relative">
                                 <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center border-4 border-white shadow-xl">
@@ -280,52 +525,67 @@ export default function ListingDetails() {
                                 </div>
                             </div>
                             <div className="flex-1 text-center md:text-left">
-                                <h4 className="text-xl font-bold">Hosted by Amara Perera</h4>
-                                <p className="text-slate-500 text-sm">Host for 3 years • Verified Owner</p>
+                                <h4 className="text-xl font-bold">Property Owner</h4>
+                                <p className="text-slate-500 text-sm">Verified Owner</p>
                                 <p className="mt-2 text-slate-600 text-sm italic">
-                                    "I value cleanliness and student safety. Looking for long-term tenants who respect the space."
+                                    "Looking for long-term tenants who respect the space."
                                 </p>
                             </div>
-                            <button className="bg-white text-slate-900 px-6 py-2.5 rounded-xl border border-slate-200 font-bold hover:bg-slate-50 transition-colors shrink-0">
-                                Contact Owner
-                            </button>
-                        </section>
-
-                        <section>
-                            <div className="flex items-center gap-2 mb-8">
-                                <span
-                                    className="material-symbols-outlined text-primary"
-                                    style={{ fontVariationSettings: "'FILL' 1" }}
-                                >
-                                    star
-                                </span>
-                                <span className="text-2xl font-bold">{property.rating}</span>
-                                <span className="text-slate-400">•</span>
-                                <span className="text-2xl font-bold">{property.reviewsCount} reviews</span>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                {REVIEWS.map((review) => (
-                                    <div key={review.name} className="space-y-3">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center">
-                                                <span className="material-symbols-outlined text-slate-400 text-sm">person</span>
-                                            </div>
-                                            <div>
-                                                <p className="font-bold">{review.name}</p>
-                                                <p className="text-xs text-slate-500">{review.date}</p>
-                                            </div>
-                                        </div>
-                                        <p className="text-slate-600 text-sm leading-relaxed">{review.text}</p>
-                                    </div>
-                                ))}
-                            </div>
-                            <button className="mt-8 px-6 py-2.5 rounded-xl border border-slate-300 font-bold hover:bg-slate-50 transition-colors">
-                                Show all {property.reviewsCount} reviews
-                            </button>
                         </section>
                     </div>
 
-                    <BookingCard property={property} />
+                    {/* Sidebar Booking Panel */}
+                    <div className="lg:w-80 shrink-0">
+                        <div className="sticky top-24 bg-white rounded-2xl border border-slate-200 shadow-lg p-6 space-y-5">
+                            <div>
+                                <p className="text-3xl font-black text-primary">LKR {formattedPrice}<span className="text-base font-normal text-slate-400">/mo</span></p>
+                                <p className="text-sm text-slate-500 mt-1">{property.propertyType} · {property.bedrooms} Bed · {property.bathrooms} Bath</p>
+                            </div>
+
+                            <div className="border-t border-slate-100 pt-4 space-y-3">
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-slate-600">Security Deposit</span>
+                                    <span className="font-bold">LKR {new Intl.NumberFormat("en-LK").format(property.price * 2)}</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-slate-600">Est. Utilities</span>
+                                    <span className="font-bold">LKR 5,000</span>
+                                </div>
+                            </div>
+
+                            {isTenant && availableSlots !== null && (
+                                <div className={`flex items-center gap-2 p-3 rounded-xl text-sm font-medium ${
+                                    isFullyBooked ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-700"
+                                }`}>
+                                    <span className="material-symbols-outlined text-lg">
+                                        {isFullyBooked ? "bed_off" : "meeting_room"}
+                                    </span>
+                                    {isFullyBooked
+                                        ? "No rooms available"
+                                        : `${availableSlots} room${availableSlots > 1 ? "s" : ""} available`}
+                                </div>
+                            )}
+
+                            <div className="border-t border-slate-100 pt-4">
+                                {isTenant ? (
+                                    renderBookingButton()
+                                ) : !user ? (
+                                    <Link
+                                        to="/login"
+                                        className="block w-full text-center bg-primary text-white font-bold py-3 rounded-xl hover:bg-primary/90 transition-all text-sm"
+                                    >
+                                        Login to Book
+                                    </Link>
+                                ) : (
+                                    <div className="text-center text-slate-500 text-sm py-2">
+                                        Booking is for tenants only.
+                                    </div>
+                                )}
+                            </div>
+
+                            <p className="text-center text-xs text-slate-400">No fees charged until confirmed</p>
+                        </div>
+                    </div>
                 </div>
             </main>
 
@@ -336,50 +596,14 @@ export default function ListingDetails() {
                             <span className="material-symbols-outlined text-3xl font-bold">diamond</span>
                             <h2 className="text-xl font-bold leading-tight tracking-tight text-slate-900">RentEase</h2>
                         </Link>
-                        <p className="text-slate-500 text-sm">
-                            Find your perfect home near campus. RentEase connects verified property owners with students and
-                            professionals.
-                        </p>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-8 md:gap-20">
-                        <div>
-                            <h5 className="font-bold mb-4">Explore</h5>
-                            <ul className="space-y-2 text-sm text-slate-500">
-                                <li><a className="hover:text-primary transition-colors" href="#">Apartments</a></li>
-                                <li><a className="hover:text-primary transition-colors" href="#">Annexes</a></li>
-                                <li><a className="hover:text-primary transition-colors" href="#">Studios</a></li>
-                                <li><a className="hover:text-primary transition-colors" href="#">Shared Rooms</a></li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h5 className="font-bold mb-4">Support</h5>
-                            <ul className="space-y-2 text-sm text-slate-500">
-                                <li><a className="hover:text-primary transition-colors" href="#">Help Center</a></li>
-                                <li><a className="hover:text-primary transition-colors" href="#">Cancellation Policy</a></li>
-                                <li><a className="hover:text-primary transition-colors" href="#">Safety Guidelines</a></li>
-                                <li><a className="hover:text-primary transition-colors" href="#">Report a Scam</a></li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h5 className="font-bold mb-4">Company</h5>
-                            <ul className="space-y-2 text-sm text-slate-500">
-                                <li><a className="hover:text-primary transition-colors" href="#">About Us</a></li>
-                                <li><a className="hover:text-primary transition-colors" href="#">Careers</a></li>
-                                <li><a className="hover:text-primary transition-colors" href="#">Terms of Service</a></li>
-                                <li><a className="hover:text-primary transition-colors" href="#">Privacy Policy</a></li>
-                            </ul>
-                        </div>
+                        <p className="text-slate-500 text-sm">Find your perfect home. RentEase connects verified property owners with tenants.</p>
                     </div>
                 </div>
-                <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-400 uppercase tracking-widest font-bold">
+                <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-slate-100 flex justify-center items-center text-xs text-slate-400 uppercase tracking-widest font-bold">
                     <p>© 2025 RentEase Lanka (PVT) LTD. All Rights Reserved.</p>
-                    <div className="flex gap-6">
-                        <a className="hover:text-primary transition-colors" href="#">Facebook</a>
-                        <a className="hover:text-primary transition-colors" href="#">Instagram</a>
-                        <a className="hover:text-primary transition-colors" href="#">LinkedIn</a>
-                    </div>
                 </div>
             </footer>
         </div>
     );
 }
+

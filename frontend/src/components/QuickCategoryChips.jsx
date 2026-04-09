@@ -4,12 +4,12 @@
  */
 
 const categories = [
-    { label: "Near Universities", icon: "school", active: true },
-    { label: "Budget Friendly", icon: "payments", active: false },
-    { label: "Luxury Apartments", icon: "apartment", active: false },
+    { label: "Near Universities", icon: "school" },
+    { label: "Budget Friendly", icon: "payments" },
+    { label: "Luxury Apartments", icon: "apartment" },
 ];
 
-export default function QuickCategoryChips() {
+export default function QuickCategoryChips({ activeCategory, onCategorySelect }) {
     return (
         <section className="py-12 bg-white">
             <div className="max-w-7xl mx-auto px-4">
@@ -17,10 +17,12 @@ export default function QuickCategoryChips() {
                     {categories.map((cat) => (
                         <button
                             key={cat.label}
+                            onClick={() => onCategorySelect(cat.label)}
                             aria-label={`Filter by ${cat.label}`}
-                            className={`px-6 py-3 rounded-full font-bold flex items-center gap-2 transition-all ${cat.active
+                            className={`px-6 py-3 rounded-full font-bold flex items-center gap-2 transition-all ${
+                                activeCategory === cat.label
                                     ? "bg-primary text-white shadow-lg shadow-primary/20"
-                                    : "bg-white border border-slate-200 hover:border-primary"
+                                    : "bg-white border border-slate-200 hover:border-primary text-slate-600 hover:text-primary"
                                 }`}
                         >
                             <span className="material-symbols-outlined text-xl">

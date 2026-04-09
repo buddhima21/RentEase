@@ -6,11 +6,25 @@ import Login from "../pages/Login";
 import Signup from "../pages/Signup";
 import OwnerDashboard from "../pages/OwnerDashboard";
 import MyProperties from "../pages/MyProperties";
+import AddProperty from "../pages/AddProperty";
 import Listings from "../pages/Listings";
 import ListingDetails from "../pages/ListingDetails";
 import PropertyDetails from "../pages/PropertyDetails";
 import AdminDashboard from "../pages/AdminDashboard";
+import AdminLogin from "../pages/AdminLogin";
 import OwnerAnalytics from "../pages/OwnerAnalytics";
+import TenantDashboard from "../pages/TenantDashboard";
+import OwnerBookings from "../pages/OwnerBookings";
+import Bookings from "../pages/Bookings";
+import TenantAgreements from "../pages/TenantAgreements";
+import CreateAgreement from "../pages/CreateAgreement";
+import AgreementDetail from "../pages/AgreementDetail";
+import OwnerAgreements from "../pages/OwnerAgreements";
+import ListingModeration from "../pages/ListingModeration";
+import UpdateProperty from "../components/owner/dashboard/UpdateProperty";
+import ViewPropertyDetails from "../components/owner/dashboard/ViewPropertyDetails";
+import Profile from "../pages/Profile";
+import ProtectedAdminRoute from "./ProtectedAdminRoute";
 
 export default function AppRoutes() {
     return (
@@ -23,10 +37,33 @@ export default function AppRoutes() {
             <Route path="/property/:id" element={<PropertyDetails />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
+            <Route path="/profile" element={<Profile />} />
+
+            {/* Owner Routes */}
             <Route path="/owner/dashboard" element={<OwnerDashboard />} />
             <Route path="/owner/properties" element={<MyProperties />} />
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/owner/add-property" element={<AddProperty />} />
+            <Route path="/owner/bookings" element={<OwnerBookings />} />
+            <Route path="/owner/properties/:id" element={<ViewPropertyDetails />} />
+            <Route path="/edit-property/:id" element={<UpdateProperty />} />
+            <Route path="/owner/properties/:id/edit" element={<UpdateProperty />} />
             <Route path="/owner/analytics" element={<OwnerAnalytics />} />
+            <Route path="/owner/agreements" element={<OwnerAgreements />} />
+
+            {/* Tenant Routes */}
+            <Route path="/tenant/dashboard" element={<TenantDashboard />} />
+            <Route path="/tenant/bookings" element={<Bookings />} />
+            <Route path="/tenant/agreements" element={<TenantAgreements />} />
+            <Route path="/tenant/agreements/new" element={<CreateAgreement />} />
+            <Route path="/tenant/agreements/:id" element={<AgreementDetail />} />
+
+            {/* Admin Routes */}
+            <Route path="/admin/login" element={<AdminLogin />} />
+
+            <Route element={<ProtectedAdminRoute />}>
+                <Route path="/admin/dashboard" element={<AdminDashboard />} />
+                <Route path="/admin/listings" element={<ListingModeration />} />
+            </Route>
         </Routes>
     );
 }

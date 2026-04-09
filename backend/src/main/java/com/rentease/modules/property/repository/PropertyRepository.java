@@ -10,11 +10,25 @@ import java.util.List;
 @Repository
 public interface PropertyRepository extends MongoRepository<Property, String> {
 
-    List<Property> findByDeletedFalse();
+    // ── Admin queries ──────────────────────────────────────
+    List<Property> findByStatus(PropertyStatus status);
 
-    List<Property> findByOwnerIdAndDeletedFalse(String ownerId);
+    List<Property> findByStatusIn(List<PropertyStatus> statuses);
 
-    List<Property> findByStatusAndDeletedFalse(PropertyStatus status);
+    long countByStatus(PropertyStatus status);
 
-    List<Property> findByCityAndDeletedFalse(String city);
+    // ── Owner queries ──────────────────────────────────────
+    List<Property> findByOwnerId(String ownerId);
+
+    List<Property> findByOwnerIdAndStatus(String ownerId, PropertyStatus status);
+
+    // ── Public queries ─────────────────────────────────────
+    List<Property> findByStatusAndCityContainingIgnoreCase(PropertyStatus status, String city);
+
+    List<Property> findByStatusAndPropertyTypeIgnoreCase(PropertyStatus status, String propertyType);
+
+    List<Property> findByStatusAndPriceBetween(PropertyStatus status, double minPrice, double maxPrice);
+
+    List<Property> findByStatusAndCityContainingIgnoreCaseAndPropertyTypeIgnoreCase(
+            PropertyStatus status, String city, String propertyType);
 }

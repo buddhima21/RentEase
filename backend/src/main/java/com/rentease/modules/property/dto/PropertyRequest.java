@@ -3,6 +3,7 @@ package com.rentease.modules.property.dto;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,8 +18,10 @@ import java.util.List;
 public class PropertyRequest {
 
     @NotBlank(message = "Title is required")
+    @Size(min = 5, max = 150, message = "Title must be between 5 and 150 characters")
     private String title;
 
+    @Size(max = 2000, message = "Description cannot exceed 2000 characters")
     private String description;
 
     @NotBlank(message = "Address is required")
@@ -30,6 +33,9 @@ public class PropertyRequest {
     @Positive(message = "Price must be positive")
     private double price;
 
+    @Min(value = 0, message = "Security deposit cannot be negative")
+    private double securityDeposit;
+
     @Min(value = 0, message = "Bedrooms cannot be negative")
     private int bedrooms;
 
@@ -39,10 +45,12 @@ public class PropertyRequest {
     @Positive(message = "Area must be positive")
     private double area;
 
+    @NotBlank(message = "Property type is required")
     private String propertyType;
+
     private List<String> amenities;
     private List<String> imageUrls;
 
-    @NotBlank(message = "Owner ID is required")
-    private String ownerId;
+    @Size(max = 10000, message = "Terms and conditions cannot exceed 10000 characters")
+    private String termsAndConditions;
 }

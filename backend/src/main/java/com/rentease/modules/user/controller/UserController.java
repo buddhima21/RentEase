@@ -41,4 +41,11 @@ public class UserController {
         UserResponse response = userService.getUserById(id);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<UserResponse>> updateUser(
+            @PathVariable String id, @RequestBody com.rentease.modules.user.dto.UpdateUserRequest request) {
+        UserResponse response = userService.updateUser(id, request);
+        return ResponseEntity.ok(ApiResponse.success(response, "User updated successfully"));
+    }
 }

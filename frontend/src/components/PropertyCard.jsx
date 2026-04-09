@@ -2,14 +2,23 @@ import { Link } from "react-router-dom";
 
 const FALLBACK_IMAGE = "https://placehold.co/600x400/f1f5f9/94a3b8?text=No+Image";
 
-const AMENITY_ICONS = {
-    WiFi: "wifi",
-    AC: "ac_unit",
-    Parking: "local_parking",
-    Furnished: "chair",
-    "Hot Water": "hot_tub",
-    CCTV: "videocam",
+const AMENITY_META = {
+    wifi: { icon: "wifi", label: "Wi‑Fi" },
+    ac: { icon: "ac_unit", label: "AC" },
+    parking: { icon: "local_parking", label: "Parking" },
+    furnished: { icon: "chair", label: "Furnished" },
+    "hot water": { icon: "water_drop", label: "Hot water" },
+    cctv: { icon: "videocam", label: "CCTV" },
+    electricity: { icon: "bolt", label: "Electricity" },
+    water: { icon: "water_drop", label: "Water" },
+    kitchen: { icon: "kitchen", label: "Kitchen" },
+    laundry: { icon: "local_laundry_service", label: "Laundry" },
 };
+
+function normalizeAmenityKey(value) {
+    if (!value) return "";
+    return String(value).trim().toLowerCase();
+}
 
 export default function PropertyCard({ property }) {
     const {
@@ -35,17 +44,19 @@ export default function PropertyCard({ property }) {
 
     return (
         <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100">
-            <div className="relative h-52 w-full bg-slate-200 overflow-hidden">
-                <img
-                    className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    src={image}
-                    alt={title}
-                    loading="lazy"
-                    onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = FALLBACK_IMAGE;
-                    }}
-                />
+            <div className="relative h-52 w-full bg-slate-200 overflow-hidden flex items-center justify-center">
+                <span className="material-symbols-outlined text-5xl text-slate-300 absolute z-0">home_work</span>
+                {image && (
+                    <img
+                        className="relative z-10 h-full w-full object-cover group-hover:scale-105 transition-transform duration-500 text-transparent"
+                        src={image}
+                        alt={title}
+                        loading="lazy"
+                        onError={(e) => {
+                            e.target.style.display = 'none';
+                        }}
+                    />
+                )}
 
                 <div className="absolute top-3 left-3 flex items-center gap-2">
                     {featured && (
@@ -87,7 +98,7 @@ export default function PropertyCard({ property }) {
 
                 <div className="flex items-center gap-3 mb-3">
                     <div className="flex items-center gap-1">
-                        <span className="material-symbols-outlined text-amber-400 text-base">star</span>
+                        <span className="material-symbols-outlined text-primary text-base">star</span>
                         <span className="text-xs font-bold">{rating}</span>
                         <span className="text-xs text-slate-400">({reviewsCount})</span>
                     </div>
@@ -107,18 +118,26 @@ export default function PropertyCard({ property }) {
                 </div>
 
                 <div className="flex flex-wrap gap-1.5 mb-4 border-t border-slate-100 pt-3">
-                    {amenities.slice(0, 4).map((amenity) => (
-                        <span
-                            key={amenity}
-                            className="inline-flex items-center gap-1 bg-slate-50 text-slate-600 px-2 py-1 rounded-md text-[11px] font-medium"
-                        >
-                            <span className="material-symbols-outlined text-[14px]">
-                                {AMENITY_ICONS[amenity] || "check_circle"}
+                    {(amenities || [])
+                        .map((amenity) => {
+                            const key = normalizeAmenityKey(amenity);
+                            const meta = AMENITY_META[key];
+                            return meta ? { key, meta } : null;
+                        })
+                        .filter(Boolean)
+                        .slice(0, 4)
+                        .map(({ key, meta }, idx) => (
+                            <span
+                                key={`${key}-${idx}`}
+                                className="inline-flex items-center gap-1 bg-slate-50 text-slate-600 px-2 py-1 rounded-md text-[11px] font-medium"
+                            >
+                                <span className="material-symbols-outlined text-[14px]">
+                                    {meta.icon}
+                                </span>
+                                {meta.label}
                             </span>
-                            {amenity}
-                        </span>
-                    ))}
-                    {amenities.length > 4 && (
+                        ))}
+                    {(amenities || []).length > 4 && (
                         <span className="inline-flex items-center bg-slate-50 text-slate-500 px-2 py-1 rounded-md text-[11px] font-medium">
                             +{amenities.length - 4} more
                         </span>
@@ -127,7 +146,7 @@ export default function PropertyCard({ property }) {
 
                 <div className="flex items-center gap-3">
                     <Link
-                        to={`/listings/${id}`}
+                        to={`/property/${id}`}
                         className="flex-1 bg-primary text-white text-center font-bold py-2.5 rounded-xl hover:bg-primary/90 transition-all text-sm"
                     >
                         View Details
