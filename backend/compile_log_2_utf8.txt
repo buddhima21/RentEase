@@ -1,0 +1,24 @@
+﻿[INFO] Scanning for projects...
+[INFO] 
+[INFO] -----------------------< com.rentease:RentEase >------------------------
+[INFO] Building RentEase 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+Downloading from central: https://repo.maven.apache.org/maven2/com/itextpdf/itext-core/8.0.2/itext-core-8.0.2.jar
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  1.911 s
+[INFO] Finished at: 2026-04-10T12:24:25+05:30
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal on project RentEase: Could not resolve dependencies for project com.rentease:RentEase:jar:0.0.1-SNAPSHOT
+[ERROR] dependency: com.itextpdf:itext-core:jar:8.0.2 (compile)
+[ERROR] 	Could not find artifact com.itextpdf:itext-core:jar:8.0.2 in central (https://repo.maven.apache.org/maven2)
+[ERROR] 
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/DependencyResolutionException

@@ -12,4 +12,6 @@ public interface UserRepository extends MongoRepository<User, String> {
     Optional<User> findByEmail(String email);
 
     boolean existsByEmail(String email);
+
+    java.util.List<User> findByRole(com.rentease.common.enums.UserRole role);
 }

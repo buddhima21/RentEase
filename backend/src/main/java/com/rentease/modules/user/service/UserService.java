@@ -14,6 +14,11 @@ import org.springframework.stereotype.Service;
 
 import com.rentease.security.CustomUserDetails;
 import com.rentease.security.JwtUtil;
+import com.rentease.modules.agreement.repository.AgreementRepository;
+import com.rentease.modules.agreement.model.Agreement;
+import com.rentease.modules.property.repository.PropertyRepository;
+import com.rentease.modules.property.model.Property;
+import com.rentease.modules.user.dto.TenantPropertyResponse;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +27,8 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final AgreementRepository agreementRepository;
+    private final PropertyRepository propertyRepository;
 
     public UserResponse register(UserRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
@@ -75,6 +82,38 @@ public class UserService {
 
         User updated = userRepository.save(user);
         return mapToResponse(updated, jwtUtil.generateToken(new CustomUserDetails(updated), updated.getId()));
+    }
+
+    public java.util.List<TenantPropertyResponse> getTenants(String ownerId) {
+        if (ownerId != null && !ownerId.isEmpty()) {
+            return agreementRepository.findByOwnerIdOrderByCreatedAtDesc(ownerId)
+                    .stream()
+                    .filter(agreement -> agreement.getStatus() == com.rentease.common.enums.AgreementStatus.ACTIVE)
+                    .map(agreement -> {
+                        User tenant = userRepository.findById(agreement.getTenantId()).orElse(null);
+                        Property property = propertyRepository.findById(agreement.getPropertyId()).orElse(null);
+                        
+                        return TenantPropertyResponse.builder()
+                                .tenantId(agreement.getTenantId())
+                                .tenantName(tenant != null ? tenant.getFullName() : "Unknown Tenant")
+                                .tenantEmail(tenant != null ? tenant.getEmail() : "")
+                                .propertyId(agreement.getPropertyId())
+                                .propertyTitle(property != null ? property.getTitle() : "Unknown Property")
+                                .rentalFee(agreement.getRentAmount())
+                                .build();
+                    })
+                    .collect(java.util.stream.Collectors.toList());
+        }
+
+        // Default for admin/others (if needed, though currently Owner orientated)
+        return userRepository.findByRole(UserRole.TENANT).stream()
+                .map(u -> TenantPropertyResponse.builder()
+                        .tenantId(u.getId())
+                        .tenantName(u.getFullName())
+                        .tenantEmail(u.getEmail())
+                        .rentalFee(20000) // Fallback or logic to find their agreement
+                        .build())
+                .collect(java.util.stream.Collectors.toList());
     }
 
     private UserResponse mapToResponse(User user, String token) {

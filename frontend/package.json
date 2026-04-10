@@ -24,6 +24,8 @@
     "react-hot-toast": "^2.6.0",
     "react-router-dom": "^7.13.1",
     "recharts": "^3.8.0",
+    "sockjs-client": "^1.6.1",
+    "stompjs": "^2.3.3",
     "tailwind-merge": "^3.5.0",
     "tailwindcss": "^4.2.1"
   },

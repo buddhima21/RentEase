@@ -8,4 +8,10 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  define: {
+    global: 'globalThis',
+  },
+  optimizeDeps: {
+    include: ['sockjs-client', 'stompjs'],
+  },
 })
