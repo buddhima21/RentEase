@@ -36,6 +36,11 @@ public class UserController {
         return ResponseEntity.ok(ApiResponse.success(response, "Login successful"));
     }
 
+    @GetMapping("/tenants")
+    public ResponseEntity<ApiResponse<java.util.List<com.rentease.modules.user.dto.TenantPropertyResponse>>> getTenants(@RequestParam(required = false) String ownerId) {
+        return ResponseEntity.ok(ApiResponse.success(userService.getTenants(ownerId)));
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable String id) {
         UserResponse response = userService.getUserById(id);

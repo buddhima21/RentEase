@@ -19,12 +19,16 @@ import Bookings from "../pages/Bookings";
 import TenantAgreements from "../pages/TenantAgreements";
 import CreateAgreement from "../pages/CreateAgreement";
 import AgreementDetail from "../pages/AgreementDetail";
+import TenantBills from "../pages/TenantBills";
+import TenantWallet from "../pages/TenantWallet";
 import OwnerAgreements from "../pages/OwnerAgreements";
 import ListingModeration from "../pages/ListingModeration";
 import UpdateProperty from "../components/owner/dashboard/UpdateProperty";
 import ViewPropertyDetails from "../components/owner/dashboard/ViewPropertyDetails";
 import Profile from "../pages/Profile";
 import ProtectedAdminRoute from "./ProtectedAdminRoute";
+import OwnerFinance from "../pages/OwnerFinance";
+import RentPayment from "../pages/RentPaymentTracking/RentPayment";
 
 export default function AppRoutes() {
     return (
@@ -41,6 +45,7 @@ export default function AppRoutes() {
 
             {/* Owner Routes */}
             <Route path="/owner/dashboard" element={<OwnerDashboard />} />
+            <Route path="/owner/finance" element={<OwnerFinance />} />
             <Route path="/owner/properties" element={<MyProperties />} />
             <Route path="/owner/add-property" element={<AddProperty />} />
             <Route path="/owner/bookings" element={<OwnerBookings />} />
@@ -52,6 +57,7 @@ export default function AppRoutes() {
 
             {/* Tenant Routes */}
             <Route path="/tenant/dashboard" element={<TenantDashboard />} />
+            <Route path="/tenant/payment" element={<RentPayment />} />
             <Route path="/tenant/bookings" element={<Bookings />} />
             <Route path="/tenant/agreements" element={<TenantAgreements />} />
             <Route path="/tenant/agreements/new" element={<CreateAgreement />} />

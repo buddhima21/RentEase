@@ -133,17 +133,41 @@ export default function UserDropdown({ user, onLogout }) {
                     </Link>
 
                     {user.role === "TENANT" && (
-                        <Link
-                            to="/tenant/agreements"
-                            onClick={() => setOpen(false)}
-                            className="flex items-center gap-4 px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors group"
-                            role="menuitem"
-                        >
-                            <span className="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-primary transition-colors">
-                                description
-                            </span>
-                            My Agreements
-                        </Link>
+                        <>
+                            <Link
+                                to="/tenant/dashboard?tab=bills"
+                                onClick={() => setOpen(false)}
+                                className="flex items-center gap-4 px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors group"
+                                role="menuitem"
+                            >
+                                <span className="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-primary transition-colors">
+                                    receipt_long
+                                </span>
+                                My Bills
+                            </Link>
+                            <Link
+                                to="/tenant/dashboard?tab=wallet"
+                                onClick={() => setOpen(false)}
+                                className="flex items-center gap-4 px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors group"
+                                role="menuitem"
+                            >
+                                <span className="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-primary transition-colors">
+                                    account_balance_wallet
+                                </span>
+                                My Wallet
+                            </Link>
+                            <Link
+                                to="/tenant/agreements"
+                                onClick={() => setOpen(false)}
+                                className="flex items-center gap-4 px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors group"
+                                role="menuitem"
+                            >
+                                <span className="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-primary transition-colors">
+                                    description
+                                </span>
+                                My Agreements
+                            </Link>
+                        </>
                     )}
 
                     <Link

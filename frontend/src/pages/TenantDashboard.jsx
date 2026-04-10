@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getTenantBookings, tenantCancelBooking } from "../services/api";
 import Navbar from "../components/Navbar";
+import TenantBills from "./TenantBills";
+import TenantWallet from "./TenantWallet";
 
 const STATUS_CONFIG = {
     PENDING: {
@@ -173,10 +175,22 @@ function BookingCard({ booking, onCancelClick }) {
 export default function TenantDashboard() {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [activeTab, setActiveTab] = useState("all");
+
+    // Sync activeTab with ?tab= query parameter
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const tab = params.get("tab");
+        if (tab && ["bills", "wallet"].includes(tab)) {
+            setActiveTab(tab);
+        } else if (!tab || tab === "all") {
+            setActiveTab("all");
+        }
+    }, [location.search]);
 
     // Modal State
     const [cancelModalOpen, setCancelModalOpen] = useState(false);
@@ -234,7 +248,7 @@ export default function TenantDashboard() {
         { id: "EXPIRED", label: "Expired", icon: "timer_off" },
     ];
 
-    const filtered = activeTab === "all"
+    const filtered = activeTab === "all" || !tabs.find(t => t.id === activeTab)
         ? bookings
         : bookings.filter((b) => b.status === activeTab);
 
@@ -308,12 +322,36 @@ export default function TenantDashboard() {
                 {/* Header */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                     <div>
-                        <h1 className="text-2xl font-black text-slate-900 mb-1">My Bookings</h1>
+                        <h1 className="text-2xl font-black text-slate-900 mb-1">
+                            {activeTab === "bills" ? "My Bills" : activeTab === "wallet" ? "My Wallet" : "My Bookings"}
+                        </h1>
                         <p className="text-slate-500 text-sm">
-                            {user?.fullName ? `Welcome back, ${user.fullName.split(" ")[0]}!` : "Track your rental booking requests"}
+                            {activeTab === "bills" 
+                                ? "Manage and pay your rent invoices" 
+                                : activeTab === "wallet" 
+                                    ? "Manage your saved bank cards" 
+                                    : (user?.fullName ? `Welcome back, ${user.fullName.split(" ")[0]}!` : "Track your rental booking requests")}
                         </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
+                        <Link
+                            to="/tenant/dashboard?tab=bills"
+                            className={`inline-flex items-center gap-2 border font-bold px-5 py-2.5 rounded-xl transition-all text-sm ${
+                                activeTab === "bills" ? "bg-emerald-50 border-emerald-500 text-emerald-800" : "bg-white border-emerald-200 text-emerald-800 hover:bg-emerald-50"
+                            }`}
+                        >
+                            <span className="material-symbols-outlined text-[18px]">receipt_long</span>
+                            My Bills
+                        </Link>
+                        <Link
+                            to="/tenant/dashboard?tab=wallet"
+                            className={`inline-flex items-center gap-2 border font-bold px-5 py-2.5 rounded-xl transition-all text-sm ${
+                                activeTab === "wallet" ? "bg-emerald-50 border-emerald-500 text-emerald-800" : "bg-white border-emerald-200 text-emerald-800 hover:bg-emerald-50"
+                            }`}
+                        >
+                            <span className="material-symbols-outlined text-[18px]">account_balance_wallet</span>
+                            My Wallet
+                        </Link>
                         <Link
                             to="/tenant/agreements"
                             className="inline-flex items-center gap-2 bg-white border border-slate-200 text-slate-800 font-bold px-5 py-2.5 rounded-xl hover:bg-slate-50 transition-all text-sm"
@@ -331,84 +369,92 @@ export default function TenantDashboard() {
                     </div>
                 </div>
 
+                {/* Dashboard Tabs (Only for Bookings) */}
+                {activeTab !== "bills" && activeTab !== "wallet" && (
+                    <>
+                        <div className="flex items-center gap-1 bg-white rounded-xl border border-slate-200 p-1 mb-6 overflow-x-auto">
+                            {tabs.map((tab) => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-all flex-1 justify-center
+                                        ${activeTab === tab.id
+                                            ? "bg-primary text-white shadow-sm"
+                                            : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"
+                                        }`}
+                                >
+                                    <span className="material-symbols-outlined text-[16px]">{tab.icon}</span>
+                                    {tab.label}
+                                    {counts[tab.id] > 0 && (
+                                        <span className={`ml-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                                            activeTab === tab.id ? "bg-white/20" : "bg-slate-100 text-slate-600"
+                                        }`}>
+                                            {counts[tab.id]}
+                                        </span>
+                                    )}
+                                </button>
+                            ))}
+                        </div>
 
-
-                {/* Tabs */}
-                <div className="flex items-center gap-1 bg-white rounded-xl border border-slate-200 p-1 mb-6 overflow-x-auto">
-                    {tabs.map((tab) => (
-                        <button
-                            key={tab.id}
-                            onClick={() => setActiveTab(tab.id)}
-                            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition-all flex-1 justify-center
-                                ${activeTab === tab.id
-                                    ? "bg-primary text-white shadow-sm"
-                                    : "text-slate-500 hover:text-slate-700 hover:bg-slate-50"
-                                }`}
-                        >
-                            <span className="material-symbols-outlined text-[16px]">{tab.icon}</span>
-                            {tab.label}
-                            {counts[tab.id] > 0 && (
-                                <span className={`ml-1 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                                    activeTab === tab.id ? "bg-white/20" : "bg-slate-100 text-slate-600"
-                                }`}>
-                                    {counts[tab.id]}
-                                </span>
-                            )}
-                        </button>
-                    ))}
-                </div>
-
-                {/* Content */}
-                {loading ? (
-                    <div className="flex flex-col items-center justify-center py-24">
-                        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-                        <p className="text-slate-500">Loading your bookings...</p>
-                    </div>
-                ) : error ? (
-                    <div className="flex flex-col items-center justify-center py-24 text-center">
-                        <span className="material-symbols-outlined text-5xl text-red-300 mb-3">error</span>
-                        <p className="text-slate-600 font-medium mb-4">{error}</p>
-                        <button
-                            onClick={fetchBookings}
-                            className="bg-primary text-white font-bold px-6 py-2.5 rounded-xl hover:bg-primary/90 transition-all text-sm"
-                        >
-                            Retry
-                        </button>
-                    </div>
-                ) : filtered.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-24 text-center">
-                        <span className="material-symbols-outlined text-6xl text-slate-200 mb-4">inbox</span>
-                        <h3 className="text-lg font-bold text-slate-600 mb-2">
-                            {activeTab === "all" ? "No bookings yet" : `No ${STATUS_CONFIG[activeTab]?.label || ""} bookings`}
-                        </h3>
-                        <p className="text-sm text-slate-400 mb-6 max-w-sm">
-                            {activeTab === "all"
-                                ? "Browse available properties and submit a booking request to get started."
-                                : "Switch to 'All Requests' to see all your bookings."}
-                        </p>
-                        {activeTab === "all" && (
-                            <Link
-                                to="/listings"
-                                className="bg-primary text-white font-bold px-6 py-2.5 rounded-xl hover:bg-primary/90 transition-all text-sm"
-                            >
-                                Browse Properties
-                            </Link>
+                        {/* Content */}
+                        {loading ? (
+                            <div className="flex flex-col items-center justify-center py-24">
+                                <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
+                                <p className="text-slate-500">Loading your bookings...</p>
+                            </div>
+                        ) : error ? (
+                            <div className="flex flex-col items-center justify-center py-24 text-center">
+                                <span className="material-symbols-outlined text-5xl text-red-300 mb-3">error</span>
+                                <p className="text-slate-600 font-medium mb-4">{error}</p>
+                                <button
+                                    onClick={fetchBookings}
+                                    className="bg-primary text-white font-bold px-6 py-2.5 rounded-xl hover:bg-primary/90 transition-all text-sm"
+                                >
+                                    Retry
+                                </button>
+                            </div>
+                        ) : filtered.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-24 text-center">
+                                <span className="material-symbols-outlined text-6xl text-slate-200 mb-4">inbox</span>
+                                <h3 className="text-lg font-bold text-slate-600 mb-2">
+                                    {activeTab === "all" ? "No bookings yet" : `No ${STATUS_CONFIG[activeTab]?.label || ""} bookings`}
+                                </h3>
+                                <p className="text-sm text-slate-400 mb-6 max-w-sm">
+                                    {activeTab === "all"
+                                        ? "Browse available properties and submit a booking request to get started."
+                                        : "Switch to 'All Requests' to see all your bookings."}
+                                </p>
+                                {activeTab === "all" && (
+                                    <Link
+                                        to="/listings"
+                                        className="bg-primary text-white font-bold px-6 py-2.5 rounded-xl hover:bg-primary/90 transition-all text-sm"
+                                    >
+                                        Browse Properties
+                                    </Link>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {filtered.map((booking) => (
+                                    <BookingCard
+                                        key={booking.id}
+                                        booking={booking}
+                                        onCancelClick={(id) => {
+                                            setSelectedCancelId(id);
+                                            setCancelModalOpen(true);
+                                        }}
+                                    />
+                                ))}
+                            </div>
                         )}
-                    </div>
-                ) : (
-                    <div className="space-y-4">
-                        {filtered.map((booking) => (
-                            <BookingCard
-                                key={booking.id}
-                                booking={booking}
-                                onCancelClick={(id) => {
-                                    setSelectedCancelId(id);
-                                    setCancelModalOpen(true);
-                                }}
-                            />
-                        ))}
-                    </div>
+                    </>
                 )}
+                
+                {/* Render Bills Tab Content */}
+                {activeTab === "bills" && <TenantBills />}
+
+                {/* Render Wallet Tab Content */}
+                {activeTab === "wallet" && <TenantWallet />}
             </div>
         </div>
     );
