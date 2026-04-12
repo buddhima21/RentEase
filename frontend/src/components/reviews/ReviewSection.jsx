@@ -9,16 +9,21 @@ import { useNavigate } from "react-router-dom";
 export default function ReviewSection({ propertyId, reviews, rating }) {
     const [showModal, setShowModal] = useState(false);
     const [editingReview, setEditingReview] = useState(null);
-    const [allReviews, setAllReviews] = useState(reviews);
-    
-    // Sync internal state with prop updates
-    useEffect(() => {
-        setAllReviews(reviews);
-    }, [reviews]);
+    const [allReviews, setAllReviews] = useState(reviews || []);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState(false);
     const { user } = useAuth();
     const navigate = useNavigate();
+
+    // Sync state with props when data is asynchronously loaded
+    useEffect(() => {
+        if (reviews) {
+            setAllReviews(reviews);
+        }
+    }, [reviews]);
+
+    // Mock Tabs for UI parity with 2026 design (My Boarding Reviews mockup style)
+    const [activeTab, setActiveTab] = useState('total');
 
     function handleWriteReviewClick() {
         if (user) {
@@ -30,7 +35,6 @@ export default function ReviewSection({ propertyId, reviews, rating }) {
     }
 
     function handleEditClick(reviewData) {
-        console.log("Editing review data:", reviewData);
         setEditingReview(reviewData);
         setShowModal(true);
     }
@@ -42,19 +46,16 @@ export default function ReviewSection({ propertyId, reviews, rating }) {
 
     async function handleReviewSubmit(newReview) {
         setIsSubmitting(true);
-        console.log("Submitting review. editingReview:", editingReview);
         try {
             if (editingReview) {
                 // UPDATE logic
                 await updateReview(editingReview.id, {
-                    propertyId: propertyId,
-                    reviewerId: user.id,
                     rating: newReview.rating,
                     comment: newReview.review,
                     photos: newReview.photo ? [newReview.photo] : [],
                 });
 
-                // Optimistic UI update - mark as pending locally or remove from approved view depending on preference
+                // Optimistic UI update
                 setAllReviews(prev => prev.filter(r => r.id !== editingReview.id));
                 setSubmitSuccess(true);
                 setTimeout(() => setSubmitSuccess(false), 5000);
@@ -67,9 +68,8 @@ export default function ReviewSection({ propertyId, reviews, rating }) {
                     comment: newReview.review,
                     photos: newReview.photo ? [newReview.photo] : [],
                 });
-                // Show a beautiful temporary success message because the review is now PENDING
                 setSubmitSuccess(true);
-                setTimeout(() => setSubmitSuccess(false), 5000); // Hide after 5 seconds
+                setTimeout(() => setSubmitSuccess(false), 5000); 
             }
         } catch (error) {
             console.error("Failed to submit review:", error);
@@ -82,7 +82,6 @@ export default function ReviewSection({ propertyId, reviews, rating }) {
     }
 
     async function handleReviewDelete(reviewId) {
-        console.log("Deleting review. ID:", reviewId);
         try {
             await deleteReview(reviewId);
             setAllReviews(prev => prev.filter(r => r.id !== reviewId));
@@ -93,28 +92,36 @@ export default function ReviewSection({ propertyId, reviews, rating }) {
     }
 
     return (
-        <section className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] p-8 md:p-12 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-white/50 relative overflow-hidden">
-            {/* Decorative background element */}
-            <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-br from-[#0d9488]/5 via-transparent to-transparent pointer-events-none"></div>
-
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6 relative z-10">
+        <section className="bg-white rounded-[2.5rem] p-0 md:p-6 lg:p-8 relative overflow-hidden">
+            
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6">
                 <div>
-                    <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 flex items-center gap-3 tracking-tight">
-                        <span className="material-symbols-outlined text-[#0d9488] text-4xl p-2 bg-[#0d9488]/10 rounded-2xl">star_rate</span>
-                        Real Student Reviews
+                    <div className="inline-flex items-center gap-2 bg-[#EBF5FF] text-[#2563EB] px-3.5 py-1.5 rounded-full mb-4">
+                        <span className="text-[10px] font-black tracking-widest uppercase">Your Voice Matters</span>
+                    </div>
+                    <h2 className="text-[28px] md:text-[36px] font-black text-slate-900 tracking-tight leading-tight">
+                        Property Reviews
                     </h2>
-                    <p className="text-slate-500 mt-3 text-lg font-medium">Verified experiences from past and current residents</p>
+                    <p className="text-slate-500 mt-2 text-[15px] max-w-lg font-medium">
+                        Share your experience with the Malabe student community. Your feedback helps others find their perfect home.
+                    </p>
                 </div>
                 {user && user.role === "TENANT" && (
                     <button
-                        className="group relative overflow-hidden bg-[#0d9488] text-white px-8 py-3.5 rounded-2xl font-bold shadow-[0_8px_20px_rgba(13,148,136,0.3)] hover:shadow-[0_12px_25px_rgba(13,148,136,0.4)] transition-all duration-300 hover:-translate-y-0.5 flex items-center gap-2"
+                        className="bg-[#0F172A] text-white px-7 py-3.5 rounded-2xl font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2"
                         onClick={handleWriteReviewClick}
                     >
-                        <span className="absolute inset-0 w-full h-full bg-gradient-to-tr from-transparent via-white/20 to-transparent translate-x-[-150%] skew-x-[-45deg] transition-all duration-700 ease-out group-hover:translate-x-[150%]"></span>
-                        <span className="material-symbols-outlined text-lg relative z-10">draw</span>
-                        <span className="relative z-10">Write a Review</span>
+                        <span className="material-symbols-outlined text-[18px]">add</span>
+                        <span>Write a Review</span>
                     </button>
                 )}
+            </div>
+
+            {/* Sorting Header */}
+            <div className="flex justify-end items-center border-b border-slate-100 pb-4 mb-8">
+                <div className="flex items-center gap-2 text-slate-500 text-sm font-bold cursor-pointer hover:text-slate-800 transition-colors">
+                    <span className="material-symbols-outlined text-[18px]">filter_list</span> Sort: Newest
+                </div>
             </div>
 
             {submitSuccess && (
@@ -124,19 +131,19 @@ export default function ReviewSection({ propertyId, reviews, rating }) {
                     </div>
                     <div>
                         <h4 className="font-bold text-emerald-800">Review Submitted!</h4>
-                        <p className="text-emerald-600 text-sm font-medium">Thank you! Your verified review is currently pending moderation and will be published shortly.</p>
+                        <p className="text-emerald-600 text-[13px] font-medium mt-1">Thank you! Your verified review is currently pending moderation and will be published shortly.</p>
                     </div>
                 </div>
             )}
 
-            <div className="grid lg:grid-cols-12 gap-6 lg:gap-8 relative z-10">
+            <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 relative z-10">
                 {/* Rating Overview (Left Col) */}
-                <div className="lg:col-span-5 lg:sticky lg:top-8 h-fit">
+                <div className="lg:col-span-4 lg:sticky lg:top-8 h-fit">
                     <RatingOverview rating={rating} totalReviews={allReviews.length > 0 ? allReviews.length : 2} />
                 </div>
 
                 {/* Review List (Right Col) */}
-                <div className="lg:col-span-7 flex flex-col gap-6">
+                <div className="lg:col-span-8 flex flex-col gap-6">
                     {allReviews.length > 0 ? (
                         allReviews.map((review) => (
                             <ReviewCard
@@ -147,32 +154,15 @@ export default function ReviewSection({ propertyId, reviews, rating }) {
                             />
                         ))
                     ) : (
-                        <div className="flex flex-col flex-1 items-center justify-center p-12 text-center bg-white/50 backdrop-blur-md rounded-3xl border border-slate-100 shadow-sm relative overflow-hidden h-full min-h-[400px]">
-                            {/* Decorative background circle */}
-                            <div className="absolute w-40 h-40 bg-[#0d9488]/5 rounded-full blur-3xl pointer-events-none"></div>
-                            
-                            <div className="w-20 h-20 bg-slate-50 flex items-center justify-center rounded-full mb-6 relative z-10 border border-slate-100 shadow-sm">
-                                <span className="material-symbols-outlined text-4xl text-slate-300">rate_review</span>
-                            </div>
-                            
-                            <h3 className="text-xl font-bold text-slate-800 mb-2 relative z-10">No Reviews Yet</h3>
-                            <p className="text-slate-500 max-w-sm mx-auto leading-relaxed relative z-10">
-                                This property doesn't have any reviews right now. Be the first to share your experience and help future students!
-                            </p>
-                            
-                            {user && user.role === "TENANT" && (
-                                <button 
-                                    onClick={handleWriteReviewClick}
-                                    className="mt-6 font-bold text-[#0d9488] hover:text-[#0f766e] flex items-center gap-1.5 px-4 py-2 bg-[#0d9488]/5 hover:bg-[#0d9488]/10 rounded-xl transition-colors relative z-10"
-                                >
-                                    <span className="material-symbols-outlined text-sm">edit</span>
-                                    Write the first review
-                                </button>
-                            )}
+                        <div className="col-span-full bg-slate-50 border-2 border-dashed border-slate-200 rounded-[2rem] p-12 text-center flex flex-col items-center justify-center">
+                            <span className="material-symbols-outlined text-5xl text-slate-300 mb-4">rate_review</span>
+                            <h3 className="text-xl font-bold text-slate-700 mb-2">No reviews yet</h3>
+                            <p className="text-slate-500 font-medium">Be the first to leave a review for this property!</p>
                         </div>
                     )}
                 </div>
             </div>
+            
             {showModal && (
                 <WriteReviewModal
                     onClose={handleModalClose}

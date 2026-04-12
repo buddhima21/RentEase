@@ -5,7 +5,6 @@ import { useAuth } from "../context/AuthContext";
 import { getOwnerProperties, getOwnerReviews, updateReviewStatus, replyToReview } from "../services/api";
 import { motion, AnimatePresence } from "framer-motion";
 import { ownerProfile } from "../data/ownerDashboardData";
-import { Star, CheckCircle, Trash2, MessageSquare, Clock, Send, X } from "lucide-react";
 
 export default function OwnerReviews() {
     const { user, logout } = useAuth();
@@ -93,14 +92,6 @@ export default function OwnerReviews() {
         }
     };
 
-    const renderStars = (rating) => (
-        <div className="flex gap-1">
-            {[1, 2, 3, 4, 5].map(i => (
-                <Star key={i} size={16} className={i <= rating ? "fill-amber-400 text-amber-400" : "text-slate-300"} />
-            ))}
-        </div>
-    );
-
     const filteredReviews = reviews.filter(r => r.status === activeTab);
 
     return (
@@ -126,149 +117,219 @@ export default function OwnerReviews() {
 
                 <div className="flex-1 overflow-y-auto p-5 lg:p-8">
                     
-                    {/* Tabs */}
-                    <div className="flex gap-4 mb-8 border-b border-slate-200">
-                        <button 
-                            onClick={() => setActiveTab("PENDING")}
-                            className={`pb-4 px-2 font-bold text-sm lg:text-base border-b-2 transition-all ${activeTab === 'PENDING' ? 'border-[#13ec6d] text-slate-900' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
-                        >
-                            <span className="flex items-center gap-2">
-                                <Clock size={18} /> Pending Reviews
-                                <span className="bg-amber-100 text-amber-700 text-xs px-2 py-0.5 rounded-full">{reviews.filter(r => r.status === 'PENDING').length}</span>
-                            </span>
-                        </button>
-                        <button 
-                            onClick={() => setActiveTab("APPROVED")}
-                            className={`pb-4 px-2 font-bold text-sm lg:text-base border-b-2 transition-all ${activeTab === 'APPROVED' ? 'border-[#13ec6d] text-slate-900' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
-                        >
-                            <span className="flex items-center gap-2">
-                                <CheckCircle size={18} /> Published Reviews
-                            </span>
-                        </button>
+                    {/* Modern Top Stats / Info header */}
+                    <div className="bg-white rounded-[2rem] p-6 lg:p-8 border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.03)] mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-emerald-50 via-transparent to-transparent pointer-events-none opacity-60"></div>
+                        
+                        <div className="flex items-center gap-4 relative z-10">
+                            <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center border border-emerald-100/50">
+                                <span className="material-symbols-outlined text-[24px]">gavel</span>
+                            </div>
+                            <div>
+                                <h1 className="text-2xl font-black text-slate-900 tracking-tight">Review Management</h1>
+                                <p className="text-slate-500 text-sm font-medium mt-0.5">Moderate property reviews and reply to tenants.</p>
+                            </div>
+                        </div>
+
+                        {/* Animated pill-tabs */}
+                        <div className="flex bg-slate-50 p-1.5 rounded-full relative z-10 w-full sm:w-auto">
+                            <button
+                                onClick={() => setActiveTab('PENDING')}
+                                className={`flex-1 sm:flex-none flex justify-center items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold transition-all ${
+                                    activeTab === 'PENDING' 
+                                    ? 'bg-[#0F172A] text-white shadow-sm' 
+                                    : 'text-slate-500 hover:text-slate-700'
+                                }`}
+                            >
+                                <span className="material-symbols-outlined text-[16px]">pending_actions</span>
+                                Pending ({reviews.filter(r => r.status === 'PENDING').length})
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('APPROVED')}
+                                className={`flex-1 sm:flex-none flex justify-center items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold transition-all ${
+                                    activeTab === 'APPROVED' 
+                                    ? 'bg-[#0F172A] text-white shadow-sm' 
+                                    : 'text-slate-500 hover:text-slate-700'
+                                }`}
+                            >
+                                <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                                Published
+                            </button>
+                        </div>
                     </div>
 
                     {/* Review List */}
                     {loading ? (
-                        <div className="flex justify-center items-center h-48">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#13ec6d]"></div>
+                        <div className="bg-white rounded-[2.5rem] p-12 border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.03)] flex flex-col items-center justify-center min-h-[400px]">
+                            <div className="w-10 h-10 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin mb-4"></div>
+                            <p className="text-slate-500 font-medium">Fetching your property reviews...</p>
                         </div>
                     ) : filteredReviews.length === 0 ? (
-                        <div className="text-center py-20 bg-white rounded-2xl border border-slate-100 shadow-sm">
-                            <Star size={48} className="mx-auto text-slate-300 mb-4" />
-                            <h3 className="text-lg font-bold text-slate-700">No {activeTab.toLowerCase()} reviews</h3>
-                            <p className="text-slate-400 text-sm mt-1">You are all caught up!</p>
-                        </div>
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="bg-slate-50/50 border border-dashed border-slate-200 rounded-[2rem] p-16 text-center flex flex-col items-center justify-center"
+                        >
+                            <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center mb-6 shadow-sm border border-slate-100">
+                                <span className="material-symbols-outlined text-4xl text-emerald-500" style={{ fontVariationSettings: "'FILL' 1" }}>
+                                    {activeTab === 'PENDING' ? 'task_alt' : 'rate_review'}
+                                </span>
+                            </div>
+                            <h3 className="text-xl font-extrabold text-slate-800 tracking-tight mb-2">
+                                {activeTab === 'PENDING' ? 'Queue is empty' : 'No published reviews yet'}
+                            </h3>
+                            <p className="text-slate-500 font-medium text-[15px]">You are all caught up on your property feedback.</p>
+                        </motion.div>
                     ) : (
-                        <div className="space-y-6">
-                            {filteredReviews.map((review) => (
-                                <motion.div 
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    key={review.id} 
-                                    className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 lg:p-8"
-                                >
-                                    <div className="flex flex-col md:flex-row gap-6 justify-between items-start">
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-2 mb-2">
-                                                <span className="bg-slate-100 text-slate-600 text-xs font-bold px-2.5 py-1 rounded-lg">
-                                                    {properties[review.propertyId] || "Property"}
-                                                </span>
-                                                <span className="text-slate-400 text-xs font-medium">
-                                                    {new Date(review.createdAt).toLocaleString("en-LK", { timeZone: "Asia/Colombo", month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true })}
-                                                </span>
-                                            </div>
-                                            
-                                            <div className="mb-3">
-                                                {renderStars(review.rating)}
-                                            </div>
-                                            
-                                            <p className="text-slate-700 leading-relaxed text-[15px]">
-                                                "{review.comment}"
-                                            </p>
-
-                                            {review.ownerReply && (
-                                                <div className="mt-4 bg-emerald-50/50 border border-emerald-100 p-4 rounded-xl">
-                                                    <p className="text-xs font-bold text-[#13ec6d] uppercase mb-1">Your Reply</p>
-                                                    <p className="text-slate-600 text-sm italic">"{review.ownerReply}"</p>
+                        <div className="flex flex-col gap-5">
+                            <AnimatePresence>
+                                {filteredReviews.map((review) => (
+                                    <motion.div 
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.98, x: -10 }}
+                                        key={review.id} 
+                                        className="bg-white rounded-[1.5rem] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.03)] p-6 lg:p-8 flex flex-col gap-5 transition-all hover:border-slate-200"
+                                    >
+                                        <div className="flex flex-col md:flex-row justify-between items-start gap-5">
+                                            {/* Content side */}
+                                            <div className="flex-1 w-full">
+                                                {/* Header tags */}
+                                                <div className="flex flex-wrap items-center gap-3 mb-4">
+                                                    <span className="bg-slate-100 text-slate-700 text-xs font-black px-3 py-1.5 rounded-lg border border-slate-200 uppercase tracking-wide">
+                                                        {properties[review.propertyId] || "Property"}
+                                                    </span>
+                                                    <span className="text-slate-400 text-[12px] font-bold tracking-wider flex items-center gap-1.5 mt-1 sm:mt-0">
+                                                        <span className="material-symbols-outlined text-[14px]">schedule</span>
+                                                        {new Date(review.createdAt).toLocaleString("en-LK", { timeZone: "Asia/Colombo", month: "long", day: "numeric", year: "numeric" })}
+                                                    </span>
                                                 </div>
-                                            )}
-                                        </div>
+                                                
+                                                {/* Stars */}
+                                                <div className="flex gap-1 mb-3">
+                                                    {[...Array(5)].map((_, i) => (
+                                                        <span key={i} className="material-symbols-outlined text-[18px] text-amber-500 drop-shadow-sm" style={{ fontVariationSettings: i < review.rating ? '"FILL" 1' : '"FILL" 0' }}>star</span>
+                                                    ))}
+                                                </div>
+                                                
+                                                {/* Review Comment */}
+                                                <p className="text-slate-700 leading-relaxed font-medium text-[15px] max-w-3xl">
+                                                    "{review.comment}"
+                                                </p>
 
-                                        <div className="flex flex-row md:flex-col gap-3 shrink-0 w-full md:w-auto mt-4 md:mt-0">
-                                            {activeTab === "PENDING" && (
-                                                <button 
-                                                    onClick={() => handleAccept(review.id)}
-                                                    className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-[#13ec6d] hover:bg-[#11d863] text-emerald-950 font-bold px-5 py-2.5 rounded-xl transition-all shadow-sm shadow-[#13ec6d]/20"
-                                                >
-                                                    <CheckCircle size={18} /> Accept
-                                                </button>
-                                            )}
-                                            
-                                            {/* Allow deleting/rejecting from either state */}
-                                            <button 
-                                                onClick={() => handleDelete(review.id)}
-                                                className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 text-red-600 font-bold px-5 py-2.5 rounded-xl transition-all"
-                                            >
-                                                <Trash2 size={18} /> {activeTab === "PENDING" ? "Reject" : "Delete"}
-                                            </button>
+                                                {/* Owner Reply Box */}
+                                                {review.ownerReply && (
+                                                    <div className="mt-5 bg-emerald-50/60 border border-emerald-100/60 p-5 rounded-2xl relative overflow-hidden">
+                                                        <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-400 rounded-l-2xl"></div>
+                                                        <div className="flex items-center gap-2 mb-1.5">
+                                                            <span className="material-symbols-outlined text-[16px] text-emerald-600">forum</span>
+                                                            <p className="text-[11px] font-black text-emerald-700 uppercase tracking-widest pl-1">Your Context</p>
+                                                        </div>
+                                                        <p className="text-slate-700 text-[14px] font-medium leading-relaxed pl-6 italic">"{review.ownerReply}"</p>
+                                                    </div>
+                                                )}
+                                            </div>
 
-                                            {/* Reply Button (if no reply exists yet) */}
-                                            {activeTab === "APPROVED" && !review.ownerReply && (
+                                            {/* Action side */}
+                                            <div className="flex flex-row md:flex-col gap-3 shrink-0 w-full md:w-auto">
+                                                {activeTab === "PENDING" && (
+                                                    <button 
+                                                        onClick={() => handleAccept(review.id)}
+                                                        className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-[#0F172A] hover:bg-slate-800 text-white font-bold px-6 py-2.5 rounded-xl transition-all shadow-sm active:scale-95"
+                                                    >
+                                                        <span className="material-symbols-outlined text-[16px]">check</span> Accept
+                                                    </button>
+                                                )}
+                                                
                                                 <button 
-                                                    onClick={() => setReplyingTo(review)}
-                                                    className="flex-1 md:flex-none flex items-center justify-center gap-2 border-2 border-slate-200 hover:border-slate-300 text-slate-600 font-bold px-5 py-2.5 rounded-xl transition-all"
+                                                    onClick={() => handleDelete(review.id)}
+                                                    className={`flex-1 md:flex-none flex items-center justify-center gap-2 font-bold px-6 py-2.5 rounded-xl transition-all active:scale-95 ${activeTab === 'PENDING' ? 'bg-red-50 hover:bg-red-100 text-red-600 border border-red-100' : 'bg-slate-50 hover:bg-red-50 text-slate-500 hover:text-red-600 border border-slate-200'}`}
                                                 >
-                                                    <MessageSquare size={18} /> Reply
+                                                    <span className="material-symbols-outlined text-[16px]">close</span> {activeTab === "PENDING" ? "Reject" : "Delete"}
                                                 </button>
-                                            )}
+
+                                                {activeTab === "APPROVED" && !review.ownerReply && (
+                                                    <button 
+                                                        onClick={() => setReplyingTo(review)}
+                                                        className="flex-1 md:flex-none flex items-center justify-center gap-2 border border-slate-200 hover:border-slate-300 bg-white text-slate-700 font-bold px-6 py-2.5 rounded-xl transition-all active:scale-95 shadow-[0_2px_10px_rgb(0,0,0,0.02)]"
+                                                    >
+                                                        <span className="material-symbols-outlined text-[16px]">reply</span> Reply
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                </motion.div>
-                            ))}
+                                    </motion.div>
+                                ))}
+                            </AnimatePresence>
                         </div>
                     )}
                 </div>
             </main>
 
-            {/* Reply Modal */}
+            {/* Premium Reply Modal */}
             <AnimatePresence>
                 {replyingTo && (
-                    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                         <motion.div 
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-white rounded-3xl shadow-xl max-w-lg w-full overflow-hidden"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+                            onClick={() => { setReplyingTo(null); setReplyText(""); }}
+                        />
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                            className="bg-white rounded-[2rem] shadow-2xl max-w-lg w-full relative z-10 overflow-hidden border border-slate-100"
                         >
-                            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                                <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
-                                    <MessageSquare size={20} className="text-[#13ec6d]" /> 
-                                    Reply to Tenant
+                            <div className="p-8 pb-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center relative">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none translate-x-10 -translate-y-10"></div>
+                                <h3 className="font-black text-[22px] text-slate-900 flex items-center gap-3">
+                                    <span className="material-symbols-outlined text-emerald-500 bg-white p-1.5 rounded-xl shadow-sm border border-slate-100">forum</span> 
+                                    Tenant Response
                                 </h3>
-                                <button onClick={() => { setReplyingTo(null); setReplyText(""); }} className="text-slate-400 hover:text-slate-600 p-1 bg-white rounded-full shadow-sm">
-                                    <X size={20} />
+                                <button onClick={() => { setReplyingTo(null); setReplyText(""); }} className="text-slate-400 hover:text-slate-600 bg-white hover:bg-slate-100 p-1.5 rounded-full transition-colors border border-slate-100">
+                                    <span className="material-symbols-outlined text-[18px]">close</span>
                                 </button>
                             </div>
                             
-                            <div className="p-6">
-                                <div className="mb-6 p-4 bg-slate-50 rounded-xl border border-slate-100">
-                                    <p className="text-sm text-slate-500 italic">"{replyingTo.comment}"</p>
+                            <div className="p-8">
+                                <div className="mb-6">
+                                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                        <span className="material-symbols-outlined text-[14px]">format_quote</span> Review content
+                                    </p>
+                                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                        <p className="text-[14px] text-slate-600 font-medium italic">"{replyingTo.comment}"</p>
+                                    </div>
                                 </div>
 
-                                <textarea 
-                                    value={replyText}
-                                    onChange={(e) => setReplyText(e.target.value)}
-                                    placeholder="Write your professional response here..."
-                                    className="w-full min-h-[120px] p-4 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#13ec6d] focus:border-[#13ec6d] outline-none text-sm resize-y"
-                                />
+                                <div>
+                                    <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                        <span className="material-symbols-outlined text-[14px]">edit</span> Your professional context
+                                    </label>
+                                    <textarea 
+                                        value={replyText}
+                                        onChange={(e) => setReplyText(e.target.value)}
+                                        placeholder="Add more specific details to let future tenants know how you manage properties..."
+                                        className="w-full min-h-[140px] p-4 bg-white border-2 border-slate-100 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none text-[15px] font-medium resize-none transition-all placeholder:text-slate-300"
+                                    />
+                                </div>
 
-                                <button 
-                                    onClick={handleSendReply}
-                                    disabled={isSubmitting || !replyText.trim()}
-                                    className="w-full mt-4 flex items-center justify-center gap-2 bg-slate-900 text-white font-bold py-3.5 rounded-xl hover:bg-slate-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    {isSubmitting ? "Sending..." : <><Send size={18} /> Post Reply</>}
-                                </button>
+                                <div className="mt-8">
+                                    <button 
+                                        onClick={handleSendReply}
+                                        disabled={isSubmitting || !replyText.trim()}
+                                        className="w-full flex items-center justify-center gap-2 bg-[#0F172A] hover:bg-slate-800 text-white font-bold py-4 rounded-[1.25rem] transition-all shadow-md active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed group"
+                                    >
+                                        {isSubmitting ? (
+                                            <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                        ) : (
+                                            <><span className="material-symbols-outlined text-[18px] group-hover:-translate-y-0.5 transition-transform">send</span> Publish Response</>
+                                        )}
+                                    </button>
+                                </div>
                             </div>
                         </motion.div>
                     </div>
