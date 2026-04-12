@@ -61,8 +61,8 @@ API.interceptors.request.use((req) => {
 });
 
 // ── Auth ──────────────────────────────────────────────
-export const signupUser = (data) => API.post("/api/auth/signup", data);
-export const loginUser = (data) => API.post("/api/auth/login", data);
+export const signupUser = (data) => API.post("/api/v1/auth/signup", data);
+export const loginUser = (data) => API.post("/api/v1/auth/login", data);
 
 // ── User ──────────────────────────────────────────────
 /**
@@ -206,9 +206,14 @@ export const getPropertyAvailableSlots = (propertyId) =>
 export const getPropertyReviews = (propertyId) => API.get(`/api/v1/reviews/property/${propertyId}?onlyApproved=true`);
 export const submitReview = (data) => API.post("/api/v1/reviews", data);
 export const getPendingReviews = () => API.get(`/api/v1/reviews/status/PENDING`);
+export const getOwnerReviews = () => API.get(`/api/v1/reviews/owner`);
 export const updateReviewStatus = (reviewId, status) => API.put(`/api/v1/reviews/${reviewId}/status?status=${status}`);
+export const replyToReview = (reviewId, replyText) => API.put(`/api/v1/reviews/${reviewId}/reply`, { replyText });
 export const updateReview = (reviewId, reviewData) => API.put(`/api/v1/reviews/${reviewId}`, reviewData);
 export const deleteReview = (reviewId) => API.delete(`/api/v1/reviews/${reviewId}`);
+
+// ── System Analytics ────────────────────────────────────
+export const getSystemAnalytics = () => API.get("/api/v1/analytics/overview");
 
 // ── Rental agreements (JWT required) ───────────────────
 export const createAgreement = (data) => API.post("/api/v1/agreements", data);

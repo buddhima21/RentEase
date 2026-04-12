@@ -8,6 +8,8 @@ export default function RatingOverview({ rating, totalReviews }) {
         { stars: 1, percentage: 2 },
     ];
 
+    const numericRating = Number(rating) || 0;
+
     return (
         <div className="relative overflow-hidden p-8 sm:p-10 rounded-[2rem] border border-white/60 bg-white/40 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] h-full flex flex-col justify-center">
             {/* Glowing orb background effect */}
@@ -15,12 +17,12 @@ export default function RatingOverview({ rating, totalReviews }) {
 
             <div className="text-center mb-8 relative z-10">
                 <div className="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br from-slate-900 to-slate-600 mb-2 leading-none tracking-tighter">
-                    {rating.toFixed(1)}
+                    {numericRating.toFixed(1)}
                 </div>
                 <div className="flex justify-center items-center gap-1.5 mb-3">
                     {[1, 2, 3, 4, 5].map((star) => (
                         <span key={star} className="material-symbols-outlined text-2xl text-[#f59e0b] drop-shadow-sm" style={{ fontVariationSettings: "'FILL' 1" }}>
-                            {star <= Math.round(rating) ? 'star' : star === Math.ceil(rating) && !Number.isInteger(rating) ? 'star_half' : 'star'}
+                            {star <= Math.round(numericRating) ? 'star' : star === Math.ceil(numericRating) && !Number.isInteger(numericRating) ? 'star_half' : 'star'}
                         </span>
                     ))}
                 </div>
