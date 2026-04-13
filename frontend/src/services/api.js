@@ -228,4 +228,24 @@ export const downloadAgreementPdf = (id) =>
 export const terminateAgreementEarly = (id, data) =>
     API.patch(`/api/v1/agreements/${id}/terminate`, data ?? {});
 
+// ── Maintenance ─────────────────────────────────────────
+export const createMaintenanceRequest = (data) => API.post("/api/v1/maintenance", data);
+export const getMaintenanceById = (id) => API.get(`/api/v1/maintenance/${id}`);
+export const getMaintenanceByProperty = (propertyId) => API.get(`/api/v1/maintenance/property/${propertyId}`);
+export const getTenantMaintenance = (tenantId) => API.get(`/api/v1/maintenance/tenant/${tenantId}`);
+export const getTechnicianMaintenance = (technicianId, status) =>
+    API.get(`/api/v1/maintenance/technician/${technicianId}`, { params: status ? { status } : undefined });
+export const getOwnerMaintenance = (ownerId) => API.get(`/api/v1/maintenance/owner/${ownerId}`);
+export const getAdminMaintenanceQueue = (params) => API.get("/api/v1/maintenance/admin/queue", { params });
+export const assignMaintenanceTechnician = (requestId, data) =>
+    API.patch(`/api/v1/maintenance/${requestId}/assign`, data);
+export const scheduleMaintenance = (requestId, data) =>
+    API.patch(`/api/v1/maintenance/${requestId}/schedule`, data);
+export const acceptMaintenance = (requestId) => API.patch(`/api/v1/maintenance/${requestId}/accept`);
+export const startMaintenance = (requestId) => API.patch(`/api/v1/maintenance/${requestId}/start`);
+export const resolveMaintenance = (requestId, data) => API.patch(`/api/v1/maintenance/${requestId}/resolve`, data);
+export const closeMaintenance = (requestId, adminNote) =>
+    API.patch(`/api/v1/maintenance/${requestId}/close`, null, { params: adminNote ? { adminNote } : undefined });
+export const getMaintenanceTechnicians = () => API.get("/api/v1/maintenance/technicians");
+
 export default API;

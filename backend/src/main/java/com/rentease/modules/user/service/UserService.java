@@ -1,6 +1,7 @@
 package com.rentease.modules.user.service;
 
 import com.rentease.common.enums.UserRole;
+import com.rentease.exception.BadRequestException;
 import com.rentease.exception.EmailAlreadyExistsException;
 import com.rentease.exception.ResourceNotFoundException;
 import com.rentease.exception.UnauthorizedException;
@@ -15,7 +16,6 @@ import org.springframework.stereotype.Service;
 import com.rentease.security.CustomUserDetails;
 import com.rentease.security.JwtUtil;
 import com.rentease.modules.agreement.repository.AgreementRepository;
-import com.rentease.modules.agreement.model.Agreement;
 import com.rentease.modules.property.repository.PropertyRepository;
 import com.rentease.modules.property.model.Property;
 import com.rentease.modules.user.dto.TenantPropertyResponse;
@@ -40,7 +40,7 @@ public class UserService {
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .phone(request.getPhone())
-                .role(request.getRole() != null ? UserRole.valueOf(request.getRole()) : UserRole.TENANT)
+            .role(resolvePublicRegistrationRole(request.getRole()))
                 .profileImageUrl(request.getProfileImageUrl())
                 .build();
 
@@ -129,5 +129,24 @@ public class UserService {
                 .createdAt(user.getCreatedAt())
                 .token(token)
                 .build();
+    }
+
+    private UserRole resolvePublicRegistrationRole(String roleValue) {
+        if (roleValue == null || roleValue.isBlank()) {
+            return UserRole.TENANT;
+        }
+
+        UserRole role;
+        try {
+            role = UserRole.valueOf(roleValue.trim().toUpperCase(java.util.Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            throw new BadRequestException("Invalid role provided");
+        }
+
+        if (role == UserRole.TECHNICIAN || role == UserRole.ADMIN) {
+            throw new BadRequestException("This role cannot be self-registered");
+        }
+
+        return role;
     }
 }
