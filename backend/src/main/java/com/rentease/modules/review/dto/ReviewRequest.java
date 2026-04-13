@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import com.rentease.modules.review.model.DetailedRating;
 
 @Data
 @Builder
@@ -29,5 +30,6 @@ public class ReviewRequest {
     @NotBlank(message = "Review comment is required")
     private String comment;
 
+    private DetailedRating detailedRating;
     private List<String> photos;
 }

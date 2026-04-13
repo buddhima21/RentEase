@@ -22,8 +22,34 @@ export default function ReviewSection({ propertyId, reviews, rating }) {
         }
     }, [reviews]);
 
-    // Mock Tabs for UI parity with 2026 design (My Boarding Reviews mockup style)
-    const [activeTab, setActiveTab] = useState('total');
+    // Sorting State
+    const [sortBy, setSortBy] = useState('newest');
+    const [isSortOpen, setIsSortOpen] = useState(false);
+
+    const sortOptions = [
+        { label: 'Newest First', value: 'newest', icon: 'schedule' },
+        { label: 'Oldest First', value: 'oldest', icon: 'history' },
+        { label: 'Highest Rating', value: 'highest', icon: 'star' },
+        { label: 'Lowest Rating', value: 'lowest', icon: 'star_outline' }
+    ];
+
+    const getSortedReviews = () => {
+        const sorted = [...allReviews];
+        switch (sortBy) {
+            case 'newest':
+                return sorted.sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date));
+            case 'oldest':
+                return sorted.sort((a, b) => new Date(a.createdAt || a.date) - new Date(b.createdAt || b.date));
+            case 'highest':
+                return sorted.sort((a, b) => b.rating - a.rating);
+            case 'lowest':
+                return sorted.sort((a, b) => a.rating - b.rating);
+            default:
+                return sorted;
+        }
+    };
+
+    const sortedReviews = getSortedReviews();
 
     function handleWriteReviewClick() {
         if (user) {
@@ -50,12 +76,15 @@ export default function ReviewSection({ propertyId, reviews, rating }) {
             if (editingReview) {
                 // UPDATE logic
                 await updateReview(editingReview.id, {
+                    propertyId: editingReview.propertyId,
+                    reviewerId: editingReview.reviewerId,
                     rating: newReview.rating,
                     comment: newReview.review,
                     photos: newReview.photo ? [newReview.photo] : [],
+                    detailedRating: newReview.detailedRating
                 });
 
-                // Optimistic UI update
+                // Optimistic UI update - remove from list as it's now PENDING re-approval
                 setAllReviews(prev => prev.filter(r => r.id !== editingReview.id));
                 setSubmitSuccess(true);
                 setTimeout(() => setSubmitSuccess(false), 5000);
@@ -67,6 +96,7 @@ export default function ReviewSection({ propertyId, reviews, rating }) {
                     rating: newReview.rating,
                     comment: newReview.review,
                     photos: newReview.photo ? [newReview.photo] : [],
+                    detailedRating: newReview.detailedRating
                 });
                 setSubmitSuccess(true);
                 setTimeout(() => setSubmitSuccess(false), 5000); 
@@ -94,24 +124,18 @@ export default function ReviewSection({ propertyId, reviews, rating }) {
     return (
         <section className="bg-white rounded-[2.5rem] p-0 md:p-6 lg:p-8 relative overflow-hidden">
             
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6 border-b border-slate-100 pb-8">
                 <div>
-                    <div className="inline-flex items-center gap-2 bg-[#EBF5FF] text-[#2563EB] px-3.5 py-1.5 rounded-full mb-4">
-                        <span className="text-[10px] font-black tracking-widest uppercase">Your Voice Matters</span>
-                    </div>
-                    <h2 className="text-[28px] md:text-[36px] font-black text-slate-900 tracking-tight leading-tight">
-                        Property Reviews
+                    <h2 className="text-[32px] md:text-[40px] font-black text-slate-900 tracking-tight leading-none">
+                        Verified Reviews
                     </h2>
-                    <p className="text-slate-500 mt-2 text-[15px] max-w-lg font-medium">
-                        Share your experience with the Malabe student community. Your feedback helps others find their perfect home.
-                    </p>
                 </div>
                 {user && user.role === "TENANT" && (
                     <button
-                        className="bg-[#0F172A] text-white px-7 py-3.5 rounded-2xl font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2"
+                        className="bg-emerald-500 text-white px-8 py-4 rounded-2xl font-bold shadow-lg shadow-emerald-500/10 hover:bg-emerald-600 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex items-center gap-2"
                         onClick={handleWriteReviewClick}
                     >
-                        <span className="material-symbols-outlined text-[18px]">add</span>
+                        <span className="material-symbols-outlined text-[20px]">add_circle</span>
                         <span>Write a Review</span>
                     </button>
                 )}
@@ -119,8 +143,37 @@ export default function ReviewSection({ propertyId, reviews, rating }) {
 
             {/* Sorting Header */}
             <div className="flex justify-end items-center border-b border-slate-100 pb-4 mb-8">
-                <div className="flex items-center gap-2 text-slate-500 text-sm font-bold cursor-pointer hover:text-slate-800 transition-colors">
-                    <span className="material-symbols-outlined text-[18px]">filter_list</span> Sort: Newest
+                <div className="relative">
+                    <button 
+                        onClick={() => setIsSortOpen(!isSortOpen)}
+                        className="flex items-center gap-2 text-slate-500 text-sm font-bold hover:text-slate-800 transition-colors bg-slate-50 px-4 py-2 rounded-xl border border-slate-100"
+                    >
+                        <span className="material-symbols-outlined text-[18px]">filter_list</span>
+                        <span>Sort: {sortOptions.find(o => o.value === sortBy)?.label}</span>
+                        <span className={`material-symbols-outlined text-[18px] transition-transform duration-300 ${isSortOpen ? 'rotate-180' : ''}`}>expand_more</span>
+                    </button>
+
+                    {isSortOpen && (
+                        <div className="absolute right-0 top-12 w-56 bg-white rounded-2xl shadow-2xl border border-slate-50 py-2 z-[50] animate-in fade-in zoom-in-95 duration-200">
+                            {sortOptions.map((option) => (
+                                <button
+                                    key={option.value}
+                                    onClick={() => {
+                                        setSortBy(option.value);
+                                        setIsSortOpen(false);
+                                    }}
+                                    className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold transition-all ${
+                                        sortBy === option.value 
+                                        ? 'text-emerald-600 bg-emerald-50' 
+                                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                                    }`}
+                                >
+                                    <span className="material-symbols-outlined text-[18px]">{option.icon}</span>
+                                    {option.label}
+                                </button>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -144,8 +197,8 @@ export default function ReviewSection({ propertyId, reviews, rating }) {
 
                 {/* Review List (Right Col) */}
                 <div className="lg:col-span-8 flex flex-col gap-6">
-                    {allReviews.length > 0 ? (
-                        allReviews.map((review) => (
+                    {sortedReviews.length > 0 ? (
+                        sortedReviews.map((review) => (
                             <ReviewCard
                                 key={review.id}
                                 review={review}

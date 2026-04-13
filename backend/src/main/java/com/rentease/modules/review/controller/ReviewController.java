@@ -58,17 +58,46 @@ public class ReviewController {
         return ResponseEntity.ok(ApiResponse.success(reviews));
     }
 
+    @GetMapping("/owner")
+    public ResponseEntity<ApiResponse<List<ReviewResponse>>> getOwnerReviews(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        
+        List<ReviewResponse> reviews = reviewService.getReviewsByOwnerId(userDetails.getId());
+        return ResponseEntity.ok(ApiResponse.success(reviews));
+    }
+
+    @PutMapping("/{reviewId}/reply")
+    public ResponseEntity<ApiResponse<ReviewResponse>> replyToReview(
+            @PathVariable String reviewId,
+            @RequestBody java.util.Map<String, String> body,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        
+        boolean isAuthorized = userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_OWNER"));
+        if (!isAuthorized) {
+            throw new UnauthorizedException("Only administrators or owners can reply to reviews");
+        }
+
+        String replyText = body.get("replyText");
+        if(replyText == null || replyText.trim().isEmpty()) {
+            throw new com.rentease.exception.BadRequestException("Reply text is required");
+        }
+
+        ReviewResponse response = reviewService.replyToReview(reviewId, replyText);
+        return ResponseEntity.ok(ApiResponse.success(response, "Review reply posted successfully"));
+    }
+
     @PutMapping("/{reviewId}/status")
     public ResponseEntity<ApiResponse<ReviewResponse>> updateReviewStatus(
             @PathVariable String reviewId,
             @RequestParam(name = "status") com.rentease.common.enums.ReviewStatus status,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         
-        // Ensure only an admin can perform this action
-        boolean isAdmin = userDetails.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
-        if (!isAdmin) {
-            throw new UnauthorizedException("Only administrators can update review statuses");
+        // Ensure only an admin or owner can perform this action
+        boolean isAuthorized = userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_OWNER"));
+        if (!isAuthorized) {
+            throw new UnauthorizedException("Only administrators or owners can update review statuses");
         }
 
         ReviewResponse response = reviewService.updateReviewStatus(reviewId, status);

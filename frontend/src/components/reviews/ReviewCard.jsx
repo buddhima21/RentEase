@@ -40,8 +40,8 @@ export default function ReviewCard({ review, onEdit, onDelete }) {
             {/* Header: Verified & Options */}
             <div className="flex justify-between items-center mb-1 relative">
                 <div className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#3B82F6]"></div>
-                    <span className="text-[#3B82F6] text-[11px] font-black uppercase tracking-[0.1em]">{verifiedName}</span>
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                    <span className="text-emerald-600 text-[11px] font-black uppercase tracking-[0.1em]">{verifiedName}</span>
                 </div>
                 
                 {isAuthor && 
@@ -59,7 +59,7 @@ export default function ReviewCard({ review, onEdit, onDelete }) {
                                         setShowOptions(false);
                                         onEdit(review);
                                     }}
-                                    className="w-full px-4 py-2 text-left text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-blue-600 flex items-center gap-2 transition-colors"
+                                    className="w-full px-4 py-2 text-left text-sm font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 flex items-center gap-2 transition-colors"
                                 >
                                     <span className="material-symbols-outlined text-[18px]">edit</span> Edit
                                 </button>
@@ -94,15 +94,38 @@ export default function ReviewCard({ review, onEdit, onDelete }) {
             </h3>
 
             {/* Stars & Date */}
-            <div className="flex items-center gap-3 mb-6">
-                <div className="flex gap-0.5">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                        <span key={star} className={`material-symbols-outlined text-[16px] md:text-[18px] ${star <= Math.round(review.rating) ? 'text-[#FBBF24]' : 'text-slate-200'}`} style={{ fontVariationSettings: "'FILL' 1" }}>
-                            star
-                        </span>
-                    ))}
+            <div className="flex flex-col gap-4 mb-6">
+                <div className="flex items-center gap-3">
+                    <div className="flex gap-0.5">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                            <span key={star} className={`material-symbols-outlined text-[16px] md:text-[18px] ${star <= Math.round(review.rating) ? 'text-[#FBBF24]' : 'text-slate-200'}`} style={{ fontVariationSettings: "'FILL' 1" }}>
+                                star
+                            </span>
+                        ))}
+                    </div>
+                    <span className="text-sm text-slate-400 font-bold">{dateStr}</span>
                 </div>
-                <span className="text-sm text-slate-400 font-bold">{dateStr}</span>
+
+                {/* Detailed Breakdown (if exists) */}
+                {review.detailedRating && (
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-slate-50/50 rounded-2xl border border-slate-100/50">
+                        {Object.entries(review.detailedRating).map(([key, val]) => (
+                            <div key={key} className="flex flex-col gap-1">
+                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{key}</span>
+                                <div className="flex items-center gap-1.5">
+                                    <div className="flex gap-0.5">
+                                        {[1, 2, 3, 4, 5].map((s) => (
+                                            <span key={s} className={`material-symbols-outlined text-[12px] ${s <= val ? 'text-emerald-500' : 'text-slate-200'}`} style={{ fontVariationSettings: "'FILL' 1" }}>
+                                                star
+                                            </span>
+                                        ))}
+                                    </div>
+                                    <span className="text-[10px] font-bold text-slate-500">{val}.0</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
 
             {/* Review Body */}
