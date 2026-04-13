@@ -29,6 +29,8 @@ import Profile from "../pages/Profile";
 import ProtectedAdminRoute from "./ProtectedAdminRoute";
 import OwnerFinance from "../pages/OwnerFinance";
 import RentPayment from "../pages/RentPaymentTracking/RentPayment";
+import OwnerReviews from "../pages/OwnerReviews";
+import OwnerMilestones from "../pages/OwnerMilestones";
 
 export default function AppRoutes() {
     return (
@@ -54,6 +56,8 @@ export default function AppRoutes() {
             <Route path="/owner/properties/:id/edit" element={<UpdateProperty />} />
             <Route path="/owner/analytics" element={<OwnerAnalytics />} />
             <Route path="/owner/agreements" element={<OwnerAgreements />} />
+            <Route path="/owner/reviews" element={<OwnerReviews />} />
+            <Route path="/owner/milestones" element={<OwnerMilestones />} />
 
             {/* Tenant Routes */}
             <Route path="/tenant/dashboard" element={<TenantDashboard />} />

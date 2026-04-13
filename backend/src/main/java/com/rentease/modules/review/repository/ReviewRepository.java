@@ -13,4 +13,5 @@ public interface ReviewRepository extends MongoRepository<Review, String> {
     List<Review> findByPropertyIdAndDeletedFalse(String propertyId);
     List<Review> findByReviewerIdAndDeletedFalse(String reviewerId);
     List<Review> findByStatusAndDeletedFalse(ReviewStatus status);
+    List<Review> findByPropertyIdInAndDeletedFalse(List<String> propertyIds);
 }

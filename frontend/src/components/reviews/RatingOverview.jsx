@@ -13,7 +13,7 @@ export default function RatingOverview({ rating, totalReviews }) {
     return (
         <div className="relative overflow-hidden p-8 sm:p-10 rounded-[2rem] border border-white/60 bg-white/40 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] h-full flex flex-col justify-center">
             {/* Glowing orb background effect */}
-            <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#f59e0b]/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div className="absolute -top-24 -right-24 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
             <div className="text-center mb-8 relative z-10">
                 <div className="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br from-slate-900 to-slate-600 mb-2 leading-none tracking-tighter">
@@ -42,7 +42,7 @@ export default function RatingOverview({ rating, totalReviews }) {
                         </div>
                         <div className="flex-1 h-3 bg-slate-100/80 rounded-full overflow-hidden shadow-inner border border-slate-200/50">
                             <div
-                                className="h-full rounded-full transition-all duration-[1.5s] ease-out bg-gradient-to-r from-[#fbbf24] to-[#f59e0b] relative overflow-hidden group-hover:from-[#f59e0b] group-hover:to-[#ea580c]"
+                                className="h-full rounded-full transition-all duration-[1.5s] ease-out bg-gradient-to-r from-emerald-400 to-teal-500 relative overflow-hidden group-hover:from-emerald-500 group-hover:to-teal-600"
                                 style={{ width: `${item.percentage}%`, animationDelay: `${index * 0.1}s` }}
                             >
                                 {/* Shine effect inside progress bar */}

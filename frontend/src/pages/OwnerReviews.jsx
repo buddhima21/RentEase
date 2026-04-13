@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Sidebar from "../components/dashboard/Sidebar";
+import Sidebar from "../components/owner/dashboard/Sidebar";
 import UserDropdown from "../components/UserDropdown";
 import { useAuth } from "../context/AuthContext";
 import { getOwnerProperties, getOwnerReviews, updateReviewStatus, replyToReview } from "../services/api";
@@ -95,23 +95,22 @@ export default function OwnerReviews() {
     const filteredReviews = reviews.filter(r => r.status === activeTab);
 
     return (
-        <div className="flex min-h-screen bg-[#f6f8f7]" style={{ "--color-primary": "#13ec6d" }}>
+        <div className="flex h-screen overflow-hidden bg-[#FBFDFF]" style={{ "--color-primary": "#10b981" }}>
             <Sidebar />
 
-            <main className="flex-1 flex flex-col min-w-0">
-                <header className="sticky top-0 z-30 h-20 border-b border-emerald-100 bg-white/90 backdrop-blur-md px-6 lg:px-8 flex items-center justify-between gap-4 shrink-0">
-                    <h2 className="text-xl lg:text-2xl font-bold tracking-tight whitespace-nowrap pl-12 lg:pl-0">
-                        Review Management
-                    </h2>
-                    <div className="flex items-center gap-3 ml-auto">
-                        <button className="relative p-2 rounded-full hover:bg-emerald-50 transition-colors text-slate-500 hover:text-slate-700">
-                            <span className="material-symbols-outlined text-[22px]">notifications</span>
-                        </button>
-                        {user ? (
-                            <UserDropdown user={user} onLogout={logout} />
-                        ) : (
-                            <div className="w-10 h-10 rounded-full border-2 border-primary bg-cover bg-center shrink-0" style={{ backgroundImage: `url('${ownerProfile.avatar}')` }} />
-                        )}
+            <main className="flex-1 flex flex-col min-w-0 font-sans">
+                {/* Header */}
+                <header className="sticky top-0 z-30 h-[88px] border-b border-slate-100/80 bg-white/70 backdrop-blur-3xl px-8 lg:px-12 flex items-center justify-between gap-4 shrink-0">
+                    <div>
+                        <h2 className="text-2xl font-black tracking-tight text-slate-900">Property <span className="text-emerald-500">Reviews</span></h2>
+                        <p className="text-sm text-slate-400 font-bold">Manage feedback and build tenant trust.</p>
+                    </div>
+                    <div className="flex items-center gap-4">
+                        <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-emerald-50 rounded-xl border border-emerald-100">
+                           <span className="material-symbols-outlined text-[18px] text-emerald-600">verified</span>
+                           <span className="text-[11px] font-black text-emerald-700 uppercase tracking-widest">Community Verified</span>
+                        </div>
+                        {user && <UserDropdown user={user} onLogout={logout} />}
                     </div>
                 </header>
 
@@ -199,6 +198,9 @@ export default function OwnerReviews() {
                                                     <span className="bg-slate-100 text-slate-700 text-xs font-black px-3 py-1.5 rounded-lg border border-slate-200 uppercase tracking-wide">
                                                         {properties[review.propertyId] || "Property"}
                                                     </span>
+                                                    <span className="bg-blue-50 text-blue-700 text-xs font-black px-3 py-1.5 rounded-lg border border-blue-100 uppercase tracking-wide">
+                                                        {review.reviewerName || "Verified Resident"}
+                                                    </span>
                                                     <span className="text-slate-400 text-[12px] font-bold tracking-wider flex items-center gap-1.5 mt-1 sm:mt-0">
                                                         <span className="material-symbols-outlined text-[14px]">schedule</span>
                                                         {new Date(review.createdAt).toLocaleString("en-LK", { timeZone: "Asia/Colombo", month: "long", day: "numeric", year: "numeric" })}
@@ -243,7 +245,7 @@ export default function OwnerReviews() {
                                                 
                                                 <button 
                                                     onClick={() => handleDelete(review.id)}
-                                                    className={`flex-1 md:flex-none flex items-center justify-center gap-2 font-bold px-6 py-2.5 rounded-xl transition-all active:scale-95 ${activeTab === 'PENDING' ? 'bg-red-50 hover:bg-red-100 text-red-600 border border-red-100' : 'bg-slate-50 hover:bg-red-50 text-slate-500 hover:text-red-600 border border-slate-200'}`}
+                                                    className={`flex-1 md:flex-none flex items-center justify-center gap-2 font-bold px-6 py-2.5 rounded-xl transition-all active:scale-95 ${activeTab === 'PENDING' ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-100' : 'bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-700 border border-slate-200'}`}
                                                 >
                                                     <span className="material-symbols-outlined text-[16px]">close</span> {activeTab === "PENDING" ? "Reject" : "Delete"}
                                                 </button>

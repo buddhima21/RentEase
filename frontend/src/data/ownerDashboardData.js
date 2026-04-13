@@ -18,6 +18,7 @@ export const sidebarLinks = [
   { label: "My Properties", icon: "home_work", path: "/owner/properties" },
   { label: "Bookings", icon: "calendar_month", path: "/owner/bookings" },
   { label: "Agreements", icon: "description", path: "/owner/agreements" },
+  { label: "Reviews", icon: "star_rate", path: "/owner/reviews" },
   { label: "Maintenance", icon: "build", path: "/owner/maintenance", badge: 3 },
   { label: "Finance", icon: "payments", path: "/owner/finance" },
   { label: "Analytics", icon: "analytics", path: "/owner/analytics" },
@@ -259,4 +260,31 @@ export const ownerNotifications = [
     typeText: "text-slate-600",
     unread: false,
   },
+];
+// ── Business Evolution Milestones ───────────────────────────
+export const milestonesData = [
+  {
+    category: "Resident Engagement",
+    items: [
+      { id: 1, title: "Verified Feedback System", status: "Completed", description: "Implementation of multi-tier tenant verification to ensure 100% authentic property insights.", progress: 100 },
+      { id: 2, title: "Response Rate Optimization", status: "Completed", description: "AI-assisted owner response tools to maintain high community engagement standards.", progress: 100 },
+      { id: 3, title: "Conflict Resolution Portal", status: "Completed", description: "Streamlined arbitration workflow for transparent resolution of resident-owner feedback.", progress: 100 },
+    ]
+  },
+  {
+    category: "Market Intelligence",
+    items: [
+      { id: 4, title: "Smart Pricing Engine", status: "Completed", description: "Dynamic market benchmarking to help owners optimize rental yields based on real-time demand.", progress: 100 },
+      { id: 5, title: "Predictive Analytics V2", status: "Completed", description: "Historical trend analysis to forecast occupancy rates and seasonal booking shifts.", progress: 100 },
+      { id: 6, title: "Business Intelligence Exports", status: "Completed", description: "Professional-grade reporting suite for financial auditing and performance tracking.", progress: 100 },
+    ]
+  },
+  {
+    category: "Platform Excellence",
+    items: [
+      { id: 7, title: "High-Security Auth Tier", status: "Completed", description: "Enterprise-level data protection protocols for sensitive financial and property records.", progress: 100 },
+      { id: 8, title: "Global Accessibility Audit", status: "Completed", description: "Full compliance with modern web accessibility standards for an inclusive resident experience.", progress: 100 },
+      { id: 9, title: "Multi-Unit Scalability Tier", status: "Completed", description: "Optimized architecture to support property managers handling 50+ diverse listings.", progress: 100 },
+    ]
+  }
 ];
