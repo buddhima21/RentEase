@@ -17,5 +17,6 @@ public class MaintenanceScheduleRequest {
     @NotNull(message = "Scheduled date and time is required")
     private LocalDateTime scheduledAt;
 
+    private String technicianId;
     private String adminNotes;
 }

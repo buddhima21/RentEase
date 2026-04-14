@@ -239,10 +239,14 @@ export const getOwnerMaintenance = (ownerId) => API.get(`/api/v1/maintenance/own
 export const getAdminMaintenanceQueue = (params) => API.get("/api/v1/maintenance/admin/queue", { params });
 export const assignMaintenanceTechnician = (requestId, data) =>
     API.patch(`/api/v1/maintenance/${requestId}/assign`, data);
+export const updateMaintenancePriority = (requestId, priority) =>
+    API.patch(`/api/v1/maintenance/${requestId}/priority`, null, { params: { priority } });
 export const scheduleMaintenance = (requestId, data) =>
     API.patch(`/api/v1/maintenance/${requestId}/schedule`, data);
 export const acceptMaintenance = (requestId) => API.patch(`/api/v1/maintenance/${requestId}/accept`);
 export const startMaintenance = (requestId) => API.patch(`/api/v1/maintenance/${requestId}/start`);
+export const pauseMaintenance = (requestId) => API.patch(`/api/v1/maintenance/${requestId}/pause`);
+export const resumeMaintenance = (requestId) => API.patch(`/api/v1/maintenance/${requestId}/resume`);
 export const resolveMaintenance = (requestId, data) => API.patch(`/api/v1/maintenance/${requestId}/resolve`, data);
 export const closeMaintenance = (requestId, adminNote) =>
     API.patch(`/api/v1/maintenance/${requestId}/close`, null, { params: adminNote ? { adminNote } : undefined });

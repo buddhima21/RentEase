@@ -30,6 +30,7 @@ public class MaintenanceRequest {
     private String serviceType;
     private String priority;
     private List<String> imageUrls;
+    private LocalDateTime preferredAt;
 
     private String assignedTechnicianId;
     private String assignedByAdminId;

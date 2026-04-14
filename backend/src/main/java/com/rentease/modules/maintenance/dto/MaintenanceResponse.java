@@ -23,6 +23,7 @@ public class MaintenanceResponse {
     private String serviceType;
     private String priority;
     private List<String> imageUrls;
+    private LocalDateTime preferredAt;
 
     private String assignedTechnicianId;
     private String assignedByAdminId;
@@ -37,6 +38,13 @@ public class MaintenanceResponse {
     private String technicianNotes;
     private String completionSummary;
     private List<String> completionImageUrls;
+
+    private String tenantName;
+    private String tenantEmail;
+    private String tenantPhone;
+    private String technicianName;
+    private String technicianEmail;
+    private String technicianPhone;
 
     private MaintenanceStatus status;
     private LocalDateTime createdAt;

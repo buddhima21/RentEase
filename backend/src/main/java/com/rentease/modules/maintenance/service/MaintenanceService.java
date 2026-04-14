@@ -70,6 +70,7 @@ public class MaintenanceService {
                 .serviceType(dto.getServiceType())
                 .priority(dto.getPriority())
                 .imageUrls(dto.getImageUrls())
+            .preferredAt(dto.getPreferredAt())
                 .build();
 
         MaintenanceRequest saved = maintenanceRepository.save(request);
@@ -97,6 +98,20 @@ public class MaintenanceService {
 
         userRepository.findById(updated.getTenantId())
                 .ifPresent(tenant -> maintenanceNotificationService.notifyTenantStatusChanged(tenant, updated));
+        return mapToResponse(updated);
+    }
+
+    public MaintenanceResponse updatePriority(String id, String priority) {
+        MaintenanceRequest request = maintenanceRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("MaintenanceRequest", "id", id));
+
+        if (request.getStatus() == MaintenanceStatus.CLOSED) {
+            throw new BadRequestException("Cannot update priority for a closed request");
+        }
+
+        request.setPriority(priority);
+        MaintenanceRequest updated = maintenanceRepository.save(request);
+        notifyTenantForUpdatedRequest(updated);
         return mapToResponse(updated);
     }
 
@@ -196,6 +211,15 @@ public class MaintenanceService {
 
         maintenanceRequest.setScheduledAt(request.getScheduledAt());
         maintenanceRequest.setAssignedByAdminId(adminId);
+        if (request.getTechnicianId() != null && !request.getTechnicianId().isBlank()) {
+            User technician = findUserOrThrow(request.getTechnicianId());
+            if (technician.getRole() != UserRole.TECHNICIAN) {
+                throw new BadRequestException("Scheduled user must have TECHNICIAN role");
+            }
+            maintenanceRequest.setAssignedTechnicianId(request.getTechnicianId());
+            maintenanceRequest.setAssignedAt(LocalDateTime.now());
+            maintenanceNotificationService.notifyTechnicianAssigned(technician, maintenanceRequest);
+        }
         if (request.getAdminNotes() != null && !request.getAdminNotes().isBlank()) {
             maintenanceRequest.setAdminNotes(request.getAdminNotes());
         }
@@ -237,6 +261,34 @@ public class MaintenanceService {
             request.setStartedAt(LocalDateTime.now());
         }
 
+        MaintenanceRequest updated = maintenanceRepository.save(request);
+        notifyTenantForUpdatedRequest(updated);
+        return mapToResponse(updated);
+    }
+
+    public MaintenanceResponse pauseRequest(String requestId, String technicianId) {
+        MaintenanceRequest request = getRequestOrThrow(requestId);
+        ensureAssignedToTechnician(request, technicianId);
+
+        if (request.getStatus() != MaintenanceStatus.IN_PROGRESS) {
+            throw new BadRequestException("Only in-progress requests can be paused");
+        }
+
+        request.setStatus(MaintenanceStatus.PAUSED);
+        MaintenanceRequest updated = maintenanceRepository.save(request);
+        notifyTenantForUpdatedRequest(updated);
+        return mapToResponse(updated);
+    }
+
+    public MaintenanceResponse resumeRequest(String requestId, String technicianId) {
+        MaintenanceRequest request = getRequestOrThrow(requestId);
+        ensureAssignedToTechnician(request, technicianId);
+
+        if (request.getStatus() != MaintenanceStatus.PAUSED) {
+            throw new BadRequestException("Only paused requests can be resumed");
+        }
+
+        request.setStatus(MaintenanceStatus.IN_PROGRESS);
         MaintenanceRequest updated = maintenanceRepository.save(request);
         notifyTenantForUpdatedRequest(updated);
         return mapToResponse(updated);
@@ -305,6 +357,7 @@ public class MaintenanceService {
         boolean valid = switch (current) {
             case REPORTED -> next == MaintenanceStatus.IN_PROGRESS;
             case IN_PROGRESS -> next == MaintenanceStatus.RESOLVED;
+            case PAUSED -> next == MaintenanceStatus.IN_PROGRESS;
             case RESOLVED -> next == MaintenanceStatus.CLOSED;
             case CLOSED -> false;
         };
@@ -341,6 +394,9 @@ public class MaintenanceService {
     }
 
     private MaintenanceResponse mapToResponse(MaintenanceRequest req) {
+        User tenant = userRepository.findById(req.getTenantId()).orElse(null);
+        User technician = req.getAssignedTechnicianId() == null ? null : userRepository.findById(req.getAssignedTechnicianId()).orElse(null);
+
         return MaintenanceResponse.builder()
                 .id(req.getId())
                 .propertyId(req.getPropertyId())
@@ -350,6 +406,7 @@ public class MaintenanceService {
                 .serviceType(req.getServiceType())
                 .priority(req.getPriority())
                 .imageUrls(req.getImageUrls())
+                .preferredAt(req.getPreferredAt())
                 .assignedTechnicianId(req.getAssignedTechnicianId())
                 .assignedByAdminId(req.getAssignedByAdminId())
                 .assignedAt(req.getAssignedAt())
@@ -362,6 +419,12 @@ public class MaintenanceService {
                 .technicianNotes(req.getTechnicianNotes())
                 .completionSummary(req.getCompletionSummary())
                 .completionImageUrls(req.getCompletionImageUrls())
+                .tenantName(tenant != null ? tenant.getFullName() : null)
+                .tenantEmail(tenant != null ? tenant.getEmail() : null)
+                .tenantPhone(tenant != null ? tenant.getPhone() : null)
+                .technicianName(technician != null ? technician.getFullName() : null)
+                .technicianEmail(technician != null ? technician.getEmail() : null)
+                .technicianPhone(technician != null ? technician.getPhone() : null)
                 .status(req.getStatus())
                 .createdAt(req.getCreatedAt())
                 .updatedAt(req.getUpdatedAt())

@@ -63,6 +63,16 @@ public class MaintenanceController {
         return ResponseEntity.ok(ApiResponse.success(response, "Status updated"));
     }
 
+    @PatchMapping("/{id}/priority")
+    public ResponseEntity<ApiResponse<MaintenanceResponse>> updatePriority(
+            @PathVariable String id,
+            @RequestParam String priority,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        requireAdmin(userDetails);
+        MaintenanceResponse response = maintenanceService.updatePriority(id, priority);
+        return ResponseEntity.ok(ApiResponse.success(response, "Priority updated"));
+    }
+
     @GetMapping("/property/{propertyId}")
     public ResponseEntity<ApiResponse<List<MaintenanceResponse>>> getByProperty(
             @PathVariable String propertyId,
@@ -158,6 +168,24 @@ public class MaintenanceController {
         requireTechnician(userDetails);
         MaintenanceResponse response = maintenanceService.startRequest(id, userDetails.getId());
         return ResponseEntity.ok(ApiResponse.success(response, "Work started"));
+    }
+
+    @PatchMapping("/{id}/pause")
+    public ResponseEntity<ApiResponse<MaintenanceResponse>> pauseRequest(
+            @PathVariable String id,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        requireTechnician(userDetails);
+        MaintenanceResponse response = maintenanceService.pauseRequest(id, userDetails.getId());
+        return ResponseEntity.ok(ApiResponse.success(response, "Work paused"));
+    }
+
+    @PatchMapping("/{id}/resume")
+    public ResponseEntity<ApiResponse<MaintenanceResponse>> resumeRequest(
+            @PathVariable String id,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        requireTechnician(userDetails);
+        MaintenanceResponse response = maintenanceService.resumeRequest(id, userDetails.getId());
+        return ResponseEntity.ok(ApiResponse.success(response, "Work resumed"));
     }
 
     @PatchMapping("/{id}/resolve")

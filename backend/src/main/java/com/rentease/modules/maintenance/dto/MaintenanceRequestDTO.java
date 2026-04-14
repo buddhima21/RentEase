@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
@@ -30,6 +31,8 @@ public class MaintenanceRequestDTO {
 
     @Size(max = 2000, message = "Description cannot exceed 2000 characters")
     private String description;
+
+    private LocalDateTime preferredAt;
 
     @NotBlank(message = "Priority is required")
     private String priority;
