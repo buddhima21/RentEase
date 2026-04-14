@@ -286,6 +286,170 @@ class MaintenanceControllerTest {
                 );
     }
 
+    @Test
+    void getTechnicians_AsOwner_ShouldThrowForbidden() {
+                assertThrows(ForbiddenException.class, () ->
+                        controller.getTechnicians(user("owner-1", UserRole.OWNER))
+                );
+    }
+
+    @Test
+    void acceptRequest_AsTenant_ShouldThrowForbidden() {
+                assertThrows(ForbiddenException.class, () ->
+                        controller.acceptRequest("req-1", user("tenant-1", UserRole.TENANT))
+                );
+    }
+
+    @Test
+    void startRequest_AsOwner_ShouldThrowForbidden() {
+                assertThrows(ForbiddenException.class, () ->
+                        controller.startRequest("req-1", user("owner-1", UserRole.OWNER))
+                );
+    }
+
+    @Test
+    void pauseRequest_AsAdmin_ShouldThrowForbidden() {
+                assertThrows(ForbiddenException.class, () ->
+                        controller.pauseRequest("req-1", user("admin-1", UserRole.ADMIN))
+                );
+    }
+
+    @Test
+    void resumeRequest_AsTenant_ShouldThrowForbidden() {
+                assertThrows(ForbiddenException.class, () ->
+                        controller.resumeRequest("req-1", user("tenant-1", UserRole.TENANT))
+                );
+    }
+
+    @Test
+    void updateStatus_AsAdmin_ShouldForwardStatus() {
+                ResponseEntity<?> entity = controller.updateStatus(
+                        "req-1",
+                        MaintenanceStatus.IN_PROGRESS,
+                        user("admin-1", UserRole.ADMIN)
+                );
+
+                assertEquals(200, entity.getStatusCode().value());
+                assertEquals("req-1", maintenanceService.lastRequestId);
+                assertEquals(MaintenanceStatus.IN_PROGRESS, maintenanceService.lastUpdatedStatus);
+    }
+
+    @Test
+    void updateStatus_AsTenant_ShouldThrowForbidden() {
+                assertThrows(ForbiddenException.class, () ->
+                        controller.updateStatus("req-1", MaintenanceStatus.IN_PROGRESS, user("tenant-1", UserRole.TENANT))
+                );
+    }
+
+    @Test
+    void updatePriority_AsAdmin_ShouldForwardPriority() {
+                ResponseEntity<?> entity = controller.updatePriority("req-1", "URGENT", user("admin-1", UserRole.ADMIN));
+
+                assertEquals(200, entity.getStatusCode().value());
+                assertEquals("req-1", maintenanceService.lastRequestId);
+                assertEquals("URGENT", maintenanceService.lastUpdatedPriority);
+    }
+
+    @Test
+    void updatePriority_AsOwner_ShouldThrowForbidden() {
+                assertThrows(ForbiddenException.class, () ->
+                        controller.updatePriority("req-1", "HIGH", user("owner-1", UserRole.OWNER))
+                );
+    }
+
+    @Test
+    void getByProperty_AsAdmin_ShouldReturnData() {
+                ResponseEntity<?> entity = controller.getByProperty("prop-1", user("admin-1", UserRole.ADMIN));
+
+                assertEquals(200, entity.getStatusCode().value());
+                assertEquals("prop-1", maintenanceService.lastPropertyId);
+    }
+
+    @Test
+    void getByProperty_AsOwnerWithAccess_ShouldReturnData() {
+                maintenanceService.userOwnsPropertyReturn = true;
+                ResponseEntity<?> entity = controller.getByProperty("prop-1", user("owner-1", UserRole.OWNER));
+
+                assertEquals(200, entity.getStatusCode().value());
+                assertEquals("prop-1", maintenanceService.lastPropertyId);
+    }
+
+    @Test
+    void getByProperty_AsOwnerWithoutAccess_ShouldThrowForbidden() {
+                maintenanceService.userOwnsPropertyReturn = false;
+
+                assertThrows(ForbiddenException.class, () ->
+                        controller.getByProperty("prop-1", user("owner-1", UserRole.OWNER))
+                );
+    }
+
+    @Test
+    void getByProperty_AsTenant_ShouldThrowForbidden() {
+                assertThrows(ForbiddenException.class, () ->
+                        controller.getByProperty("prop-1", user("tenant-1", UserRole.TENANT))
+                );
+    }
+
+    @Test
+    void getByOwner_AsAdmin_ShouldReturnData() {
+                ResponseEntity<?> entity = controller.getByOwner("owner-1", user("admin-1", UserRole.ADMIN));
+
+                assertEquals(200, entity.getStatusCode().value());
+                assertEquals("owner-1", maintenanceService.lastOwnerId);
+    }
+
+    @Test
+    void getByOwner_AsSameOwner_ShouldReturnData() {
+                ResponseEntity<?> entity = controller.getByOwner("owner-1", user("owner-1", UserRole.OWNER));
+
+                assertEquals(200, entity.getStatusCode().value());
+                assertEquals("owner-1", maintenanceService.lastOwnerId);
+    }
+
+    @Test
+    void getByOwner_AsDifferentOwner_ShouldThrowForbidden() {
+                assertThrows(ForbiddenException.class, () ->
+                        controller.getByOwner("owner-2", user("owner-1", UserRole.OWNER))
+                );
+    }
+
+    @Test
+    void scheduleRequest_AsAdmin_ShouldInvokeService() {
+                MaintenanceScheduleRequest scheduleRequest = MaintenanceScheduleRequest.builder()
+                        .scheduledAt(LocalDateTime.now().plusDays(1))
+                        .technicianId("tech-1")
+                        .adminNotes("Morning slot")
+                        .build();
+
+                ResponseEntity<?> entity = controller.scheduleRequest("req-1", scheduleRequest, user("admin-1", UserRole.ADMIN));
+
+                assertEquals(200, entity.getStatusCode().value());
+                assertEquals("req-1", maintenanceService.lastRequestId);
+                assertNotNull(maintenanceService.lastScheduleRequest);
+                assertEquals("admin-1", maintenanceService.lastAdminActorId);
+    }
+
+    @Test
+    void scheduleRequest_AsTechnician_ShouldThrowForbidden() {
+                MaintenanceScheduleRequest scheduleRequest = MaintenanceScheduleRequest.builder()
+                        .scheduledAt(LocalDateTime.now().plusDays(1))
+                        .build();
+
+                assertThrows(ForbiddenException.class, () ->
+                        controller.scheduleRequest("req-1", scheduleRequest, user("tech-1", UserRole.TECHNICIAN))
+                );
+    }
+
+    @Test
+    void closeRequest_AsAdmin_ShouldInvokeService() {
+                ResponseEntity<?> entity = controller.closeRequest("req-1", "Verified closure", user("admin-1", UserRole.ADMIN));
+
+                assertEquals(200, entity.getStatusCode().value());
+                assertEquals("req-1", maintenanceService.lastRequestId);
+                assertEquals("admin-1", maintenanceService.lastAdminActorId);
+                assertEquals("Verified closure", maintenanceService.lastAdminNote);
+    }
+
         private CustomUserDetails user(String userId, UserRole role) {
         User user = User.builder()
                 .id(userId)
@@ -317,6 +481,12 @@ class MaintenanceControllerTest {
                 String lastTechnicianFilter;
                 String lastTechnicianQueryId;
                 MaintenanceStatus lastTechnicianQueryStatus;
+                String lastPropertyId;
+                String lastOwnerId;
+                String lastUpdatedPriority;
+                MaintenanceStatus lastUpdatedStatus;
+                String lastAdminNote;
+                MaintenanceScheduleRequest lastScheduleRequest;
                 MaintenanceStatus simulatedStatus = MaintenanceStatus.REPORTED;
                 String simulatedAssignedTechnicianId = "tech-1";
 
@@ -355,6 +525,33 @@ class MaintenanceControllerTest {
                 public List<MaintenanceResponse> getByTenant(String tenantId) {
                         this.lastTenantId = tenantId;
                         return cannedQueue;
+                }
+
+                @Override
+                public List<MaintenanceResponse> getByProperty(String propertyId) {
+                        this.lastPropertyId = propertyId;
+                        return cannedQueue;
+                }
+
+                @Override
+                public List<MaintenanceResponse> getByOwner(String ownerId) {
+                        this.lastOwnerId = ownerId;
+                        return cannedQueue;
+                }
+
+                @Override
+                public MaintenanceResponse updateStatus(String id, MaintenanceStatus status) {
+                        this.lastRequestId = id;
+                        this.lastUpdatedStatus = status;
+                        this.simulatedStatus = status;
+                        return MaintenanceResponse.builder().id(id).status(status).build();
+                }
+
+                @Override
+                public MaintenanceResponse updatePriority(String id, String priority) {
+                        this.lastRequestId = id;
+                        this.lastUpdatedPriority = priority;
+                        return MaintenanceResponse.builder().id(id).priority(priority).build();
                 }
 
                 @Override
@@ -423,7 +620,19 @@ class MaintenanceControllerTest {
 
                 @Override
                 public MaintenanceResponse scheduleRequest(String requestId, MaintenanceScheduleRequest request, String adminId) {
+                        this.lastRequestId = requestId;
+                        this.lastScheduleRequest = request;
+                        this.lastAdminActorId = adminId;
                         return cannedResponse;
+                }
+
+                @Override
+                public MaintenanceResponse closeRequest(String requestId, String adminId, String adminNote) {
+                        this.lastRequestId = requestId;
+                        this.lastAdminActorId = adminId;
+                        this.lastAdminNote = adminNote;
+                        this.simulatedStatus = MaintenanceStatus.CLOSED;
+                        return MaintenanceResponse.builder().id(requestId).status(MaintenanceStatus.CLOSED).build();
                 }
     }
 }
