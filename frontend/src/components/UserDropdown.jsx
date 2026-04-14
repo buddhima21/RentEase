@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { getDashboardPathByRole, getMaintenancePathByRole, normalizeRole } from "../utils/rolePaths";
 
 /**
  * UserDropdown – Authenticated user profile area with a professional dropdown menu.
@@ -41,9 +40,12 @@ export default function UserDropdown({ user, onLogout }) {
         return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     };
 
-    const normalizedRole = normalizeRole(user?.role);
-    const dashboardPath = getDashboardPathByRole(normalizedRole);
-    const maintenancePath = getMaintenancePathByRole(normalizedRole);
+    const dashboardPath =
+        user.role === "ADMIN" 
+            ? "/admin/dashboard" 
+            : user.role === "OWNER" 
+                ? "/owner/dashboard" 
+                : "/tenant/dashboard";
 
     const handleLogout = () => {
         setOpen(false);
@@ -130,19 +132,7 @@ export default function UserDropdown({ user, onLogout }) {
                         Dashboard
                     </Link>
 
-                    <Link
-                        to={maintenancePath}
-                        onClick={() => setOpen(false)}
-                        className="flex items-center gap-4 px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors group"
-                        role="menuitem"
-                    >
-                        <span className="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-primary transition-colors">
-                            {normalizedRole === "TECHNICIAN" ? "task_alt" : "construction"}
-                        </span>
-                        {normalizedRole === "TECHNICIAN" ? "Work Queue" : "Maintenance"}
-                    </Link>
-
-                    {normalizedRole === "TENANT" && (
+                    {user.role === "TENANT" && (
                         <>
                             <Link
                                 to="/tenant/dashboard?tab=bills"

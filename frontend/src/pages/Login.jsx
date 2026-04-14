@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { loginUser } from "../services/api";
 import { useAuth } from "../context/AuthContext";
-import { getDashboardPathByRole, normalizeRole } from "../utils/rolePaths";
 
 /**
  * Login – Card-based login page with left image + right form.
@@ -55,8 +54,13 @@ export default function Login() {
             login(res.data.data);
 
             // Redirect based on actual role returned from server
-            const returnedRole = normalizeRole(res.data.data.role);
-            navigate(getDashboardPathByRole(returnedRole));
+            const returnedRole = res.data.data.role;
+            if (returnedRole === "ADMIN") {
+                navigate("/admin/dashboard");
+            } else {
+                // Both OWNER and TENANT go to landing page first
+                navigate("/");
+            }
         } catch (err) {
             const msg =
                 err.response?.data?.message ||
