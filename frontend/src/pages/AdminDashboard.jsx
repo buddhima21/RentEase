@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import AdminSidebar from "../components/admin/dashboard/AdminSidebar";
 import AdminActivityList from "../components/admin/dashboard/AdminActivityList";
 import ReviewModeration from "../components/admin/ReviewModeration";
@@ -135,9 +135,18 @@ export default function AdminDashboard() {
                           </h1>
                           <p className="text-slate-500 font-medium mt-2 text-[15px]">Central command for RentEase platform safety.</p>
                        </div>
-                       <div className="bg-white border border-slate-100 shadow-sm px-4 py-2.5 rounded-xl flex items-center gap-2 text-sm font-bold text-slate-700">
-                          <span className="material-symbols-outlined text-slate-400 text-[18px]">calendar_month</span>
-                          {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                              <div className="flex flex-col items-end gap-3">
+                                  <div className="bg-white border border-slate-100 shadow-sm px-4 py-2.5 rounded-xl flex items-center gap-2 text-sm font-bold text-slate-700">
+                                      <span className="material-symbols-outlined text-slate-400 text-[18px]">calendar_month</span>
+                                      {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                                  </div>
+                                  <Link
+                                        to="/admin/maintenance"
+                                        className="bg-emerald-600 text-white font-bold px-5 py-2.5 rounded-xl hover:bg-emerald-700 transition-all text-sm flex items-center gap-2 shadow-sm"
+                                  >
+                                        <span className="material-symbols-outlined text-[18px]">construction</span>
+                                        Open Maintenance Queue
+                                  </Link>
                        </div>
                     </div>
 

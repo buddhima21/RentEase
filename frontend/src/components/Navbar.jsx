@@ -1,9 +1,11 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import UserDropdown from "./UserDropdown";
+import { getMaintenancePathByRole } from "../utils/rolePaths";
 
 export default function Navbar({ showSearch = false, searchQuery = "", onSearchChange = () => { } }) {
     const { user, logout } = useAuth();
+    const maintenancePath = getMaintenancePathByRole(user?.role);
 
     return (
         <header className="relative flex items-center justify-between border-b border-slate-200 bg-white px-6 py-3 shrink-0 z-20">
@@ -43,6 +45,9 @@ export default function Navbar({ showSearch = false, searchQuery = "", onSearchC
                 </Link>
                 <Link to="/listings" className="text-sm font-semibold text-primary">
                     Listings
+                </Link>
+                <Link to={maintenancePath} className="text-sm font-semibold text-slate-600 hover:text-primary transition-colors">
+                    Maintenance
                 </Link>
                 <Link to="/favorites" className="text-sm font-semibold text-slate-600 hover:text-primary transition-colors">
                     Favorites
