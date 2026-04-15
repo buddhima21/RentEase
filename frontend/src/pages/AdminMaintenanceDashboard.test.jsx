@@ -117,4 +117,47 @@ describe("AdminMaintenanceDashboard", () => {
       expect(mockUpdateMaintenancePriority).toHaveBeenCalledWith("req-1", "EMERGENCY");
     });
   });
+
+  it("does not assign when technician is not selected", async () => {
+    renderWithRouter(<AdminMaintenanceDashboard />);
+
+    await waitFor(() => {
+      expect(screen.getByText("AC breakdown")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Assign" }));
+
+    expect(mockAssignMaintenanceTechnician).not.toHaveBeenCalled();
+  });
+
+  it("applies queue filters and calls API with selected params", async () => {
+    renderWithRouter(<AdminMaintenanceDashboard />);
+
+    await waitFor(() => {
+      expect(screen.getByText("AC breakdown")).toBeInTheDocument();
+    });
+
+    const selects = screen.getAllByRole("combobox");
+    fireEvent.change(selects[0], { target: { value: "REPORTED" } });
+    fireEvent.change(selects[1], { target: { value: "HIGH" } });
+    fireEvent.change(selects[2], { target: { value: "tech-1" } });
+
+    await waitFor(() => {
+      expect(mockGetAdminMaintenanceQueue).toHaveBeenLastCalledWith({
+        priority: "HIGH",
+        status: "REPORTED",
+        technicianId: "tech-1",
+      });
+    });
+  });
+
+  it("shows empty queue state when API load fails", async () => {
+    mockGetAdminMaintenanceQueue.mockRejectedValueOnce(new Error("queue unavailable"));
+
+    renderWithRouter(<AdminMaintenanceDashboard />);
+
+    await waitFor(() => {
+      expect(screen.getByText("No requests in queue.")).toBeInTheDocument();
+    });
+  });
 });

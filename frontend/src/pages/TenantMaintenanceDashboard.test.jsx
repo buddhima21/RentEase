@@ -55,4 +55,18 @@ describe("TenantMaintenanceDashboard", () => {
       expect(screen.getByText("No maintenance requests yet.")).toBeInTheDocument();
     });
   });
+
+  it("falls back to empty state when API fails", async () => {
+    mockGetTenantMaintenance.mockRejectedValueOnce(new Error("timeout"));
+
+    render(
+      <MemoryRouter>
+        <TenantMaintenanceDashboard />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("No maintenance requests yet.")).toBeInTheDocument();
+    });
+  });
 });

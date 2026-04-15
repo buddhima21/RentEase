@@ -113,4 +113,41 @@ describe("TechnicianJobDetails", () => {
     );
     expect(mockNavigate).toHaveBeenCalledWith("/technician/dashboard");
   });
+
+  it("does not resolve request when completion summary is empty", async () => {
+    render(<TechnicianJobDetails />);
+
+    await waitFor(() => {
+      expect(screen.getByText("AC repair")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Resolve Request" }));
+
+    expect(mockResolveMaintenance).not.toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalledWith("/technician/dashboard");
+  });
+
+  it("redirects technician when job is assigned to a different technician", async () => {
+    mockGetMaintenanceById.mockResolvedValueOnce({
+      data: {
+        data: { ...baseJob, assignedTechnicianId: "tech-2" },
+      },
+    });
+
+    render(<TechnicianJobDetails />);
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith("/technician/dashboard", { replace: true });
+    });
+  });
+
+  it("shows fallback view when job loading fails", async () => {
+    mockGetMaintenanceById.mockRejectedValueOnce(new Error("service unavailable"));
+
+    render(<TechnicianJobDetails />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Unable to load job.")).toBeInTheDocument();
+    });
+  });
 });

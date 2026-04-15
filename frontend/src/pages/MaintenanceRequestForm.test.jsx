@@ -6,9 +6,10 @@ import MaintenanceRequestForm from "./MaintenanceRequestForm";
 const mockNavigate = vi.fn();
 const mockCreateMaintenanceRequest = vi.fn();
 const mockGetTenantAgreements = vi.fn();
+let mockAuthUser = { id: "tenant-1", role: "TENANT" };
 
 vi.mock("../context/AuthContext", () => ({
-  useAuth: () => ({ user: { id: "tenant-1", role: "TENANT" } }),
+  useAuth: () => ({ user: mockAuthUser }),
 }));
 
 vi.mock("../services/api", () => ({
@@ -27,6 +28,7 @@ vi.mock("react-router-dom", async () => {
 
 describe("MaintenanceRequestForm", () => {
   beforeEach(() => {
+    mockAuthUser = { id: "tenant-1", role: "TENANT" };
     mockNavigate.mockReset();
     mockCreateMaintenanceRequest.mockReset();
     mockGetTenantAgreements.mockReset();
@@ -119,5 +121,62 @@ describe("MaintenanceRequestForm", () => {
     await waitFor(() => {
       expect(screen.getByText("Server validation failed")).toBeInTheDocument();
     });
+  });
+
+  it("shows generic API error when backend message is missing", async () => {
+    mockCreateMaintenanceRequest.mockRejectedValueOnce(new Error("Network down"));
+
+    render(
+      <MemoryRouter>
+        <MaintenanceRequestForm />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Submit Request" })).toBeEnabled();
+    });
+
+    const selects = screen.getAllByRole("combobox");
+    fireEvent.change(selects[0], { target: { value: "UNIT-3B" } });
+    fireEvent.change(screen.getAllByPlaceholderText("Issue title")[0], { target: { value: "Window issue" } });
+    fireEvent.change(selects[1], { target: { value: "HVAC" } });
+    fireEvent.click(screen.getByRole("button", { name: "Submit Request" }));
+
+    await waitFor(() => {
+      expect(screen.getByText("Failed to submit maintenance request")).toBeInTheDocument();
+    });
+  });
+
+  it("shows active tenancy warning and keeps submit disabled when no properties available", async () => {
+    mockGetTenantAgreements.mockResolvedValueOnce({ data: { data: [] } });
+
+    render(
+      <MemoryRouter>
+        <MaintenanceRequestForm />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("No active agreements found. You need an active tenancy before submitting maintenance requests.")).toBeInTheDocument();
+    });
+
+    expect(screen.getByRole("button", { name: "Submit Request" })).toBeDisabled();
+  });
+
+  it("does not submit when required fields are missing", async () => {
+
+    render(
+      <MemoryRouter>
+        <MaintenanceRequestForm />
+      </MemoryRouter>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Submit Request" })).toBeEnabled();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Submit Request" }));
+
+    expect(mockCreateMaintenanceRequest).not.toHaveBeenCalled();
   });
 });
