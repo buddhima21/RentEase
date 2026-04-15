@@ -360,6 +360,13 @@ export default function TenantDashboard() {
                             Agreements
                         </Link>
                         <Link
+                            to="/tenant/maintenance/dashboard"
+                            className="inline-flex items-center gap-2 bg-white border border-slate-200 text-slate-800 font-bold px-5 py-2.5 rounded-xl hover:bg-slate-50 transition-all text-sm"
+                        >
+                            <span className="material-symbols-outlined text-[18px]">construction</span>
+                            Maintenance
+                        </Link>
+                        <Link
                             to="/listings"
                             className="inline-flex items-center gap-2 bg-primary text-white font-bold px-5 py-2.5 rounded-xl hover:bg-primary/90 transition-all text-sm"
                         >

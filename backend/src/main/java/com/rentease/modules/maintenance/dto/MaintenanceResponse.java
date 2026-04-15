@@ -20,8 +20,32 @@ public class MaintenanceResponse {
     private String tenantId;
     private String title;
     private String description;
+    private String serviceType;
     private String priority;
     private List<String> imageUrls;
+    private LocalDateTime preferredAt;
+
+    private String assignedTechnicianId;
+    private String assignedByAdminId;
+    private LocalDateTime assignedAt;
+    private LocalDateTime scheduledAt;
+    private LocalDateTime acceptedAt;
+    private LocalDateTime startedAt;
+    private LocalDateTime resolvedAt;
+    private LocalDateTime closedAt;
+
+    private String adminNotes;
+    private String technicianNotes;
+    private String completionSummary;
+    private List<String> completionImageUrls;
+
+    private String tenantName;
+    private String tenantEmail;
+    private String tenantPhone;
+    private String technicianName;
+    private String technicianEmail;
+    private String technicianPhone;
+
     private MaintenanceStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

@@ -55,3 +55,8 @@ Backend/HELP.md
 *.log
 .DS_Store
 Thumbs.db
+docs/maintenance-ui-flow.md
+docs/maintenance-ui-feature-report.md
+docs/PHASE6_VERIFICATION_AND_FINAL_REPORT.md
+docs/MAINTENANCE_TEST_COVERAGE_MATRIX.md
+docs/PHASE3_BACKEND_TEST_ENHANCEMENT.md
