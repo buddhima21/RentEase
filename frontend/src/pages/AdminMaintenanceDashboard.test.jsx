@@ -1,5 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi, afterEach } from "vitest";
+import { BrowserRouter } from "react-router-dom";
+import { NotificationsProvider } from "../context/NotificationsContext";
 import AdminMaintenanceDashboard from "./AdminMaintenanceDashboard";
 
 const mockAssignMaintenanceTechnician = vi.fn();
@@ -14,8 +16,29 @@ vi.mock("../services/api", () => ({
   updateMaintenancePriority: (...args) => mockUpdateMaintenancePriority(...args),
 }));
 
+/**
+ * Helper to render component with Router and NotificationsProvider context.
+ */
+function renderWithRouter(component) {
+  return render(
+    <BrowserRouter>
+      <NotificationsProvider>
+        {component}
+      </NotificationsProvider>
+    </BrowserRouter>
+  );
+}
+
 describe("AdminMaintenanceDashboard", () => {
   beforeEach(() => {
+    // Set up admin auth storage to prevent Navigate redirect in tests
+    localStorage.setItem('adminToken', 'test-admin-token');
+    localStorage.setItem('adminUser', JSON.stringify({
+      id: 'admin-123',
+      role: 'ADMIN',
+      token: 'test-admin-token'
+    }));
+
     mockAssignMaintenanceTechnician.mockReset();
     mockGetAdminMaintenanceQueue.mockReset();
     mockGetMaintenanceTechnicians.mockReset();
@@ -40,8 +63,13 @@ describe("AdminMaintenanceDashboard", () => {
     mockUpdateMaintenancePriority.mockResolvedValue({ data: { success: true } });
   });
 
+  afterEach(() => {
+    // Clear auth storage to prevent test pollution
+    localStorage.clear();
+  });
+
   it("loads queue and technician list", async () => {
-    render(<AdminMaintenanceDashboard />);
+    renderWithRouter(<AdminMaintenanceDashboard />);
 
     await waitFor(() => {
       expect(screen.getByText("AC breakdown")).toBeInTheDocument();
@@ -53,7 +81,7 @@ describe("AdminMaintenanceDashboard", () => {
   });
 
   it("assigns technician and reloads queue", async () => {
-    render(<AdminMaintenanceDashboard />);
+    renderWithRouter(<AdminMaintenanceDashboard />);
 
     await waitFor(() => {
       expect(screen.getByText("AC breakdown")).toBeInTheDocument();
@@ -73,7 +101,7 @@ describe("AdminMaintenanceDashboard", () => {
   });
 
   it("saves priority changes", async () => {
-    render(<AdminMaintenanceDashboard />);
+    renderWithRouter(<AdminMaintenanceDashboard />);
 
     await waitFor(() => {
       expect(screen.getByText("AC breakdown")).toBeInTheDocument();

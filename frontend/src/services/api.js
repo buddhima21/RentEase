@@ -13,7 +13,10 @@ const API = axios.create({
 
 API.interceptors.request.use((req) => {
     let token = null;
-    const isAdminRequest = req.url && req.url.includes('/api/v1/admin');
+    const isAdminRequest = req.url && (
+        req.url.includes('/api/v1/admin') || 
+        (req.url.includes('/api/v1/maintenance') && /\/(assign|schedule|priority|close|status)(?:\?|$)/.test(req.url))
+    );
 
     // For admin endpoints, use admin token only
     if (isAdminRequest) {
