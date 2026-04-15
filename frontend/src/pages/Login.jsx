@@ -50,11 +50,18 @@ export default function Login() {
                 password: formData.password,
             });
 
+            const userData = res.data.data;
+
+            if (userData.role === "TECHNICIAN") {
+                setApiError("Please use the Technician Portal from the maintenance page.");
+                return;
+            }
+
             // Store user in localStorage via Context
-            login(res.data.data);
+            login(userData);
 
             // Redirect based on actual role returned from server
-            const returnedRole = res.data.data.role;
+            const returnedRole = userData.role;
             if (returnedRole === "ADMIN") {
                 navigate("/admin/dashboard");
             } else {

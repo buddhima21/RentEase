@@ -42,6 +42,7 @@ import AdminMaintenanceDashboard from "../pages/AdminMaintenanceDashboard";
 import MaintenanceCalendar from "../pages/MaintenanceCalendar";
 import TechnicianDashboard from "../pages/TechnicianDashboard";
 import TechnicianJobDetails from "../pages/TechnicianJobDetails";
+import TechnicianLogin from "../pages/TechnicianLogin";
 import OwnerMaintenanceOverview from "../pages/OwnerMaintenanceOverview";
 
 export default function AppRoutes() {
@@ -58,6 +59,7 @@ export default function AppRoutes() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/maintenance" element={<MaintenanceLanding />} />
             <Route path="/maintenance/services" element={<ServiceInformation />} />
+            <Route path="/technician/login" element={<TechnicianLogin />} />
 
             {/* Owner Routes */}
             <Route path="/owner/dashboard" element={<OwnerDashboard />} />
@@ -92,7 +94,7 @@ export default function AppRoutes() {
                 <Route path="/tenant/maintenance/history" element={<MaintenanceHistory />} />
             </Route>
 
-            <Route element={<ProtectedRoleRoute roles={["TECHNICIAN"]} fallback="/login" />}>
+            <Route element={<ProtectedRoleRoute roles={["TECHNICIAN"]} fallback="/maintenance" />}>
                 <Route path="/technician/dashboard" element={<TechnicianDashboard />} />
                 <Route path="/technician/job/:jobId" element={<TechnicianJobDetails />} />
             </Route>

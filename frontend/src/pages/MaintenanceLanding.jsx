@@ -25,6 +25,9 @@ export default function MaintenanceLanding() {
                                     <Link to="/maintenance/services" className="rounded-full border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-700 transition-colors hover:bg-slate-50">
                                         Browse Services
                                     </Link>
+                                    <Link to="/technician/login" state={{ fromMaintenance: true }} className="rounded-full border border-emerald-500 bg-emerald-50 px-5 py-3 font-semibold text-emerald-700 transition-colors hover:bg-emerald-100">
+                                        Technician Portal
+                                    </Link>
                                     <Link to="/tenant/maintenance/request" className="rounded-full bg-primary px-5 py-3 font-semibold text-white transition-colors hover:bg-primary/90">
                                         Submit Request
                                     </Link>
