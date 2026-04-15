@@ -10,6 +10,10 @@ const mockResolveMaintenance = vi.fn();
 const mockResumeMaintenance = vi.fn();
 const mockStartMaintenance = vi.fn();
 
+vi.mock("../context/AuthContext", () => ({
+  useAuth: () => ({ user: { id: "tech-1", role: "TECHNICIAN" } }),
+}));
+
 vi.mock("../services/api", () => ({
   acceptMaintenance: (...args) => mockAcceptMaintenance(...args),
   getMaintenanceById: (...args) => mockGetMaintenanceById(...args),

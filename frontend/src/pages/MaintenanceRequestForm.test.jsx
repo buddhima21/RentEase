@@ -5,6 +5,7 @@ import MaintenanceRequestForm from "./MaintenanceRequestForm";
 
 const mockNavigate = vi.fn();
 const mockCreateMaintenanceRequest = vi.fn();
+const mockGetTenantAgreements = vi.fn();
 
 vi.mock("../context/AuthContext", () => ({
   useAuth: () => ({ user: { id: "tenant-1", role: "TENANT" } }),
@@ -12,6 +13,7 @@ vi.mock("../context/AuthContext", () => ({
 
 vi.mock("../services/api", () => ({
   createMaintenanceRequest: (...args) => mockCreateMaintenanceRequest(...args),
+  getTenantAgreements: (...args) => mockGetTenantAgreements(...args),
 }));
 
 vi.mock("react-router-dom", async () => {
@@ -27,6 +29,22 @@ describe("MaintenanceRequestForm", () => {
   beforeEach(() => {
     mockNavigate.mockReset();
     mockCreateMaintenanceRequest.mockReset();
+    mockGetTenantAgreements.mockReset();
+
+    mockGetTenantAgreements.mockResolvedValue({
+      data: {
+        data: [
+          {
+            id: "ag-1",
+            tenantId: "tenant-1",
+            propertyId: "UNIT-3B",
+            propertyTitle: "Unit 3B",
+            propertyAddress: "Main Street",
+            status: "ACTIVE",
+          },
+        ],
+      },
+    });
   });
 
   it("renders required fields and default priority", () => {
@@ -49,6 +67,10 @@ describe("MaintenanceRequestForm", () => {
         <MaintenanceRequestForm />
       </MemoryRouter>
     );
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Submit Request" })).toBeEnabled();
+    });
 
     const selects = screen.getAllByRole("combobox");
     fireEvent.change(selects[0], { target: { value: "UNIT-3B" } });
@@ -82,6 +104,10 @@ describe("MaintenanceRequestForm", () => {
         <MaintenanceRequestForm />
       </MemoryRouter>
     );
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Submit Request" })).toBeEnabled();
+    });
 
     const selects = screen.getAllByRole("combobox");
     fireEvent.change(selects[0], { target: { value: "UNIT-3B" } });

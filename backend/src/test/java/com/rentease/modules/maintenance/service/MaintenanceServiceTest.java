@@ -516,7 +516,7 @@ class MaintenanceServiceTest {
 
         assertThatThrownBy(() -> maintenanceService.pauseRequest("req-1", "tech-1"))
                 .isInstanceOf(BadRequestException.class)
-                .hasMessageContaining("Only in-progress requests can be paused");
+                                .hasMessageContaining("Invalid status transition from REPORTED to PAUSED");
 
         verify(maintenanceRepository, never()).save(any());
     }
@@ -544,12 +544,12 @@ class MaintenanceServiceTest {
     @Test
     void resumeRequest_NotFromPaused_ShouldThrowBadRequest() {
         testRequest.setAssignedTechnicianId("tech-1");
-        testRequest.setStatus(MaintenanceStatus.REPORTED);
+        testRequest.setStatus(MaintenanceStatus.RESOLVED);
         when(maintenanceRepository.findById("req-1")).thenReturn(Optional.of(testRequest));
 
         assertThatThrownBy(() -> maintenanceService.resumeRequest("req-1", "tech-1"))
                 .isInstanceOf(BadRequestException.class)
-                .hasMessageContaining("Only paused requests can be resumed");
+                .hasMessageContaining("Invalid status transition from RESOLVED to IN_PROGRESS");
 
         verify(maintenanceRepository, never()).save(any());
     }

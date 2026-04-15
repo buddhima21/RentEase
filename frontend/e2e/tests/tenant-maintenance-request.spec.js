@@ -26,8 +26,29 @@ test('tenant creates maintenance request and lands on dashboard', async ({ page 
     });
   });
 
+  await page.route('**/api/v1/agreements/tenant/tenant-1', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        data: [
+          {
+            id: 'ag-1',
+            tenantId: 'tenant-1',
+            propertyId: 'UNIT-3B',
+            propertyTitle: 'Unit 3B',
+            propertyAddress: 'Main Street',
+            status: 'ACTIVE',
+          },
+        ],
+      }),
+    });
+  });
+
   await page.goto('/login');
   await page.goto('/tenant/maintenance/request');
+
+  await expect(page.getByRole('button', { name: 'Submit Request' })).toBeEnabled();
 
   await page.selectOption('select:has(option[value="UNIT-3B"])', 'UNIT-3B');
   await page.fill('input[placeholder="Issue title"]', 'Leaking sink');
