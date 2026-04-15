@@ -56,7 +56,7 @@ export default function AdminMaintenanceDashboard() {
         <div className="min-h-screen bg-slate-50 p-6 md:p-10">
             <div className="mx-auto max-w-7xl space-y-6">
                 <div>
-                    <h1 className="text-3xl font-black tracking-tight text-slate-900">Admin Maintenance Dashboard</h1>
+                    <h1 className="text-3xl font-black tracking-tight text-slate-900">Maintenance</h1>
                     <p className="mt-2 text-slate-600">Review the queue, assign technicians, and keep the maintenance pipeline moving.</p>
                 </div>
 

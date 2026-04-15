@@ -184,6 +184,24 @@ public class MaintenanceService {
             throw new BadRequestException("Cannot assign a technician to a closed request");
         }
 
+        String previousTechnicianId = maintenanceRequest.getAssignedTechnicianId();
+        boolean isReassignment = previousTechnicianId != null
+            && !previousTechnicianId.isBlank()
+            && !previousTechnicianId.equals(request.getTechnicianId());
+
+        if (isReassignment) {
+            String reassignmentAudit = "Reassigned from technician " + previousTechnicianId
+                + " to " + request.getTechnicianId()
+                + " by admin " + adminId
+                + " at " + LocalDateTime.now();
+            String existingNotes = maintenanceRequest.getAdminNotes();
+            maintenanceRequest.setAdminNotes(
+                existingNotes == null || existingNotes.isBlank()
+                    ? reassignmentAudit
+                    : existingNotes + "\n" + reassignmentAudit
+            );
+        }
+
         maintenanceRequest.setAssignedTechnicianId(request.getTechnicianId());
         maintenanceRequest.setAssignedByAdminId(adminId);
         maintenanceRequest.setAssignedAt(LocalDateTime.now());
@@ -205,7 +223,7 @@ public class MaintenanceService {
         if (maintenanceRequest.getStatus() == MaintenanceStatus.CLOSED) {
             throw new BadRequestException("Cannot schedule a closed request");
         }
-        if (request.getScheduledAt().isBefore(LocalDateTime.now().minusMinutes(1))) {
+        if (request.getScheduledAt().isBefore(LocalDateTime.now())) {
             throw new BadRequestException("Scheduled time must be in the future");
         }
 
@@ -241,6 +259,7 @@ public class MaintenanceService {
         if (request.getAcceptedAt() == null) {
             request.setAcceptedAt(LocalDateTime.now());
         }
+        validateStatusTransition(request.getStatus(), MaintenanceStatus.IN_PROGRESS);
         request.setStatus(MaintenanceStatus.IN_PROGRESS);
 
         MaintenanceRequest updated = maintenanceRepository.save(request);
@@ -256,6 +275,7 @@ public class MaintenanceService {
             throw new BadRequestException("Cannot start work on a resolved or closed request");
         }
 
+        validateStatusTransition(request.getStatus(), MaintenanceStatus.IN_PROGRESS);
         request.setStatus(MaintenanceStatus.IN_PROGRESS);
         if (request.getStartedAt() == null) {
             request.setStartedAt(LocalDateTime.now());
@@ -270,10 +290,7 @@ public class MaintenanceService {
         MaintenanceRequest request = getRequestOrThrow(requestId);
         ensureAssignedToTechnician(request, technicianId);
 
-        if (request.getStatus() != MaintenanceStatus.IN_PROGRESS) {
-            throw new BadRequestException("Only in-progress requests can be paused");
-        }
-
+        validateStatusTransition(request.getStatus(), MaintenanceStatus.PAUSED);
         request.setStatus(MaintenanceStatus.PAUSED);
         MaintenanceRequest updated = maintenanceRepository.save(request);
         notifyTenantForUpdatedRequest(updated);
@@ -284,10 +301,7 @@ public class MaintenanceService {
         MaintenanceRequest request = getRequestOrThrow(requestId);
         ensureAssignedToTechnician(request, technicianId);
 
-        if (request.getStatus() != MaintenanceStatus.PAUSED) {
-            throw new BadRequestException("Only paused requests can be resumed");
-        }
-
+        validateStatusTransition(request.getStatus(), MaintenanceStatus.IN_PROGRESS);
         request.setStatus(MaintenanceStatus.IN_PROGRESS);
         MaintenanceRequest updated = maintenanceRepository.save(request);
         notifyTenantForUpdatedRequest(updated);
@@ -303,6 +317,7 @@ public class MaintenanceService {
         }
 
         validateImageCount(resolveRequest.getCompletionImageUrls(), "completion");
+        validateStatusTransition(request.getStatus(), MaintenanceStatus.RESOLVED);
         request.setStatus(MaintenanceStatus.RESOLVED);
         request.setResolvedAt(LocalDateTime.now());
         request.setCompletionSummary(resolveRequest.getCompletionSummary());
@@ -356,7 +371,7 @@ public class MaintenanceService {
         }
         boolean valid = switch (current) {
             case REPORTED -> next == MaintenanceStatus.IN_PROGRESS;
-            case IN_PROGRESS -> next == MaintenanceStatus.RESOLVED;
+            case IN_PROGRESS -> next == MaintenanceStatus.PAUSED || next == MaintenanceStatus.RESOLVED;
             case PAUSED -> next == MaintenanceStatus.IN_PROGRESS;
             case RESOLVED -> next == MaintenanceStatus.CLOSED;
             case CLOSED -> false;
@@ -377,6 +392,9 @@ public class MaintenanceService {
     }
 
     private void ensureAssignedToTechnician(MaintenanceRequest request, String technicianId) {
+        if (request.getAssignedTechnicianId() == null || request.getAssignedTechnicianId().isBlank()) {
+            throw new BadRequestException("This request is not assigned to any technician");
+        }
         if (!technicianId.equals(request.getAssignedTechnicianId())) {
             throw new ForbiddenException("Technician is not assigned to this request");
         }

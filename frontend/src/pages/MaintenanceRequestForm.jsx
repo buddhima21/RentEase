@@ -1,16 +1,10 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { createMaintenanceRequest } from "../services/api";
+import { createMaintenanceRequest, getTenantAgreements } from "../services/api";
 import MaintenanceBadge from "../components/maintenance/MaintenanceBadge";
 import MaintenanceSectionCard from "../components/maintenance/MaintenanceSectionCard";
 import { MAINTENANCE_PRIORITIES, MAINTENANCE_SERVICES, isEmergencyPriority } from "../constants/maintenance";
-
-const PROPERTY_OPTIONS = [
-    { id: "UNIT-3B", label: "Unit 3B", subtitle: "Skyline Apartments" },
-    { id: "UNIT-5A", label: "Unit 5A", subtitle: "Maple Residences" },
-    { id: "UNIT-7C", label: "Unit 7C", subtitle: "Garden View Homes" },
-];
 
 export default function MaintenanceRequestForm() {
     const { user } = useAuth();
@@ -20,6 +14,8 @@ export default function MaintenanceRequestForm() {
     const fileInputRef = useRef(null);
 
     const [submitting, setSubmitting] = useState(false);
+    const [loadingProperties, setLoadingProperties] = useState(false);
+    const [propertyOptions, setPropertyOptions] = useState([]);
     const [error, setError] = useState("");
     const [form, setForm] = useState({
         propertyId: "",
@@ -33,6 +29,39 @@ export default function MaintenanceRequestForm() {
     });
 
     const canChoosePriority = useMemo(() => !isEmergency, [isEmergency]);
+
+    useEffect(() => {
+        if (!user?.id) return;
+        const loadProperties = async () => {
+            try {
+                setLoadingProperties(true);
+                const res = await getTenantAgreements(user.id);
+                const agreements = res.data?.data || [];
+                const uniqueByProperty = new Map();
+                agreements
+                    .filter((agreement) => agreement.status === "ACTIVE" && agreement.propertyId)
+                    .forEach((agreement) => {
+                        if (!uniqueByProperty.has(agreement.propertyId)) {
+                            uniqueByProperty.set(agreement.propertyId, {
+                                id: agreement.propertyId,
+                                label: agreement.propertyTitle || agreement.propertyId,
+                                subtitle: agreement.propertyAddress || agreement.agreementNumber || "Active tenancy",
+                            });
+                        }
+                    });
+                const options = Array.from(uniqueByProperty.values());
+                setPropertyOptions(options);
+                if (!form.propertyId && options.length > 0) {
+                    setForm((prev) => ({ ...prev, propertyId: options[0].id }));
+                }
+            } catch {
+                setPropertyOptions([]);
+            } finally {
+                setLoadingProperties(false);
+            }
+        };
+        loadProperties();
+    }, [user?.id]);
 
     const handleFileChange = (e) => {
         const files = Array.from(e.target.files || []);
@@ -63,6 +92,11 @@ export default function MaintenanceRequestForm() {
 
         if (!user?.id) {
             setError("Please login as a tenant to submit a request.");
+            return;
+        }
+
+        if (!form.propertyId) {
+            setError("Select an active property before submitting the request.");
             return;
         }
 
@@ -102,8 +136,8 @@ export default function MaintenanceRequestForm() {
                     <form className="mt-8 space-y-4" onSubmit={submit}>
                         <div className="grid gap-4 md:grid-cols-2">
                             <select className="w-full rounded-xl border border-slate-300 p-3" value={form.propertyId} onChange={(e) => setForm({ ...form, propertyId: e.target.value })} required>
-                                <option value="">Select a unit</option>
-                                {PROPERTY_OPTIONS.map((property) => (
+                                <option value="">{loadingProperties ? "Loading properties..." : "Select a property"}</option>
+                                {propertyOptions.map((property) => (
                                     <option key={property.id} value={property.id}>{property.label} - {property.subtitle}</option>
                                 ))}
                             </select>
@@ -163,9 +197,12 @@ export default function MaintenanceRequestForm() {
                         </div>
 
                         {error ? <p className="text-sm font-medium text-red-600">{error}</p> : null}
+                        {!loadingProperties && propertyOptions.length === 0 ? (
+                            <p className="text-sm font-medium text-amber-700">No active agreements found. You need an active tenancy before submitting maintenance requests.</p>
+                        ) : null}
 
                         <div className="flex gap-3 pt-2">
-                            <button disabled={submitting} className="rounded-xl bg-primary px-5 py-3 font-semibold text-white disabled:opacity-60" type="submit">
+                            <button disabled={submitting || loadingProperties || propertyOptions.length === 0} className="rounded-xl bg-primary px-5 py-3 font-semibold text-white disabled:opacity-60" type="submit">
                                 {submitting ? "Submitting..." : "Submit Request"}
                             </button>
                             <button type="button" className="rounded-xl border border-slate-300 px-5 py-3 font-semibold" onClick={() => navigate(-1)}>

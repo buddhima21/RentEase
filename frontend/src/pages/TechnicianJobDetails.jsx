@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import MaintenanceBadge from "../components/maintenance/MaintenanceBadge";
 import MaintenanceSectionCard from "../components/maintenance/MaintenanceSectionCard";
+import { useAuth } from "../context/AuthContext";
 import {
     acceptMaintenance,
     getMaintenanceById,
@@ -21,6 +22,7 @@ const CHECKLIST_ITEMS = [
 export default function TechnicianJobDetails() {
     const { jobId } = useParams();
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [job, setJob] = useState(null);
     const [summary, setSummary] = useState("");
     const [notes, setNotes] = useState("");
@@ -33,12 +35,21 @@ export default function TechnicianJobDetails() {
     const load = async () => {
         if (!jobId) return;
         const res = await getMaintenanceById(jobId);
-        setJob(res.data?.data || null);
+        const data = res.data?.data || null;
+        if (!data) {
+            setJob(null);
+            return;
+        }
+        if (user?.role === "TECHNICIAN" && data.assignedTechnicianId && data.assignedTechnicianId !== user.id) {
+            navigate("/technician/dashboard", { replace: true });
+            return;
+        }
+        setJob(data);
     };
 
     useEffect(() => {
         load().catch(() => setJob(null));
-    }, [jobId]);
+    }, [jobId, user?.id, user?.role]);
 
     const accept = async () => {
         setBusy(true);

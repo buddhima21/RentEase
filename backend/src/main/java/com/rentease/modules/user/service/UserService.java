@@ -49,6 +49,25 @@ public class UserService {
         return mapToResponse(saved, token);
     }
 
+    public UserResponse createTechnicianByAdmin(UserRequest request, String adminId) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new EmailAlreadyExistsException("Email already registered");
+        }
+
+        User technician = User.builder()
+                .fullName(request.getFullName())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .phone(request.getPhone())
+                .role(UserRole.TECHNICIAN)
+                .profileImageUrl(request.getProfileImageUrl())
+                .build();
+
+        User saved = userRepository.save(technician);
+        // Admin provisioning does not auto-authenticate the technician account.
+        return mapToResponse(saved, null);
+    }
+
     public UserResponse login(String email, String password) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UnauthorizedException("Invalid email or password"));

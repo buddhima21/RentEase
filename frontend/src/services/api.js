@@ -167,6 +167,7 @@ export const getAdminPropertyById = (propertyId) => API.get(`/api/v1/admin/prope
  * @returns {Promise} Axios response
  */
 export const moderateProperty = (propertyId, data) => API.patch(`/api/v1/admin/properties/${propertyId}/moderate`, data);
+export const createTechnicianAccount = (data) => API.post("/api/v1/admin/users/technicians", data);
 
 // ── Bookings ──────────────────────────────────────────
 /** Tenant creates a booking request */
