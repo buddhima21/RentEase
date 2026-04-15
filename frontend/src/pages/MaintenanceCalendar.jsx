@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import MaintenanceBadge from "../components/maintenance/MaintenanceBadge";
 import MaintenanceSectionCard from "../components/maintenance/MaintenanceSectionCard";
 import { formatMaintenanceDate } from "../constants/maintenance";
@@ -76,9 +77,17 @@ export default function MaintenanceCalendar() {
     return (
         <div className="min-h-screen bg-slate-50 p-6 md:p-10">
             <div className="mx-auto max-w-7xl space-y-6">
-                <div>
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div>
                     <h1 className="text-3xl font-black tracking-tight text-slate-900">Maintenance Calendar</h1>
                     <p className="mt-2 text-slate-600">Select a day, inspect the schedule, and place a new visit into the queue.</p>
+                    </div>
+                    <Link
+                        to="/admin/maintenance"
+                        className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:border-emerald-300 hover:text-emerald-700"
+                    >
+                        Back to Maintenance Queue
+                    </Link>
                 </div>
 
                 <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">

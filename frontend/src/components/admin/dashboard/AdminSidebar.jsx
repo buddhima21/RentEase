@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { adminSidebarLinks, adminProfile } from "../../../data/adminDashboardData";
-import { useAuth } from "../../../context/AuthContext";
+import { adminSidebarLinks } from "../../../data/adminDashboardData";
 
 /**
  * AdminSidebar — Collapsible sidebar navigation for admin pages.
@@ -11,7 +10,6 @@ import { useAuth } from "../../../context/AuthContext";
 export default function AdminSidebar() {
     const [open, setOpen] = useState(false);
     const location = useLocation();
-    const { user } = useAuth();
 
     const navContent = (
         <>
@@ -35,7 +33,7 @@ export default function AdminSidebar() {
             {/* ── Nav Links ───────────────────────────────────── */}
             <nav className="flex-1 px-4 py-5 space-y-1 overflow-y-auto">
                 {adminSidebarLinks.map((link) => {
-                    const isActive = location.pathname === link.path;
+                    const isActive = location.pathname === link.path || location.pathname.startsWith(`${link.path}/`);
                     return (
                         <Link
                             key={link.label}
