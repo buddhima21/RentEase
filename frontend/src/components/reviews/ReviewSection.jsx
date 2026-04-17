@@ -1,6 +1,6 @@
 import RatingOverview from "./RatingOverview";
 import ReviewCard from "./ReviewCard";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import WriteReviewModal from "./WriteReviewModal";
 import { submitReview, updateReview, deleteReview } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
@@ -9,11 +9,47 @@ import { useNavigate } from "react-router-dom";
 export default function ReviewSection({ propertyId, reviews, rating }) {
     const [showModal, setShowModal] = useState(false);
     const [editingReview, setEditingReview] = useState(null);
-    const [allReviews, setAllReviews] = useState(reviews);
+    const [allReviews, setAllReviews] = useState(reviews || []);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState(false);
     const { user } = useAuth();
     const navigate = useNavigate();
+
+    // Sync state with props when data is asynchronously loaded
+    useEffect(() => {
+        if (reviews) {
+            setAllReviews(reviews);
+        }
+    }, [reviews]);
+
+    // Sorting State
+    const [sortBy, setSortBy] = useState('newest');
+    const [isSortOpen, setIsSortOpen] = useState(false);
+
+    const sortOptions = [
+        { label: 'Newest First', value: 'newest', icon: 'schedule' },
+        { label: 'Oldest First', value: 'oldest', icon: 'history' },
+        { label: 'Highest Rating', value: 'highest', icon: 'star' },
+        { label: 'Lowest Rating', value: 'lowest', icon: 'star_outline' }
+    ];
+
+    const getSortedReviews = () => {
+        const sorted = [...allReviews];
+        switch (sortBy) {
+            case 'newest':
+                return sorted.sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date));
+            case 'oldest':
+                return sorted.sort((a, b) => new Date(a.createdAt || a.date) - new Date(b.createdAt || b.date));
+            case 'highest':
+                return sorted.sort((a, b) => b.rating - a.rating);
+            case 'lowest':
+                return sorted.sort((a, b) => a.rating - b.rating);
+            default:
+                return sorted;
+        }
+    };
+
+    const sortedReviews = getSortedReviews();
 
     function handleWriteReviewClick() {
         if (user) {
@@ -40,12 +76,15 @@ export default function ReviewSection({ propertyId, reviews, rating }) {
             if (editingReview) {
                 // UPDATE logic
                 await updateReview(editingReview.id, {
+                    propertyId: editingReview.propertyId,
+                    reviewerId: editingReview.reviewerId,
                     rating: newReview.rating,
                     comment: newReview.review,
                     photos: newReview.photo ? [newReview.photo] : [],
+                    detailedRating: newReview.detailedRating
                 });
 
-                // Optimistic UI update - mark as pending locally or remove from approved view depending on preference
+                // Optimistic UI update - remove from list as it's now PENDING re-approval
                 setAllReviews(prev => prev.filter(r => r.id !== editingReview.id));
                 setSubmitSuccess(true);
                 setTimeout(() => setSubmitSuccess(false), 5000);
@@ -57,10 +96,10 @@ export default function ReviewSection({ propertyId, reviews, rating }) {
                     rating: newReview.rating,
                     comment: newReview.review,
                     photos: newReview.photo ? [newReview.photo] : [],
+                    detailedRating: newReview.detailedRating
                 });
-                // Show a beautiful temporary success message because the review is now PENDING
                 setSubmitSuccess(true);
-                setTimeout(() => setSubmitSuccess(false), 5000); // Hide after 5 seconds
+                setTimeout(() => setSubmitSuccess(false), 5000); 
             }
         } catch (error) {
             console.error("Failed to submit review:", error);
@@ -83,28 +122,59 @@ export default function ReviewSection({ propertyId, reviews, rating }) {
     }
 
     return (
-        <section className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] p-8 md:p-12 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-white/50 relative overflow-hidden">
-            {/* Decorative background element */}
-            <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-br from-[#0d9488]/5 via-transparent to-transparent pointer-events-none"></div>
-
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6 relative z-10">
+        <section className="bg-white rounded-[2.5rem] p-0 md:p-6 lg:p-8 relative overflow-hidden">
+            
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6 border-b border-slate-100 pb-8">
                 <div>
-                    <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 flex items-center gap-3 tracking-tight">
-                        <span className="material-symbols-outlined text-[#0d9488] text-4xl p-2 bg-[#0d9488]/10 rounded-2xl">star_rate</span>
-                        Real Student Reviews
+                    <h2 className="text-[32px] md:text-[40px] font-black text-slate-900 tracking-tight leading-none">
+                        Verified Reviews
                     </h2>
-                    <p className="text-slate-500 mt-3 text-lg font-medium">Verified experiences from past and current residents</p>
                 </div>
                 {user && user.role === "TENANT" && (
                     <button
-                        className="group relative overflow-hidden bg-[#0d9488] text-white px-8 py-3.5 rounded-2xl font-bold shadow-[0_8px_20px_rgba(13,148,136,0.3)] hover:shadow-[0_12px_25px_rgba(13,148,136,0.4)] transition-all duration-300 hover:-translate-y-0.5 flex items-center gap-2"
+                        className="bg-emerald-500 text-white px-8 py-4 rounded-2xl font-bold shadow-lg shadow-emerald-500/10 hover:bg-emerald-600 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex items-center gap-2"
                         onClick={handleWriteReviewClick}
                     >
-                        <span className="absolute inset-0 w-full h-full bg-gradient-to-tr from-transparent via-white/20 to-transparent translate-x-[-150%] skew-x-[-45deg] transition-all duration-700 ease-out group-hover:translate-x-[150%]"></span>
-                        <span className="material-symbols-outlined text-lg relative z-10">draw</span>
-                        <span className="relative z-10">Write a Review</span>
+                        <span className="material-symbols-outlined text-[20px]">add_circle</span>
+                        <span>Write a Review</span>
                     </button>
                 )}
+            </div>
+
+            {/* Sorting Header */}
+            <div className="flex justify-end items-center border-b border-slate-100 pb-4 mb-8">
+                <div className="relative">
+                    <button 
+                        onClick={() => setIsSortOpen(!isSortOpen)}
+                        className="flex items-center gap-2 text-slate-500 text-sm font-bold hover:text-slate-800 transition-colors bg-slate-50 px-4 py-2 rounded-xl border border-slate-100"
+                    >
+                        <span className="material-symbols-outlined text-[18px]">filter_list</span>
+                        <span>Sort: {sortOptions.find(o => o.value === sortBy)?.label}</span>
+                        <span className={`material-symbols-outlined text-[18px] transition-transform duration-300 ${isSortOpen ? 'rotate-180' : ''}`}>expand_more</span>
+                    </button>
+
+                    {isSortOpen && (
+                        <div className="absolute right-0 top-12 w-56 bg-white rounded-2xl shadow-2xl border border-slate-50 py-2 z-[50] animate-in fade-in zoom-in-95 duration-200">
+                            {sortOptions.map((option) => (
+                                <button
+                                    key={option.value}
+                                    onClick={() => {
+                                        setSortBy(option.value);
+                                        setIsSortOpen(false);
+                                    }}
+                                    className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold transition-all ${
+                                        sortBy === option.value 
+                                        ? 'text-emerald-600 bg-emerald-50' 
+                                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                                    }`}
+                                >
+                                    <span className="material-symbols-outlined text-[18px]">{option.icon}</span>
+                                    {option.label}
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
 
             {submitSuccess && (
@@ -114,7 +184,7 @@ export default function ReviewSection({ propertyId, reviews, rating }) {
                     </div>
                     <div>
                         <h4 className="font-bold text-emerald-800">Review Submitted!</h4>
-                        <p className="text-emerald-600 text-sm font-medium">Thank you! Your verified review is currently pending moderation and will be published shortly.</p>
+                        <p className="text-emerald-600 text-[13px] font-medium mt-1">Thank you! Your verified review is currently pending moderation and will be published shortly.</p>
                     </div>
                 </div>
             )}
@@ -127,8 +197,8 @@ export default function ReviewSection({ propertyId, reviews, rating }) {
 
                 {/* Review List (Right Col) */}
                 <div className="lg:col-span-8 flex flex-col gap-6">
-                    {allReviews.length > 0 ? (
-                        allReviews.map((review) => (
+                    {sortedReviews.length > 0 ? (
+                        sortedReviews.map((review) => (
                             <ReviewCard
                                 key={review.id}
                                 review={review}
@@ -137,51 +207,15 @@ export default function ReviewSection({ propertyId, reviews, rating }) {
                             />
                         ))
                     ) : (
-                        <>
-                            <ReviewCard
-                                key="mock_1"
-                                review={{
-                                    reviewerId: "usr_ai492",
-                                    reviewerName: "Elena Rostova",
-                                    rating: 5,
-                                    comment: "The smart-home integration here is flawless. Everything from the biometric entry to the AI-optimized climate control makes living here feel truly next-gen. Perfect for remote tech workers.",
-                                    createdAt: new Date(Date.now() - 86400000 * 2).toISOString()
-                                }}
-                            />
-                            <ReviewCard
-                                key="mock_2"
-                                review={{
-                                    reviewerId: "usr_dev88",
-                                    reviewerName: "Marcus Chen",
-                                    rating: 4.5,
-                                    comment: "Incredible gigabit fiber connectivity and dedicated co-working spaces on the ground floor. The community dashboard app is super responsive. Dropped half a star because the VR lounge gets crowded on weekends.",
-                                    createdAt: new Date(Date.now() - 86400000 * 5).toISOString()
-                                }}
-                            />
-                            <ReviewCard
-                                key="mock_3"
-                                review={{
-                                    reviewerId: "usr_ds302",
-                                    reviewerName: "Sarah Jenkins",
-                                    rating: 5,
-                                    comment: "The automated drone delivery pad on the balcony is a game-changer for my meal prep subscriptions. Stunning minimalist aesthetic with sustainable aerogel insulation—my energy footprint has never been lower.",
-                                    createdAt: new Date(Date.now() - 86400000 * 12).toISOString()
-                                }}
-                            />
-                            <ReviewCard
-                                key="mock_4"
-                                review={{
-                                    reviewerId: "usr_cyb11",
-                                    reviewerName: "David O. Reynolds",
-                                    rating: 4,
-                                    comment: "Secure, quiet, and hyper-modern. The holographic concierge took some getting used to, but the 24/7 automated security protocols give me total peace of mind. Highly recommended.",
-                                    createdAt: new Date(Date.now() - 86400000 * 24).toISOString()
-                                }}
-                            />
-                        </>
+                        <div className="col-span-full bg-slate-50 border-2 border-dashed border-slate-200 rounded-[2rem] p-12 text-center flex flex-col items-center justify-center">
+                            <span className="material-symbols-outlined text-5xl text-slate-300 mb-4">rate_review</span>
+                            <h3 className="text-xl font-bold text-slate-700 mb-2">No reviews yet</h3>
+                            <p className="text-slate-500 font-medium">Be the first to leave a review for this property!</p>
+                        </div>
                     )}
                 </div>
             </div>
+            
             {showModal && (
                 <WriteReviewModal
                     onClose={handleModalClose}

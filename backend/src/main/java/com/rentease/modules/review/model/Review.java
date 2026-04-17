@@ -30,6 +30,7 @@ public class Review {
     // Core Review Data
     private int rating; // 1 to 5 scale
     private String comment;
+    private DetailedRating detailedRating;
     private List<String> photos; // URLs to uploaded review photos
 
     // Owner Interaction

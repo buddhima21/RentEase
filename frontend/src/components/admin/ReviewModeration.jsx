@@ -40,83 +40,87 @@ export default function ReviewModeration() {
 
     if (isLoading) {
         return (
-            <div className="bg-white/60 backdrop-blur-3xl rounded-[2rem] p-12 shadow-[0_8px_40px_rgb(0,0,0,0.04)] border border-white flex flex-col items-center justify-center min-h-[400px] w-full max-w-5xl">
+            <div className="bg-white rounded-[2.5rem] p-12 border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.03)] flex flex-col items-center justify-center min-h-[400px] w-full">
                 <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mb-4"></div>
-                <p className="text-slate-500 font-medium">Fetching pending reviews for moderation...</p>
+                <p className="text-slate-500 font-medium">Fetching moderation queue...</p>
             </div>
         );
     }
 
     return (
-        <section className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] p-8 md:p-12 shadow-[0_12px_45px_rgb(0,0,0,0.06)] border border-white relative overflow-hidden w-full max-w-5xl">
+        <section className="bg-white rounded-[2.5rem] p-8 md:p-10 border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.03)] relative overflow-hidden w-full">
             {/* Background decorative element */}
-            <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-blue-50 via-transparent to-transparent pointer-events-none opacity-50"></div>
+            <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-slate-50 via-transparent to-transparent pointer-events-none opacity-50"></div>
 
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4 relative z-10">
-                <div>
-                    <h2 className="text-2xl font-extrabold text-slate-900 flex items-center gap-3 tracking-tight">
-                        <span className="material-symbols-outlined text-amber-500 bg-amber-50 p-2 rounded-xl">gavel</span>
-                        Moderation Queue
-                    </h2>
-                    <p className="text-slate-500 mt-2 font-medium">Review submitted feedback before it goes live.</p>
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center border border-amber-100/50">
+                        <span className="material-symbols-outlined text-[24px]">gavel</span>
+                    </div>
+                    <div>
+                        <h2 className="text-[24px] font-black text-slate-900 tracking-tight leading-tight">
+                            Moderation Queue
+                        </h2>
+                        <p className="text-slate-500 text-[14px] font-medium mt-0.5">Review submitted feedback before it goes live.</p>
+                    </div>
                 </div>
                 <div className="flex items-center gap-2 bg-slate-50 border border-slate-100 px-4 py-2 rounded-xl">
-                    <span className="text-sm font-bold text-slate-700">Total Pending:</span>
-                    <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded flex items-center justify-center text-sm font-black">
+                    <span className="text-sm font-bold text-slate-700">Pending Actions:</span>
+                    <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded flex items-center justify-center text-sm font-black">
                         {reviews.length}
                     </span>
                 </div>
             </div>
 
-            <div className="relative z-10 flex flex-col gap-6">
+            <div className="relative z-10 flex flex-col gap-5">
                 <AnimatePresence>
                     {reviews.length > 0 ? (
                         reviews.map((review) => (
                             <motion.div
                                 key={review.id}
-                                initial={{ opacity: 0, y: 20 }}
+                                initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, x: -50, scale: 0.95 }}
-                                transition={{ duration: 0.4, type: "spring", bounce: 0.2 }}
-                                className="group relative bg-white border border-slate-100 p-6 md:p-8 rounded-[2rem] shadow-[0_4px_20px_rgb(0,0,0,0.02)] hover:shadow-[0_10px_35px_rgb(0,0,0,0.06)] transition-all flex flex-col md:flex-row gap-6 items-start md:items-center justify-between"
+                                exit={{ opacity: 0, x: -20, scale: 0.98 }}
+                                transition={{ duration: 0.3 }}
+                                className="group relative bg-white border border-slate-100 p-6 rounded-[1.5rem] transition-all hover:border-slate-200 hover:shadow-md flex flex-col md:flex-row gap-6 items-start md:items-center justify-between"
                             >
                                 {/* Content Section */}
                                 <div className="flex-1">
                                     <div className="flex flex-wrap items-center gap-3 mb-3">
-                                        <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-xs font-bold font-mono tracking-tight">
+                                        <span className="bg-slate-100 text-slate-600 px-3 py-1 rounded-md text-[11px] font-bold font-mono tracking-tight">
                                             ID: {review.id.substring(0, 8)}...
                                         </span>
-                                        <span className="text-slate-400 text-xs font-semibold uppercase tracking-wider flex items-center gap-1">
-                                            <span className="material-symbols-outlined text-[14px]">schedule</span>
+                                        <span className="text-slate-400 text-[11px] font-bold uppercase tracking-wider flex items-center gap-1">
+                                            <span className="material-symbols-outlined text-[13px]">schedule</span>
                                             {formatDate(review.createdAt)}
                                         </span>
                                     </div>
 
                                     <div className="mb-4">
-                                        <div className="flex gap-0.5 text-amber-500 mb-2">
+                                        <div className="flex gap-0.5 text-amber-400 mb-2">
                                             {[...Array(5)].map((_, i) => (
-                                                <span key={i} className="material-symbols-outlined text-lg" style={{ fontVariationSettings: i < review.rating ? '"FILL" 1' : '"FILL" 0' }}>star</span>
+                                                <span key={i} className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: i < review.rating ? '"FILL" 1' : '"FILL" 0' }}>star</span>
                                             ))}
                                         </div>
-                                        <p className="text-slate-700 text-lg font-medium leading-relaxed">"{review.comment}"</p>
+                                        <p className="text-slate-700 text-[15px] font-medium leading-relaxed max-w-3xl">"{review.comment}"</p>
                                     </div>
 
                                     {/* Action Buttons */}
                                     <div className="flex items-center gap-3 mt-4">
                                         <button
                                             onClick={() => handleAction(review.id, 'APPROVED')}
-                                            className="px-5 py-2.5 bg-emerald-50 hover:bg-emerald-500 text-emerald-600 hover:text-white border border-emerald-100 hover:border-emerald-500 rounded-xl font-bold flex items-center gap-2 transition-all duration-300 shadow-sm hover:shadow-emerald-500/20"
+                                            className="px-6 py-2.5 bg-[#0F172A] hover:bg-slate-800 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-all shadow-sm hover:shadow-md active:scale-95"
                                             title="Approve Review"
                                         >
-                                            <span className="material-symbols-outlined text-[18px]">check_circle</span>
+                                            <span className="material-symbols-outlined text-[16px]">check</span>
                                             Approve
                                         </button>
                                         <button
                                             onClick={() => handleAction(review.id, 'REJECTED')}
-                                            className="px-5 py-2.5 bg-red-50 hover:bg-red-500 text-red-600 hover:text-white border border-red-100 hover:border-red-500 rounded-xl font-bold flex items-center gap-2 transition-all duration-300 shadow-sm hover:shadow-red-500/20"
+                                            className="px-6 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-100 rounded-xl text-sm font-bold flex items-center gap-2 transition-all active:scale-95"
                                             title="Reject Review"
                                         >
-                                            <span className="material-symbols-outlined text-[18px]">cancel</span>
+                                            <span className="material-symbols-outlined text-[16px]">close</span>
                                             Reject
                                         </button>
                                     </div>
@@ -124,8 +128,8 @@ export default function ReviewModeration() {
 
                                 {/* Photo column if exists */}
                                 {review.photos && review.photos.length > 0 && review.photos[0] && (
-                                    <div className="shrink-0">
-                                        <img src={review.photos[0]} alt="Review content" className="w-32 h-32 object-cover rounded-2xl border border-slate-200 shadow-sm" />
+                                    <div className="shrink-0 group-hover:scale-[1.02] transition-transform duration-300">
+                                        <img src={review.photos[0]} alt="Review evidence" className="w-28 h-28 object-cover rounded-2xl border border-slate-200" />
                                     </div>
                                 )}
                             </motion.div>
@@ -134,13 +138,13 @@ export default function ReviewModeration() {
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="bg-white/50 border-2 border-dashed border-slate-200 rounded-[2rem] p-16 text-center flex flex-col items-center justify-center"
+                            className="bg-slate-50/50 border border-dashed border-slate-200 rounded-[2rem] p-16 text-center flex flex-col items-center justify-center"
                         >
-                            <div className="w-24 h-24 bg-slate-50/80 rounded-[2rem] flex items-center justify-center mb-6 shadow-inner border border-slate-100">
-                                <span className="material-symbols-outlined text-5xl text-slate-300">task_alt</span>
+                            <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center mb-6 shadow-sm border border-slate-100">
+                                <span className="material-symbols-outlined text-4xl text-emerald-500" style={{ fontVariationSettings: "'FILL' 1" }}>task_alt</span>
                             </div>
-                            <h3 className="text-2xl font-extrabold text-slate-800 tracking-tight mb-2">Queue is empty</h3>
-                            <p className="text-slate-500 font-medium text-lg">All pending reviews have been processed.</p>
+                            <h3 className="text-xl font-extrabold text-slate-800 tracking-tight mb-2">Queue is empty</h3>
+                            <p className="text-slate-500 font-medium text-[15px]">All pending reviews have been processed.</p>
                         </motion.div>
                     )}
                 </AnimatePresence>

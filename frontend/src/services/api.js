@@ -13,7 +13,10 @@ const API = axios.create({
 
 API.interceptors.request.use((req) => {
     let token = null;
-    const isAdminRequest = req.url && req.url.includes('/api/v1/admin');
+    const isAdminRequest = req.url && (
+        req.url.includes('/api/v1/admin') || 
+        (req.url.includes('/api/v1/maintenance') && /\/(assign|schedule|priority|close|status)(?:\?|$)/.test(req.url))
+    );
 
     // For admin endpoints, use admin token only
     if (isAdminRequest) {
@@ -61,8 +64,8 @@ API.interceptors.request.use((req) => {
 });
 
 // ── Auth ──────────────────────────────────────────────
-export const signupUser = (data) => API.post("/api/auth/signup", data);
-export const loginUser = (data) => API.post("/api/auth/login", data);
+export const signupUser = (data) => API.post("/api/v1/auth/signup", data);
+export const loginUser = (data) => API.post("/api/v1/auth/login", data);
 
 // ── User ──────────────────────────────────────────────
 /**
@@ -167,6 +170,7 @@ export const getAdminPropertyById = (propertyId) => API.get(`/api/v1/admin/prope
  * @returns {Promise} Axios response
  */
 export const moderateProperty = (propertyId, data) => API.patch(`/api/v1/admin/properties/${propertyId}/moderate`, data);
+export const createTechnicianAccount = (data) => API.post("/api/v1/admin/users/technicians", data);
 
 // ── Bookings ──────────────────────────────────────────
 /** Tenant creates a booking request */
@@ -206,9 +210,14 @@ export const getPropertyAvailableSlots = (propertyId) =>
 export const getPropertyReviews = (propertyId) => API.get(`/api/v1/reviews/property/${propertyId}?onlyApproved=true`);
 export const submitReview = (data) => API.post("/api/v1/reviews", data);
 export const getPendingReviews = () => API.get(`/api/v1/reviews/status/PENDING`);
+export const getOwnerReviews = () => API.get(`/api/v1/reviews/owner`);
 export const updateReviewStatus = (reviewId, status) => API.put(`/api/v1/reviews/${reviewId}/status?status=${status}`);
+export const replyToReview = (reviewId, replyText) => API.put(`/api/v1/reviews/${reviewId}/reply`, { replyText });
 export const updateReview = (reviewId, reviewData) => API.put(`/api/v1/reviews/${reviewId}`, reviewData);
 export const deleteReview = (reviewId) => API.delete(`/api/v1/reviews/${reviewId}`);
+
+// ── System Analytics ────────────────────────────────────
+export const getSystemAnalytics = () => API.get("/api/v1/analytics/overview");
 
 // ── Rental agreements (JWT required) ───────────────────
 export const createAgreement = (data) => API.post("/api/v1/agreements", data);
@@ -222,5 +231,29 @@ export const downloadAgreementPdf = (id) =>
     API.get(`/api/v1/agreements/${id}/pdf`, { responseType: "blob" });
 export const terminateAgreementEarly = (id, data) =>
     API.patch(`/api/v1/agreements/${id}/terminate`, data ?? {});
+
+// ── Maintenance ─────────────────────────────────────────
+export const createMaintenanceRequest = (data) => API.post("/api/v1/maintenance", data);
+export const getMaintenanceById = (id) => API.get(`/api/v1/maintenance/${id}`);
+export const getMaintenanceByProperty = (propertyId) => API.get(`/api/v1/maintenance/property/${propertyId}`);
+export const getTenantMaintenance = (tenantId) => API.get(`/api/v1/maintenance/tenant/${tenantId}`);
+export const getTechnicianMaintenance = (technicianId, status) =>
+    API.get(`/api/v1/maintenance/technician/${technicianId}`, { params: status ? { status } : undefined });
+export const getOwnerMaintenance = (ownerId) => API.get(`/api/v1/maintenance/owner/${ownerId}`);
+export const getAdminMaintenanceQueue = (params) => API.get("/api/v1/maintenance/admin/queue", { params });
+export const assignMaintenanceTechnician = (requestId, data) =>
+    API.patch(`/api/v1/maintenance/${requestId}/assign`, data);
+export const updateMaintenancePriority = (requestId, priority) =>
+    API.patch(`/api/v1/maintenance/${requestId}/priority`, null, { params: { priority } });
+export const scheduleMaintenance = (requestId, data) =>
+    API.patch(`/api/v1/maintenance/${requestId}/schedule`, data);
+export const acceptMaintenance = (requestId) => API.patch(`/api/v1/maintenance/${requestId}/accept`);
+export const startMaintenance = (requestId) => API.patch(`/api/v1/maintenance/${requestId}/start`);
+export const pauseMaintenance = (requestId) => API.patch(`/api/v1/maintenance/${requestId}/pause`);
+export const resumeMaintenance = (requestId) => API.patch(`/api/v1/maintenance/${requestId}/resume`);
+export const resolveMaintenance = (requestId, data) => API.patch(`/api/v1/maintenance/${requestId}/resolve`, data);
+export const closeMaintenance = (requestId, adminNote) =>
+    API.patch(`/api/v1/maintenance/${requestId}/close`, null, { params: adminNote ? { adminNote } : undefined });
+export const getMaintenanceTechnicians = () => API.get("/api/v1/maintenance/technicians");
 
 export default API;
