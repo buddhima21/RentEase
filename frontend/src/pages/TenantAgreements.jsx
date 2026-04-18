@@ -4,11 +4,24 @@ import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
 import { getTenantAgreements } from "../services/api";
 
+// Status badge styles — updated to include PENDING and CANCELLED
 const STATUS_STYLE = {
-    ACTIVE: "bg-emerald-50 text-emerald-800 border-emerald-200",
-    EXPIRED: "bg-slate-100 text-slate-600 border-slate-200",
-    TERMINATED: "bg-amber-50 text-amber-800 border-amber-200",
+    PENDING:   { cls: "bg-amber-50 text-amber-800 border-amber-200",   icon: "hourglass_top",    label: "Pending"   },
+    ACTIVE:    { cls: "bg-emerald-50 text-emerald-800 border-emerald-200", icon: "check_circle",  label: "Active"    },
+    CANCELLED: { cls: "bg-red-50 text-red-700 border-red-200",          icon: "cancel",           label: "Cancelled" },
+    EXPIRED:   { cls: "bg-slate-100 text-slate-600 border-slate-200",   icon: "schedule",         label: "Expired"   },
+    TERMINATED:{ cls: "bg-amber-50 text-amber-800 border-amber-200",    icon: "highlight_off",    label: "Terminated"},
 };
+
+function StatusBadge({ status }) {
+    const cfg = STATUS_STYLE[status] || STATUS_STYLE["PENDING"];
+    return (
+        <span className={`inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full border ${cfg.cls}`}>
+            <span className="material-symbols-outlined text-[13px]">{cfg.icon}</span>
+            {cfg.label}
+        </span>
+    );
+}
 
 export default function TenantAgreements() {
     const { user } = useAuth();
@@ -45,16 +58,12 @@ export default function TenantAgreements() {
             <div className="max-w-4xl mx-auto px-4 py-8">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                     <div>
-                        <h1 className="text-2xl font-black text-slate-900">Rental agreements</h1>
-                        <p className="text-slate-500 text-sm mt-1">View and download your digital contracts</p>
+                        <h1 className="text-2xl font-black text-slate-900">Rental Agreements</h1>
+                        {/* Agreements are auto-created by the owner accepting a booking — no manual creation needed */}
+                        <p className="text-slate-500 text-sm mt-1">
+                            Your agreements appear here after an owner approves your booking request.
+                        </p>
                     </div>
-                    <Link
-                        to="/tenant/agreements/new"
-                        className="inline-flex items-center justify-center gap-2 bg-primary text-white font-bold px-5 py-2.5 rounded-xl hover:bg-primary/90 text-sm"
-                    >
-                        <span className="material-symbols-outlined text-[18px]">add</span>
-                        New agreement
-                    </Link>
                 </div>
 
                 {loading && (
@@ -70,10 +79,10 @@ export default function TenantAgreements() {
                         <span className="material-symbols-outlined text-5xl text-slate-200">description</span>
                         <p className="mt-4 text-slate-600 font-medium">No agreements yet</p>
                         <p className="text-sm text-slate-400 mt-2 max-w-sm mx-auto">
-                            After your booking is approved by the owner, you can create a rental agreement here.
+                            Once an owner approves your booking request, a rental agreement will appear here for you to review and accept.
                         </p>
-                        <Link to="/tenant/agreements/new" className="inline-block mt-6 text-primary font-bold text-sm hover:underline">
-                            Create agreement
+                        <Link to="/tenant/bookings" className="inline-block mt-6 text-primary font-bold text-sm hover:underline">
+                            View my bookings
                         </Link>
                     </div>
                 )}
@@ -93,13 +102,15 @@ export default function TenantAgreements() {
                                                 {a.startDate} → {a.endDate} · LKR {Number(a.rentAmount).toLocaleString()} / mo
                                             </p>
                                         </div>
-                                        <span
-                                            className={`text-xs font-bold px-3 py-1 rounded-full border shrink-0 ${
-                                                STATUS_STYLE[a.status] || STATUS_STYLE.ACTIVE
-                                            }`}
-                                        >
-                                            {a.status}
-                                        </span>
+                                        <div className="flex flex-col items-end gap-2">
+                                            <StatusBadge status={a.status} />
+                                            {/* Highlight pending agreements that need action */}
+                                            {a.status === "PENDING" && (
+                                                <span className="text-xs font-semibold text-amber-700 animate-pulse">
+                                                    Action required
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                 </Link>
                             </li>

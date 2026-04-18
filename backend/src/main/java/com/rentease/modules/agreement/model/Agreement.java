@@ -16,6 +16,7 @@ import java.time.LocalDateTime;
 
 /**
  * Digital rental agreement linked to an approved booking, tenant, owner, and property.
+ * Lifecycle: auto-created (PENDING) when owner approves → tenant accepts (ACTIVE) or rejects (CANCELLED).
  */
 @Data
 @Builder
@@ -51,14 +52,46 @@ public class Agreement {
 
     private double rentAmount;
 
+    /** Security deposit amount (optional, defaults to 0). */
+    @Builder.Default
+    private double deposit = 0;
+
+    /** Day of month rent is due (e.g. 1 = 1st of each month). */
+    @Builder.Default
+    private int paymentDueDate = 1;
+
     /** Additional rules / notes agreed for this contract (tenant-supplied). */
     private String rulesNotes;
 
     /** Copy of property terms at creation time (for PDF and audit). */
     private String propertyTermsSnapshot;
 
+    /**
+     * Agreement status — starts PENDING when auto-created on booking approval.
+     * Tenant accept → ACTIVE; tenant reject → CANCELLED.
+     */
     @Builder.Default
-    private AgreementStatus status = AgreementStatus.ACTIVE;
+    private AgreementStatus status = AgreementStatus.PENDING;
+
+    // ── Owner / Tenant approval flags ──────────────────────────────────────
+
+    /** True when the owner has approved the booking (set to true on auto-creation). */
+    @Builder.Default
+    private boolean ownerApproved = false;
+
+    /** True when the tenant has accepted the agreement. */
+    @Builder.Default
+    private boolean tenantApproved = false;
+
+    // ── Legacy signing flags (preserved for PDF/email logic) ───────────────
+
+    @Builder.Default
+    private boolean signedByTenant = false;
+
+    @Builder.Default
+    private boolean signedByOwner = false;
+
+    // ── Early termination ──────────────────────────────────────────────────
 
     /** Set when status becomes TERMINATED: remainingMonths * rentAmount * 0.5 */
     private Double earlyTerminationPenalty;
@@ -69,12 +102,6 @@ public class Agreement {
     /** 7-day renewal / expiry reminder email sent */
     @Builder.Default
     private boolean reminderSevenDaySent = false;
-
-    @Builder.Default
-    private boolean signedByTenant = false;
-
-    @Builder.Default
-    private boolean signedByOwner = false;
 
     @CreatedDate
     private LocalDateTime createdAt;

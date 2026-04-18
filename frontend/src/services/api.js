@@ -226,11 +226,17 @@ export const getOwnerAgreements = (ownerId) => API.get(`/api/v1/agreements/owner
 export const getEligibleAgreementBookings = (tenantId) =>
     API.get(`/api/v1/agreements/eligible-bookings/${tenantId}`);
 export const getAgreementById = (id) => API.get(`/api/v1/agreements/${id}`);
+/** Fetch the agreement linked to a specific booking (used on owner booking list) */
+export const getAgreementByBookingId = (bookingId) => API.get(`/api/v1/agreements/booking/${bookingId}`);
 /** Returns axios response with blob data — use responseType blob */
 export const downloadAgreementPdf = (id) =>
     API.get(`/api/v1/agreements/${id}/pdf`, { responseType: "blob" });
 export const terminateAgreementEarly = (id, data) =>
     API.patch(`/api/v1/agreements/${id}/terminate`, data ?? {});
+/** Tenant accepts a PENDING agreement → status becomes ACTIVE */
+export const acceptAgreement = (id) => API.patch(`/api/v1/agreements/${id}/accept`);
+/** Tenant rejects a PENDING agreement → status becomes CANCELLED */
+export const rejectAgreement = (id) => API.patch(`/api/v1/agreements/${id}/reject`);
 
 // ── Maintenance ─────────────────────────────────────────
 export const createMaintenanceRequest = (data) => API.post("/api/v1/maintenance", data);

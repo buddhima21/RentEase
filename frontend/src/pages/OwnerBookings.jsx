@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { getOwnerBookings, approveBooking, rejectBooking, removeAllocation, hardDeleteBooking } from "../services/api";
+import { getOwnerBookings, approveBooking, rejectBooking, removeAllocation, hardDeleteBooking, getAgreementByBookingId } from "../services/api";
 import Sidebar from "../components/owner/dashboard/Sidebar";
 import UserDropdown from "../components/UserDropdown";
 
@@ -67,7 +67,7 @@ function TenantDetails({ booking }) {
     );
 }
 
-function BookingRow({ booking, onApprove, onReject, onRemove, onDelete, actionLoading }) {
+function BookingRow({ booking, onApprove, onReject, onRemove, onDelete, onViewAgreement, actionLoading }) {
     const [expanded, setExpanded] = useState(false);
     const formattedDate = booking.createdAt
         ? new Date(booking.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })
@@ -168,18 +168,29 @@ function BookingRow({ booking, onApprove, onReject, onRemove, onDelete, actionLo
                             </>
                         )}
                         {booking.status === "ALLOCATED" && (
-                            <button
-                                onClick={() => onRemove(booking.id)}
-                                disabled={isLoading}
-                                className="inline-flex items-center justify-center gap-2 bg-amber-50 text-amber-700 border border-amber-200 font-bold px-5 py-2.5 rounded-xl hover:bg-amber-100 hover:text-amber-800 disabled:opacity-60 transition-all text-sm"
-                            >
-                                {isLoading ? (
-                                    <span className="w-4 h-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
-                                ) : (
-                                    <span className="material-symbols-outlined text-[18px]">person_remove</span>
-                                )}
-                                Remove Tenant
-                            </button>
+                            <>
+                                <button
+                                    onClick={() => onRemove(booking.id)}
+                                    disabled={isLoading}
+                                    className="inline-flex items-center justify-center gap-2 bg-amber-50 text-amber-700 border border-amber-200 font-bold px-5 py-2.5 rounded-xl hover:bg-amber-100 hover:text-amber-800 disabled:opacity-60 transition-all text-sm"
+                                >
+                                    {isLoading ? (
+                                        <span className="w-4 h-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+                                    ) : (
+                                        <span className="material-symbols-outlined text-[18px]">person_remove</span>
+                                    )}
+                                    Remove Tenant
+                                </button>
+                                {/* View Agreement — only visible after owner approval creates an agreement */}
+                                <button
+                                    onClick={() => onViewAgreement(booking.id)}
+                                    disabled={isLoading}
+                                    className="inline-flex items-center justify-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold px-5 py-2.5 rounded-xl hover:bg-emerald-100 disabled:opacity-60 transition-all text-sm"
+                                >
+                                    <span className="material-symbols-outlined text-[18px]">description</span>
+                                    View Agreement
+                                </button>
+                            </>
                         )}
                         {booking.status !== "PENDING" && (
                             <button
@@ -212,6 +223,7 @@ export default function OwnerBookings() {
     const [actionLoading, setActionLoading] = useState(null);
     const [toast, setToast] = useState(null);
     const [activeTab, setActiveTab] = useState("pending");
+
 
     useEffect(() => {
         if (!user) { navigate("/login"); return; }
@@ -286,6 +298,27 @@ export default function OwnerBookings() {
             showToast(err?.response?.data?.message || "Failed to delete record.", "error");
         } finally {
             setActionLoading(null);
+        }
+    };
+
+    /**
+     * Owner clicks "View Agreement" on an ALLOCATED booking.
+     * Tries to fetch the linked agreement and navigate to its detail page.
+     * Falls back to the owner's agreement list if the lookup fails.
+     */
+    const handleViewAgreement = async (bookingId) => {
+        try {
+            const res = await getAgreementByBookingId(bookingId);
+            const agreement = res.data?.data;
+            if (agreement?.id) {
+                // Navigate to the agreement detail page (accessible to owner via AgreementDetail)
+                navigate(`/tenant/agreements/${agreement.id}`);
+            } else {
+                navigate("/owner/agreements");
+            }
+        } catch {
+            // Agreement may not exist yet — go to the agreements list
+            navigate("/owner/agreements");
         }
     };
 
@@ -409,6 +442,7 @@ export default function OwnerBookings() {
                                     onReject={handleReject}
                                     onRemove={handleRemove}
                                     onDelete={handleDelete}
+                                    onViewAgreement={handleViewAgreement}
                                     actionLoading={actionLoading}
                                 />
                             ))}

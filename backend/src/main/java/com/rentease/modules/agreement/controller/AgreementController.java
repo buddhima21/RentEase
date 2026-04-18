@@ -21,7 +21,14 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * Authenticated API for rental agreements (tenant creates; tenant and owner can view / PDF / terminate).
+ * Authenticated REST API for rental agreements.
+ *
+ * <p>New endpoints added for the auto-creation workflow:
+ * <ul>
+ *   <li>PATCH /{id}/accept — tenant accepts a PENDING agreement</li>
+ *   <li>PATCH /{id}/reject — tenant rejects a PENDING agreement</li>
+ *   <li>GET  /booking/{bookingId} — fetch the agreement linked to a specific booking</li>
+ * </ul>
  */
 @RestController
 @RequestMapping("/api/v1/agreements")
@@ -29,6 +36,8 @@ import java.util.List;
 public class AgreementController {
 
     private final AgreementService agreementService;
+
+    // ── Existing endpoints (unchanged) ──────────────────────────────────────
 
     @PostMapping
     public ResponseEntity<ApiResponse<AgreementResponse>> createAgreement(
@@ -91,6 +100,43 @@ public class AgreementController {
         AgreementResponse response = agreementService.terminateEarly(id, body, user.getId());
         return ResponseEntity.ok(ApiResponse.success(response, "Agreement terminated early"));
     }
+
+    // ── New endpoints for auto-creation workflow ────────────────────────────
+
+    /**
+     * Tenant accepts a PENDING agreement.
+     * If ownerApproved is already true, status transitions to ACTIVE.
+     */
+    @PatchMapping("/{id}/accept")
+    public ResponseEntity<ApiResponse<AgreementResponse>> acceptAgreement(@PathVariable String id) {
+        CustomUserDetails user = requireUser();
+        AgreementResponse response = agreementService.tenantAcceptAgreement(id, user.getId());
+        return ResponseEntity.ok(ApiResponse.success(response, "Agreement accepted. Status is now ACTIVE."));
+    }
+
+    /**
+     * Tenant rejects a PENDING agreement → status becomes CANCELLED.
+     */
+    @PatchMapping("/{id}/reject")
+    public ResponseEntity<ApiResponse<AgreementResponse>> rejectAgreement(@PathVariable String id) {
+        CustomUserDetails user = requireUser();
+        AgreementResponse response = agreementService.tenantRejectAgreement(id, user.getId());
+        return ResponseEntity.ok(ApiResponse.success(response, "Agreement rejected and cancelled."));
+    }
+
+    /**
+     * Fetch the agreement linked to a specific booking.
+     * Accessible by the tenant or owner of that booking.
+     */
+    @GetMapping("/booking/{bookingId}")
+    public ResponseEntity<ApiResponse<AgreementResponse>> getByBookingId(
+            @PathVariable String bookingId) {
+        CustomUserDetails user = requireUser();
+        AgreementResponse response = agreementService.getByBookingId(bookingId, user.getId());
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    // ── Helper ──────────────────────────────────────────────────────────────
 
     private CustomUserDetails requireUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
