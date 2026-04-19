@@ -53,6 +53,7 @@ export default function ListingCard({ listing }) {
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     src={listing.image}
                     alt={listing.title}
+                    loading="lazy"
                 />
 
                 {/* Optional Badge */}

@@ -372,10 +372,15 @@ export default function OwnerFinance() {
     };
 
     return (
-        <div className="flex min-h-screen bg-[#f6f8f7]" style={{ "--color-primary": "#13ec6d" }}>
+        <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 font-sans selection:bg-emerald-100" style={{ "--color-primary": "#26C289" }}>
             <Sidebar />
             <main className="flex-1 flex flex-col min-w-0">
-                <header className="sticky top-0 z-30 h-20 border-b border-emerald-100 bg-white/90 backdrop-blur-md px-6 lg:px-8 flex items-center justify-between gap-4 shrink-0 print:hidden">
+                <motion.header 
+                    initial={{ opacity: 0, y: -10 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    transition={{ duration: 0.4 }}
+                    className="sticky top-0 z-30 h-20 border-b border-emerald-100 bg-white/90 backdrop-blur-md px-6 lg:px-8 flex items-center justify-between gap-4 shrink-0 print:hidden"
+                >
                     <h2 className="text-xl lg:text-2xl font-bold tracking-tight whitespace-nowrap pl-12 lg:pl-0">
                         Finance & Payments
                     </h2>
@@ -384,9 +389,14 @@ export default function OwnerFinance() {
                             <div className="w-10 h-10 rounded-full border-2 border-primary bg-cover bg-center shrink-0" style={{ backgroundImage: `url('${ownerProfile.avatar}')` }} />
                         )}
                     </div>
-                </header>
+                </motion.header>
 
-                <div className="flex-1 overflow-y-auto p-5 lg:p-8">
+                <motion.div 
+                    className="flex-1 overflow-y-auto p-5 lg:p-8 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.1 }}
+                >
                     {/* Tabs */}
                     <div className="flex flex-wrap gap-4 mb-8 border-b border-emerald-100 pb-4 print:hidden">
                         <button onClick={() => setActiveTab("tracking")} className={`px-4 py-2 font-bold rounded-lg transition-all ${activeTab === "tracking" ? "bg-primary text-slate-900" : "text-slate-500 hover:bg-emerald-50"}`}>
@@ -827,16 +837,14 @@ export default function OwnerFinance() {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="bg-white rounded-2xl border border-dashed border-emerald-200 flex flex-col items-center justify-center py-24 text-center print:hidden">
-                                        <span className="material-symbols-outlined text-5xl text-emerald-100 mb-4">receipt_long</span>
-                                        <p className="text-sm font-bold text-slate-500 mb-1">Bill Preview</p>
-                                        <p className="text-xs text-slate-400 max-w-xs">Select a tenant and click <strong>Preview Bill</strong> to see the generated bill here.</p>
+                                    <div className="bg-white rounded-2xl border border-dashed border-emerald-200 shadow-sm p-12 text-center text-slate-500 font-medium print:hidden">
+                                        Fill out the form to securely generate and review the professional billing document.
                                     </div>
                                 )}
                             </div>
                         </div>
                     )}
-                </div>
+                </motion.div>
             </main>
         </div>
     );

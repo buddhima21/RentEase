@@ -167,6 +167,17 @@ export default function UserDropdown({ user, onLogout }) {
                                 </span>
                                 My Agreements
                             </Link>
+                            <Link
+                                to="/tenant/maintenance/dashboard"
+                                onClick={() => setOpen(false)}
+                                className="flex items-center gap-4 px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors group"
+                                role="menuitem"
+                            >
+                                <span className="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-primary transition-colors">
+                                    build
+                                </span>
+                                Maintenance
+                            </Link>
                         </>
                     )}
 

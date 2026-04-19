@@ -11,7 +11,7 @@ gsap.registerPlugin(ScrollTrigger);
 export default function Footer() {
     const footerRef = useRef(null);
     const gridRef = useRef(null);
-    
+
     useLayoutEffect(() => {
         let ctx = gsap.context(() => {
             gsap.from(gridRef.current.children, {
@@ -39,9 +39,9 @@ export default function Footer() {
                             {/* Brand Logo - Footer Version */}
                             <div className="relative flex items-center justify-center w-10 h-10 bg-emerald-50/50 rounded-xl transition-transform group-hover:scale-110">
                                 <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M4 10L12 4L20 10V18C20 19.1046 19.1046 20 18 20H6C4.89543 20 4 19.1046 4 18V10Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-900"/>
-                                    <path d="M12 14C13.1046 14 14 13.1046 14 12C14 10.8954 13.1046 10 12 10C10.8954 10 10 10.8954 10 12C10 13.1046 10.8954 14 12 14Z" fill="currentColor" className="text-emerald-500"/>
-                                    <path d="M12 14V17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-emerald-500"/>
+                                    <path d="M4 10L12 4L20 10V18C20 19.1046 19.1046 20 18 20H6C4.89543 20 4 19.1046 4 18V10Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-900" />
+                                    <path d="M12 14C13.1046 14 14 13.1046 14 12C14 10.8954 13.1046 10 12 10C10.8954 10 10 10.8954 10 12C10 13.1046 10.8954 14 12 14Z" fill="currentColor" className="text-emerald-500" />
+                                    <path d="M12 14V17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-emerald-500" />
                                 </svg>
                             </div>
                             <span className="text-2xl font-extrabold tracking-tight text-slate-900">
@@ -110,8 +110,8 @@ export default function Footer() {
                 </div>
 
                 {/* Copyright */}
-                <div className="pt-8 border-t border-slate-100 text-center text-sm text-slate-400">
-                    <p>&copy; 2026 RentEase Sri Lanka. All rights reserved.</p>
+                <div className="pt-8 border-t border-slate-100 text-center text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
+                    <p>&copy; {new Date().getFullYear()} RentEase Sri Lanka. All rights reserved.</p>
                 </div>
             </div>
         </footer>

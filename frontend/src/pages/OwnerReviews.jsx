@@ -95,12 +95,17 @@ export default function OwnerReviews() {
     const filteredReviews = reviews.filter(r => r.status === activeTab);
 
     return (
-        <div className="flex h-screen overflow-hidden bg-[#FBFDFF]" style={{ "--color-primary": "#10b981" }}>
+        <div className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 font-sans selection:bg-emerald-100" style={{ "--color-primary": "#26C289" }}>
             <Sidebar />
 
             <main className="flex-1 flex flex-col min-w-0 font-sans">
                 {/* Header */}
-                <header className="sticky top-0 z-30 h-[88px] border-b border-slate-100/80 bg-white/70 backdrop-blur-3xl px-8 lg:px-12 flex items-center justify-between gap-4 shrink-0">
+                <motion.header 
+                    initial={{ opacity: 0, y: -10 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    transition={{ duration: 0.4 }}
+                    className="sticky top-0 z-30 h-[88px] border-b border-slate-100/80 bg-white/70 backdrop-blur-3xl px-8 lg:px-12 flex items-center justify-between gap-4 shrink-0"
+                >
                     <div>
                         <h2 className="text-2xl font-black tracking-tight text-slate-900">Property <span className="text-emerald-500">Reviews</span></h2>
                         <p className="text-sm text-slate-400 font-bold">Manage feedback and build tenant trust.</p>
@@ -112,9 +117,14 @@ export default function OwnerReviews() {
                         </div>
                         {user && <UserDropdown user={user} onLogout={logout} />}
                     </div>
-                </header>
+                </motion.header>
 
-                <div className="flex-1 overflow-y-auto p-5 lg:p-8">
+                <motion.div 
+                    className="flex-1 overflow-y-auto p-5 lg:p-8 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.1 }}
+                >
                     
                     {/* Modern Top Stats / Info header */}
                     <div className="bg-white rounded-[2rem] p-6 lg:p-8 border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.03)] mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden">
@@ -265,7 +275,7 @@ export default function OwnerReviews() {
                             </AnimatePresence>
                         </div>
                     )}
-                </div>
+                </motion.div>
             </main>
 
             {/* Premium Reply Modal */}
