@@ -60,12 +60,17 @@ export default function OwnerMilestones() {
   const [activeTab, setActiveTab] = React.useState(0);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#FBFDFF]">
+    <div className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 font-sans selection:bg-emerald-100" style={{ "--color-primary": "#26C289" }}>
       <Sidebar />
 
       <main className="flex-1 flex flex-col min-w-0 font-sans">
         {/* Header */}
-        <header className="sticky top-0 z-30 h-[88px] border-b border-slate-100/80 bg-white/70 backdrop-blur-3xl px-8 lg:px-12 flex items-center justify-between shrink-0">
+        <motion.header 
+          initial={{ opacity: 0, y: -10 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ duration: 0.4 }}
+          className="sticky top-0 z-30 h-[88px] border-b border-slate-100/80 bg-white/70 backdrop-blur-3xl px-8 lg:px-12 flex items-center justify-between shrink-0"
+        >
           <div>
             <h2 className="text-2xl font-black tracking-tight text-slate-900">System <span className="text-[#F97316]">Milestones</span></h2>
             <p className="text-sm text-slate-400 font-bold italic">2026 Core Platform Achievements</p>
@@ -77,10 +82,15 @@ export default function OwnerMilestones() {
             </div>
             {user && <UserDropdown user={user} onLogout={logout} />}
           </div>
-        </header>
+        </motion.header>
 
         {/* Content Body */}
-        <div className="flex-1 overflow-y-auto p-8 lg:p-12 space-y-12">
+        <motion.div 
+          className="flex-1 overflow-y-auto p-8 lg:p-12 space-y-12 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+        >
           
           {/* Animated Tab Switcher */}
           <div className="flex flex-wrap gap-4 border-b border-slate-100 pb-2">
@@ -143,7 +153,7 @@ export default function OwnerMilestones() {
               </div>
             </div>
           </motion.div>
-        </div>
+        </motion.div>
       </main>
     </div>
   );

@@ -5,6 +5,8 @@ import ListingModerationCard from "../components/admin/dashboard/ListingModerati
 import ListingDetailsModal from "../components/admin/dashboard/ListingDetailsModal";
 import AdminNotificationsBell from "../components/admin/dashboard/AdminNotificationsBell";
 import { getAllPropertiesForAdmin, moderateProperty } from "../services/api";
+import { motion, AnimatePresence } from "framer-motion";
+import PageLoader from "../components/PageLoader";
 
 /**
  * ListingModeration — Admin page for reviewing and moderating property listings.
@@ -106,11 +108,7 @@ export default function ListingModeration() {
     }, [adminUser]);
 
     if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-[#f6f8f7]">
-                <span className="material-symbols-outlined animate-spin text-4xl text-[#1DBC60]">progress_activity</span>
-            </div>
-        );
+        return <PageLoader />;
     }
 
     if (!adminUser) {
@@ -157,7 +155,7 @@ export default function ListingModeration() {
 
     return (
         <div
-            className="flex h-screen overflow-hidden bg-[#f6f8f7]"
+            className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 font-sans selection:bg-emerald-100"
             style={{ "--color-primary": "#26C289" }}
         >
             {/* ── Sidebar ─────────────────────────────────────── */}
@@ -166,7 +164,12 @@ export default function ListingModeration() {
             {/* ── Main Content ────────────────────────────────── */}
             <main className="flex-1 flex flex-col min-w-0">
                 {/* ── Header ────────────────────────────────────── */}
-                <header className="sticky top-0 z-30 h-20 border-b border-emerald-100 bg-white/90 backdrop-blur-md px-6 lg:px-8 flex items-center justify-between gap-4 shrink-0">
+                <motion.header 
+                    initial={{ opacity: 0, y: -10 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    transition={{ duration: 0.4 }}
+                    className="sticky top-0 z-30 h-[88px] border-b border-slate-100/80 bg-white/70 backdrop-blur-3xl px-8 lg:px-12 flex items-center justify-between gap-4 shrink-0"
+                >
                     <h2 className="text-xl lg:text-2xl font-bold tracking-tight whitespace-nowrap pl-12 lg:pl-0">
                         Listing Moderation
                     </h2>
@@ -196,10 +199,15 @@ export default function ListingModeration() {
                             className="w-10 h-10 rounded-full ring-2 ring-[#1DBC60]/30"
                         />
                     </div>
-                </header>
+                </motion.header>
 
                 {/* ── Page Content ──────────────────────────────── */}
-                <div className="flex-1 overflow-y-auto p-5 lg:p-8">
+                <motion.div 
+                    className="flex-1 overflow-y-auto p-5 lg:p-8 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.1 }}
+                >
                     <div className="max-w-5xl mx-auto">
 
                         {/* ── Tabs ─────────────────────────────────── */}
@@ -319,7 +327,7 @@ export default function ListingModeration() {
                             propertyId={viewPropertyId} 
                         />
                     </div>
-                </div>
+                </motion.div>
             </main>
         </div>
     );

@@ -5,6 +5,8 @@ import { getOwnerBookings, approveBooking, rejectBooking, removeAllocation, hard
 import Sidebar from "../components/owner/dashboard/Sidebar";
 import UserDropdown from "../components/UserDropdown";
 
+import { motion } from "framer-motion";
+
 const STATUS_CONFIG = {
     PENDING: { label: "Pending", bg: "bg-amber-100", text: "text-amber-700", dot: "bg-amber-500" },
     ALLOCATED: { label: "Allocated", bg: "bg-emerald-100", text: "text-emerald-700", dot: "bg-emerald-500" },
@@ -295,12 +297,17 @@ export default function OwnerBookings() {
     const displayed = activeTab === "pending" ? pendingBookings : historyBookings;
 
     return (
-        <div className="flex min-h-screen bg-[#f6f8f7]" style={{ "--color-primary": "#13ec6d" }}>
+        <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 font-sans selection:bg-emerald-100" style={{ "--color-primary": "#26C289" }}>
             <Sidebar />
 
             <main className="flex-1 flex flex-col min-w-0">
                 {/* Header */}
-                <header className="sticky top-0 z-30 h-20 border-b border-emerald-100 bg-white/90 backdrop-blur-md px-6 lg:px-8 flex items-center justify-between gap-4 shrink-0">
+                <motion.header 
+                    initial={{ opacity: 0, y: -10 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    transition={{ duration: 0.4 }}
+                    className="sticky top-0 z-30 h-20 border-b border-emerald-100 bg-white/90 backdrop-blur-md px-6 lg:px-8 flex items-center justify-between gap-4 shrink-0"
+                >
                     <h2 className="text-xl lg:text-2xl font-bold tracking-tight pl-12 lg:pl-0">Bookings</h2>
                     <div className="flex items-center gap-3 ml-auto">
                         <button className="relative p-2 rounded-full hover:bg-emerald-50 transition-colors text-slate-500">
@@ -311,9 +318,14 @@ export default function OwnerBookings() {
                         </button>
                         {user && <UserDropdown user={user} onLogout={logout} />}
                     </div>
-                </header>
+                </motion.header>
 
-                <div className="flex-1 overflow-y-auto p-5 lg:p-8">
+                <motion.div 
+                    className="flex-1 overflow-y-auto p-5 lg:p-8 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.1 }}
+                >
                     {/* Toast */}
                     {toast && (
                         <div className={`fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl shadow-xl text-sm font-semibold animate-fade-in
@@ -414,7 +426,7 @@ export default function OwnerBookings() {
                             ))}
                         </div>
                     )}
-                </div>
+                </motion.div>
             </main>
         </div>
     );

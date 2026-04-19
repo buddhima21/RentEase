@@ -222,7 +222,7 @@ export default function OwnerAnalytics() {
   ];
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#FBFDFF] relative">
+    <div className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 font-sans selection:bg-emerald-100" style={{ "--color-primary": "#26C289" }}>
       {/* Toast Notification */}
       <AnimatePresence>
         {isExported && (
@@ -248,7 +248,12 @@ export default function OwnerAnalytics() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 font-sans">
         {/* Header */}
-        <header className="sticky top-0 z-30 h-[88px] border-b border-slate-100/80 bg-white/70 backdrop-blur-3xl px-8 lg:px-12 flex items-center justify-between gap-4 shrink-0">
+        <motion.header 
+          initial={{ opacity: 0, y: -10 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ duration: 0.4 }}
+          className="sticky top-0 z-30 h-[88px] border-b border-slate-100/80 bg-white/70 backdrop-blur-3xl px-8 lg:px-12 flex items-center justify-between gap-4 shrink-0"
+        >
           <div>
             <h2 className="text-2xl font-black tracking-tight text-slate-900">System <span className="text-emerald-500">Analytics</span></h2>
             <p className="text-sm text-slate-400 font-bold">Monitor your platform's performance and growth.</p>
@@ -320,10 +325,15 @@ export default function OwnerAnalytics() {
             <div className="h-8 w-px bg-slate-200" />
             {user && <UserDropdown user={user} onLogout={logout} />}
           </div>
-        </header>
+        </motion.header>
 
         {/* Dashboard Body */}
-        <div className="flex-1 overflow-y-auto p-8 lg:p-12 space-y-10 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+        <motion.div 
+          className="flex-1 overflow-y-auto p-8 lg:p-12 space-y-10 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+        >
           
           {/* KPI Stat Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
@@ -502,7 +512,7 @@ export default function OwnerAnalytics() {
             </div>
           </div>
 
-        </div>
+        </motion.div>
       </main>
     </div>
   );

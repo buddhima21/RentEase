@@ -5,6 +5,7 @@ import UserDropdown from "../components/UserDropdown";
 import { useAuth } from "../context/AuthContext";
 import { downloadAgreementPdf, getOwnerAgreements } from "../services/api";
 import { ownerProfile } from "../data/ownerDashboardData";
+import { motion } from "framer-motion";
 
 export default function OwnerAgreements() {
     const { user, logout } = useAuth();
@@ -47,10 +48,15 @@ export default function OwnerAgreements() {
     };
 
     return (
-        <div className="flex min-h-screen bg-[#f6f8f7]">
+        <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 font-sans selection:bg-emerald-100" style={{ "--color-primary": "#26C289" }}>
             <Sidebar />
-            <main className="flex-1 flex flex-col min-w-0">
-                <header className="h-20 bg-white border-b border-emerald-100 px-6 flex items-center justify-between shrink-0">
+            <main className="flex-1 flex flex-col min-w-0 font-sans">
+                <motion.header 
+                    initial={{ opacity: 0, y: -10 }} 
+                    animate={{ opacity: 1, y: 0 }} 
+                    transition={{ duration: 0.4 }}
+                    className="sticky top-0 z-30 h-20 border-b border-emerald-100 bg-white/90 backdrop-blur-md px-6 lg:px-8 flex items-center justify-between gap-4 shrink-0"
+                >
                     <h1 className="text-xl font-bold text-slate-900 pl-12 lg:pl-0">Rental agreements</h1>
                     {user ? (
                         <UserDropdown user={user} onLogout={logout} />
@@ -60,8 +66,13 @@ export default function OwnerAgreements() {
                             style={{ backgroundImage: `url('${ownerProfile.avatar}')` }}
                         />
                     )}
-                </header>
-                <div className="flex-1 overflow-y-auto p-6 lg:p-8 pl-12 lg:pl-8 max-w-4xl">
+                </motion.header>
+                <motion.div 
+                    className="flex-1 overflow-y-auto p-6 lg:p-8 pl-12 lg:pl-8 max-w-4xl scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.1 }}
+                >
                     <p className="text-sm text-slate-500 mb-6">
                         Agreements created by your tenants after approving their bookings. Set property terms under{" "}
                         <Link to="/owner/properties" className="text-primary font-bold">
@@ -98,7 +109,7 @@ export default function OwnerAgreements() {
                             ))}
                         </ul>
                     )}
-                </div>
+                </motion.div>
             </main>
         </div>
     );
