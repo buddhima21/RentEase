@@ -38,6 +38,8 @@ export default function AdminSidebar() {
             {/* ── Nav Links ───────────────────────────────────── */}
             <nav className="flex-1 px-3 py-5 space-y-1 overflow-y-auto">
                 {adminSidebarLinks.map((link, index) => {
+            <nav className="flex-1 px-4 py-5 space-y-1 overflow-y-auto">
+                {adminSidebarLinks.map((link) => {
                     const isActive = location.pathname === link.path || location.pathname.startsWith(`${link.path}/`);
                     return (
                         <Link

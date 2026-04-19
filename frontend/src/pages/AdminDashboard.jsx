@@ -173,6 +173,29 @@ export default function AdminDashboard() {
                                 Open Maintenance Queue
                             </Link>
                         </div>
+                       <div>
+                          <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 px-3 py-1 rounded-full mb-3">
+                              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                              <span className="text-[10px] font-black tracking-widest uppercase">Active Session</span>
+                          </div>
+                          <h1 className="text-[32px] md:text-[40px] font-black tracking-tight text-slate-900 leading-[1.1]">
+                              Hi, Admin👋
+                          </h1>
+                          <p className="text-slate-500 font-medium mt-2 text-[15px]">Central command for RentEase platform safety.</p>
+                       </div>
+                              <div className="flex flex-col items-end gap-3">
+                                  <div className="bg-white border border-slate-100 shadow-sm px-4 py-2.5 rounded-xl flex items-center gap-2 text-sm font-bold text-slate-700">
+                                      <span className="material-symbols-outlined text-slate-400 text-[18px]">calendar_month</span>
+                                      {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                                  </div>
+                                  <Link
+                                        to="/admin/maintenance"
+                                        className="bg-emerald-600 text-white font-bold px-5 py-2.5 rounded-xl hover:bg-emerald-700 transition-all text-sm flex items-center gap-2 shadow-sm"
+                                  >
+                                        <span className="material-symbols-outlined text-[18px]">construction</span>
+                                        Open Maintenance Queue
+                                  </Link>
+                       </div>
                     </div>
 
                     {/* Custom Tall KPI Cards & Chart Grid */}
