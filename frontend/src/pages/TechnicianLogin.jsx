@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
-import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import { loginUser } from "../services/api";
 import { useAuth } from "../context/AuthContext";
 
 export default function TechnicianLogin() {
     const { user, login } = useAuth();
-    const location = useLocation();
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({ email: "", password: "" });
@@ -21,9 +20,8 @@ export default function TechnicianLogin() {
         }
     }, [user, navigate]);
 
-    const fromMaintenance = location.state?.fromMaintenance === true;
-    if (!fromMaintenance && user?.role !== "TECHNICIAN") {
-        return <Navigate to="/maintenance" replace />;
+    if (user?.role === "TECHNICIAN") {
+        return <Navigate to="/technician/dashboard" replace />;
     }
 
     const handleChange = (e) => {

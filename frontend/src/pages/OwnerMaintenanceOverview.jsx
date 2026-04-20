@@ -32,6 +32,7 @@ export default function OwnerMaintenanceOverview() {
                                     <th className="text-left p-3">Priority</th>
                                     <th className="text-left p-3">Status</th>
                                     <th className="text-left p-3">Technician</th>
+                                    <th className="text-left p-3">Resolution</th>
                                 </tr>
                             </thead>
                             <tbody className="bg-white">
@@ -40,10 +41,11 @@ export default function OwnerMaintenanceOverview() {
                                         <td className="p-3 font-medium text-slate-900">{item.title}</td>
                                         <td className="p-3"><MaintenanceBadge kind="priority" value={item.priority} /></td>
                                         <td className="p-3"><MaintenanceBadge value={item.status} /></td>
-                                        <td className="p-3 text-slate-600">{item.assignedTechnicianId || "Unassigned"}</td>
+                                        <td className="p-3 text-slate-600">{item.technicianName || item.assignedTechnicianId || "Unassigned"}</td>
+                                        <td className="p-3 text-slate-600">{item.completionSummary || "Pending"}</td>
                                     </tr>
                                 ))}
-                                {items.length === 0 && <tr><td className="p-6 text-center text-slate-500" colSpan={4}>No requests found.</td></tr>}
+                                {items.length === 0 && <tr><td className="p-6 text-center text-slate-500" colSpan={5}>No requests found.</td></tr>}
                             </tbody>
                         </table>
                     </div>

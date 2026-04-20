@@ -19,16 +19,20 @@ export default function MaintenanceCalendar() {
     const [notes, setNotes] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [loadError, setLoadError] = useState("");
+    const minScheduleTime = useMemo(() => new Date(Date.now() + 60 * 60 * 1000).toISOString().slice(0, 16), []);
 
     const load = async () => {
         setLoading(true);
         try {
+            setLoadError("");
             const [queueRes, techRes] = await Promise.all([getAdminMaintenanceQueue(), getMaintenanceTechnicians()]);
             setItems(queueRes.data?.data || []);
             setTechs(techRes.data?.data || []);
-        } catch {
+        } catch (err) {
             setItems([]);
             setTechs([]);
+            setLoadError(err?.response?.data?.message || "Unable to load calendar data.");
         } finally {
             setLoading(false);
         }
@@ -73,8 +77,8 @@ export default function MaintenanceCalendar() {
             return;
         }
 
-        if (new Date(scheduledAt).getTime() < Date.now()) {
-            setError("Scheduled time must be in the future.");
+        if (new Date(scheduledAt).getTime() < Date.now() + 60 * 60 * 1000) {
+            setError("Scheduled time must be at least 1 hour in the future.");
             return;
         }
 
@@ -130,6 +134,7 @@ export default function MaintenanceCalendar() {
                     </MaintenanceSectionCard>
 
                     <MaintenanceSectionCard eyebrow="Schedule" title={`Visits on ${selectedDate}`} description="Review the selected date and schedule a new visit if needed.">
+                        {loadError ? <p className="mb-3 text-sm font-medium text-red-600">{loadError}</p> : null}
                         <div className="flex flex-wrap gap-2">
                             <select className="rounded-xl border border-slate-300 bg-white p-3" value={selectedRequestId} onChange={(e) => setSelectedRequestId(e.target.value)}>
                                 <option value="">Select request</option>
@@ -143,7 +148,7 @@ export default function MaintenanceCalendar() {
                                     <option key={tech.id} value={tech.id}>{tech.fullName}</option>
                                 ))}
                             </select>
-                            <input className="rounded-xl border border-slate-300 bg-white p-3" type="datetime-local" min={new Date().toISOString().slice(0, 16)} value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} />
+                            <input className="rounded-xl border border-slate-300 bg-white p-3" type="datetime-local" min={minScheduleTime} value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} />
                             <input className="rounded-xl border border-slate-300 bg-white p-3" placeholder="Admin note" maxLength={1000} value={notes} onChange={(e) => setNotes(e.target.value)} />
                             <button type="button" disabled={loading} className="rounded-xl bg-primary px-4 py-3 font-semibold text-white disabled:opacity-60" onClick={saveSchedule}>
                                 Schedule visit
@@ -158,7 +163,12 @@ export default function MaintenanceCalendar() {
                                         <div>
                                             <p className="font-bold text-slate-900">{item.title}</p>
                                             <p className="text-sm text-slate-600">{item.serviceType} • {formatMaintenanceDate(item.scheduledAt)}</p>
-                                            <p className="text-sm text-slate-600">Technician: {item.assignedTechnicianId || "Unassigned"}</p>
+                                            <p className="text-sm text-slate-600">Technician: {item.technicianName || item.assignedTechnicianId || "Unassigned"}</p>
+                                            {item.assignedTechnicianId ? (
+                                                <p className="text-xs text-amber-700">
+                                                    Same-day load: {scheduled.filter((entry) => entry.assignedTechnicianId === item.assignedTechnicianId).length} visit(s)
+                                                </p>
+                                            ) : null}
                                         </div>
                                         <MaintenanceBadge value={item.status} />
                                     </div>

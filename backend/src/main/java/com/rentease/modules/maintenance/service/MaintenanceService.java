@@ -23,6 +23,7 @@ import com.rentease.modules.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -31,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,6 +43,13 @@ public class MaintenanceService {
     private static final Duration SLA_HIGH = Duration.ofHours(24);
     private static final Duration SLA_MEDIUM = Duration.ofHours(72);
     private static final Duration SLA_LOW = Duration.ofHours(120);
+    private static final Duration MIN_SCHEDULING_BUFFER = Duration.ofHours(1);
+    private static final Set<MaintenanceStatus> TECHNICIAN_ACTIVE_STATUSES = Set.of(
+            MaintenanceStatus.ASSIGNED,
+            MaintenanceStatus.SCHEDULED,
+            MaintenanceStatus.IN_PROGRESS,
+            MaintenanceStatus.PAUSED
+    );
 
     private final MaintenanceRepository maintenanceRepository;
     private final UserRepository userRepository;
@@ -51,6 +60,10 @@ public class MaintenanceService {
     @Value("${rentease.maintenance.closure.grace-days:7}")
     private long closureGraceDays;
 
+    @Value("${rentease.maintenance.technician.max-active-jobs:8}")
+    private long maxActiveJobsPerTechnician;
+
+    @Transactional
     public MaintenanceResponse createRequest(MaintenanceRequestDTO dto, String actorId, boolean isAdmin) {
         if (!isAdmin && !Objects.equals(actorId, dto.getTenantId())) {
             throw new ForbiddenException("Tenant can only create maintenance requests for their own account");
@@ -168,19 +181,20 @@ public class MaintenanceService {
     public MaintenanceResponse getById(String id) {
         MaintenanceRequest request = maintenanceRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("MaintenanceRequest", "id", id));
+        request = normalizeOrphanedAssignmentIfNeeded(request);
         return mapToResponse(applyClosurePolicyIfDue(request));
     }
 
     public List<MaintenanceResponse> getByTenant(String tenantId) {
         return maintenanceRepository.findByTenantIdOrderByCreatedAtDesc(tenantId)
-                .stream().map(this::applyClosurePolicyIfDue).map(this::mapToResponse).collect(Collectors.toList());
+                .stream().map(this::normalizeOrphanedAssignmentIfNeeded).map(this::applyClosurePolicyIfDue).map(this::mapToResponse).collect(Collectors.toList());
     }
 
     public List<MaintenanceResponse> getByTechnician(String technicianId, MaintenanceStatus status) {
         List<MaintenanceRequest> requests = status == null
                 ? maintenanceRepository.findByAssignedTechnicianIdOrderByCreatedAtDesc(technicianId)
                 : maintenanceRepository.findByAssignedTechnicianIdAndStatusOrderByCreatedAtDesc(technicianId, status);
-        return requests.stream().map(this::applyClosurePolicyIfDue).map(this::mapToResponse).collect(Collectors.toList());
+        return requests.stream().map(this::normalizeOrphanedAssignmentIfNeeded).map(this::applyClosurePolicyIfDue).map(this::mapToResponse).collect(Collectors.toList());
     }
 
     public List<MaintenanceResponse> getByOwner(String ownerId) {
@@ -193,7 +207,7 @@ public class MaintenanceService {
         }
 
         return maintenanceRepository.findByPropertyIdInOrderByCreatedAtDesc(propertyIds)
-            .stream().map(this::applyClosurePolicyIfDue).map(this::mapToResponse).collect(Collectors.toList());
+            .stream().map(this::normalizeOrphanedAssignmentIfNeeded).map(this::applyClosurePolicyIfDue).map(this::mapToResponse).collect(Collectors.toList());
     }
 
     public List<MaintenanceResponse> getAdminQueue(MaintenanceStatus status, String priority, String technicianId) {
@@ -224,9 +238,10 @@ public class MaintenanceService {
                     .collect(Collectors.toList());
         }
 
-        return queue.stream().map(this::applyClosurePolicyIfDue).map(this::mapToResponse).collect(Collectors.toList());
+        return queue.stream().map(this::normalizeOrphanedAssignmentIfNeeded).map(this::applyClosurePolicyIfDue).map(this::mapToResponse).collect(Collectors.toList());
     }
 
+    @Transactional
     public MaintenanceResponse assignTechnician(String requestId, MaintenanceAssignRequest request, String adminId) {
         MaintenanceRequest maintenanceRequest = getRequestOrThrow(requestId);
         User technician = findUserOrThrow(request.getTechnicianId());
@@ -238,6 +253,8 @@ public class MaintenanceService {
                 || maintenanceRequest.getStatus() == MaintenanceStatus.CLOSED) {
             throw new BadRequestException("Cannot assign a technician to a resolved or closed request");
         }
+
+        validateTechnicianCapacity(request.getTechnicianId(), maintenanceRequest.getId());
 
         String previousTechnicianId = maintenanceRequest.getAssignedTechnicianId();
         MaintenanceStatus previousStatus = maintenanceRequest.getStatus();
@@ -251,22 +268,18 @@ public class MaintenanceService {
                 throw new BadRequestException("Cannot reassign a request while work is in progress or paused");
             }
 
-            String reassignmentAudit = "Reassigned from technician " + previousTechnicianId
-                + " to " + request.getTechnicianId()
-                + " by admin " + adminId
-                + " at " + LocalDateTime.now();
-            String existingNotes = maintenanceRequest.getAdminNotes();
-            maintenanceRequest.setAdminNotes(
-                existingNotes == null || existingNotes.isBlank()
-                    ? reassignmentAudit
-                    : existingNotes + "\n" + reassignmentAudit
-            );
+            if (request.getAdminNotes() == null || request.getAdminNotes().isBlank()) {
+                throw new BadRequestException("Admin note is required when reassigning a technician");
+            }
         }
 
         maintenanceRequest.setAssignedTechnicianId(request.getTechnicianId());
         maintenanceRequest.setAssignedByAdminId(adminId);
         maintenanceRequest.setAssignedAt(LocalDateTime.now());
         maintenanceRequest.setScheduledAt(request.getScheduledAt());
+        if (request.getScheduledAt() != null) {
+            validateSchedulingBuffer(request.getScheduledAt());
+        }
         if (maintenanceRequest.getStatus() == MaintenanceStatus.REPORTED) {
             maintenanceRequest.setStatus(
                     request.getScheduledAt() != null ? MaintenanceStatus.SCHEDULED : MaintenanceStatus.ASSIGNED
@@ -286,12 +299,15 @@ public class MaintenanceService {
         );
 
         MaintenanceRequest updated = maintenanceRepository.save(maintenanceRequest);
-        maintenanceNotificationService.notifyTechnicianAssigned(technician, updated);
+        Property property = updated.getPropertyId() == null ? null : propertyRepository.findById(updated.getPropertyId()).orElse(null);
+        User contextTenant = updated.getTenantId() == null ? null : userRepository.findById(updated.getTenantId()).orElse(null);
+        maintenanceNotificationService.notifyTechnicianAssigned(technician, updated, contextTenant, property);
         userRepository.findById(updated.getTenantId())
                 .ifPresent(tenant -> maintenanceNotificationService.notifyTenantStatusChanged(tenant, updated));
         return mapToResponse(updated);
     }
 
+    @Transactional
     public MaintenanceResponse scheduleRequest(String requestId, MaintenanceScheduleRequest request, String adminId) {
         MaintenanceRequest maintenanceRequest = getRequestOrThrow(requestId);
         MaintenanceStatus previousStatus = maintenanceRequest.getStatus();
@@ -300,9 +316,7 @@ public class MaintenanceService {
                 || maintenanceRequest.getStatus() == MaintenanceStatus.CLOSED) {
             throw new BadRequestException("Cannot schedule a resolved or closed request");
         }
-        if (request.getScheduledAt().isBefore(LocalDateTime.now())) {
-            throw new BadRequestException("Scheduled time must be in the future");
-        }
+        validateSchedulingBuffer(request.getScheduledAt());
 
         maintenanceRequest.setScheduledAt(request.getScheduledAt());
         if (maintenanceRequest.getStatus() == MaintenanceStatus.REPORTED
@@ -315,9 +329,12 @@ public class MaintenanceService {
             if (technician.getRole() != UserRole.TECHNICIAN) {
                 throw new BadRequestException("Scheduled user must have TECHNICIAN role");
             }
+            validateTechnicianCapacity(request.getTechnicianId(), maintenanceRequest.getId());
             maintenanceRequest.setAssignedTechnicianId(request.getTechnicianId());
             maintenanceRequest.setAssignedAt(LocalDateTime.now());
-            maintenanceNotificationService.notifyTechnicianAssigned(technician, maintenanceRequest);
+            Property property = maintenanceRequest.getPropertyId() == null ? null : propertyRepository.findById(maintenanceRequest.getPropertyId()).orElse(null);
+            User tenant = maintenanceRequest.getTenantId() == null ? null : userRepository.findById(maintenanceRequest.getTenantId()).orElse(null);
+            maintenanceNotificationService.notifyTechnicianAssigned(technician, maintenanceRequest, tenant, property);
         }
         if (request.getAdminNotes() != null && !request.getAdminNotes().isBlank()) {
             maintenanceRequest.setAdminNotes(request.getAdminNotes());
@@ -392,6 +409,7 @@ public class MaintenanceService {
         validateStatusTransition(request.getStatus(), MaintenanceStatus.CANCELLED);
         request.setStatus(MaintenanceStatus.CANCELLED);
         request.setClosedAt(LocalDateTime.now());
+        archiveRequestMedia(request);
         appendWorkflowEvent(
             request,
             "REQUEST_CANCELLED",
@@ -442,6 +460,7 @@ public class MaintenanceService {
 
         validateStatusTransition(request.getStatus(), MaintenanceStatus.PAUSED);
         MaintenanceStatus previousStatus = request.getStatus();
+        request.setPausedFromStatus(previousStatus);
         request.setStatus(MaintenanceStatus.PAUSED);
         appendWorkflowEvent(
             request,
@@ -460,15 +479,19 @@ public class MaintenanceService {
         MaintenanceRequest request = getRequestOrThrow(requestId);
         ensureAssignedToTechnician(request, technicianId);
 
+        MaintenanceStatus resumeToStatus = request.getPausedFromStatus() == null
+                ? MaintenanceStatus.IN_PROGRESS
+                : request.getPausedFromStatus();
         validateStatusTransition(request.getStatus(), MaintenanceStatus.IN_PROGRESS);
         MaintenanceStatus previousStatus = request.getStatus();
-        request.setStatus(MaintenanceStatus.IN_PROGRESS);
+        request.setStatus(resumeToStatus);
+        request.setPausedFromStatus(null);
         appendWorkflowEvent(
             request,
             "WORK_RESUMED",
             technicianId,
             previousStatus,
-            MaintenanceStatus.IN_PROGRESS,
+            resumeToStatus,
             "Work resumed"
         );
         MaintenanceRequest updated = maintenanceRepository.save(request);
@@ -492,6 +515,7 @@ public class MaintenanceService {
         request.setClosureDueAt(request.getResolvedAt().plusDays(closureGraceDays));
         request.setCompletionSummary(resolveRequest.getCompletionSummary());
         request.setTechnicianNotes(resolveRequest.getTechnicianNotes());
+        request.setPartsUsed(resolveRequest.getPartsUsed());
         request.setCompletionImageUrls(resolveRequest.getCompletionImageUrls());
         appendWorkflowEvent(
             request,
@@ -517,6 +541,7 @@ public class MaintenanceService {
         request.setStatus(MaintenanceStatus.CLOSED);
         request.setClosedAt(LocalDateTime.now());
         request.setClosureDueAt(null);
+        archiveRequestMedia(request);
         request.setAssignedByAdminId(adminId);
         if (adminNote != null && !adminNote.isBlank()) {
             request.setAdminNotes(adminNote);
@@ -607,6 +632,57 @@ public class MaintenanceService {
         }
     }
 
+    private void validateSchedulingBuffer(LocalDateTime scheduledAt) {
+        LocalDateTime minAllowed = LocalDateTime.now().plus(MIN_SCHEDULING_BUFFER);
+        if (scheduledAt.isBefore(minAllowed)) {
+            throw new BadRequestException("Scheduled time must be at least 1 hour in the future");
+        }
+    }
+
+    private void validateTechnicianCapacity(String technicianId, String currentRequestId) {
+        long openLoad = maintenanceRepository.countByAssignedTechnicianIdAndStatusIn(technicianId, new ArrayList<>(TECHNICIAN_ACTIVE_STATUSES));
+        MaintenanceRequest current = currentRequestId == null ? null : maintenanceRepository.findById(currentRequestId).orElse(null);
+        boolean alreadyAssignedToThisRequest = current != null && technicianId.equals(current.getAssignedTechnicianId());
+        if (!alreadyAssignedToThisRequest && openLoad >= maxActiveJobsPerTechnician) {
+            throw new BadRequestException("Technician has reached active job capacity");
+        }
+    }
+
+    private void archiveRequestMedia(MaintenanceRequest request) {
+        if ((request.getImageUrls() != null && !request.getImageUrls().isEmpty())
+                || (request.getCompletionImageUrls() != null && !request.getCompletionImageUrls().isEmpty())) {
+            request.setMediaArchivedAt(LocalDateTime.now());
+            request.setImageUrls(Collections.emptyList());
+            request.setCompletionImageUrls(Collections.emptyList());
+        }
+    }
+
+    private MaintenanceRequest normalizeOrphanedAssignmentIfNeeded(MaintenanceRequest request) {
+        if (request.getAssignedTechnicianId() == null || request.getAssignedTechnicianId().isBlank()) {
+            return request;
+        }
+        if (userRepository.findById(request.getAssignedTechnicianId()).isPresent()) {
+            return request;
+        }
+
+        String orphanedTechnicianId = request.getAssignedTechnicianId();
+        request.setAssignedTechnicianId(null);
+        request.setAssignedAt(null);
+        MaintenanceStatus previousStatus = request.getStatus();
+        if (request.getStatus() == MaintenanceStatus.SCHEDULED || request.getStatus() == MaintenanceStatus.ASSIGNED) {
+            request.setStatus(MaintenanceStatus.REPORTED);
+        }
+        appendWorkflowEvent(
+                request,
+                "ORPHANED_ASSIGNMENT_CLEARED",
+                "SYSTEM",
+                previousStatus,
+                request.getStatus(),
+                "Cleared missing technician reference: " + orphanedTechnicianId
+        );
+        return maintenanceRepository.save(request);
+    }
+
     private LocalDateTime calculateSlaDueAt(String priority, LocalDateTime baseTime) {
         Duration target = switch (String.valueOf(priority).toUpperCase(Locale.ROOT)) {
             case "EMERGENCY" -> SLA_EMERGENCY;
@@ -628,6 +704,7 @@ public class MaintenanceService {
 
         request.setStatus(MaintenanceStatus.CLOSED);
         request.setClosedAt(LocalDateTime.now());
+        archiveRequestMedia(request);
         appendWorkflowEvent(
                 request,
                 "REQUEST_AUTO_CLOSED",
@@ -688,14 +765,17 @@ public class MaintenanceService {
                 .scheduledAt(req.getScheduledAt())
                 .acceptedAt(req.getAcceptedAt())
                 .startedAt(req.getStartedAt())
+                .pausedFromStatus(req.getPausedFromStatus())
                 .resolvedAt(req.getResolvedAt())
                 .slaDueAt(req.getSlaDueAt())
                 .closureDueAt(req.getClosureDueAt())
                 .closedAt(req.getClosedAt())
                 .adminNotes(req.getAdminNotes())
                 .technicianNotes(req.getTechnicianNotes())
+                .partsUsed(req.getPartsUsed())
                 .completionSummary(req.getCompletionSummary())
                 .completionImageUrls(req.getCompletionImageUrls())
+                .mediaArchivedAt(req.getMediaArchivedAt())
                 .workflowEvents(req.getWorkflowEvents())
                 .tenantName(tenant != null ? tenant.getFullName() : null)
                 .tenantEmail(tenant != null ? tenant.getEmail() : null)

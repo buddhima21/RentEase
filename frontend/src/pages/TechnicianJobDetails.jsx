@@ -19,6 +19,8 @@ const CHECKLIST_ITEMS = [
     "Confirm tenant follow-up",
 ];
 
+const getCompletionDraftKey = (jobId) => `maintenance:completion-images:${jobId || "unknown"}`;
+
 export default function TechnicianJobDetails() {
     const { jobId } = useParams();
     const navigate = useNavigate();
@@ -61,6 +63,26 @@ export default function TechnicianJobDetails() {
         });
     }, [jobId, user?.id, user?.role]);
 
+    useEffect(() => {
+        if (!jobId) return;
+        try {
+            const stored = localStorage.getItem(getCompletionDraftKey(jobId));
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                if (Array.isArray(parsed)) {
+                    setCompletionImages(parsed.slice(0, MAX_MAINTENANCE_IMAGES));
+                }
+            }
+        } catch {
+            // Ignore malformed local draft payloads.
+        }
+    }, [jobId]);
+
+    useEffect(() => {
+        if (!jobId) return;
+        localStorage.setItem(getCompletionDraftKey(jobId), JSON.stringify(completionImages));
+    }, [jobId, completionImages]);
+
     const runAction = async (action, fallbackMessage, reloadAfter = true) => {
         setBusy(true);
         setError("");
@@ -100,13 +122,17 @@ export default function TechnicianJobDetails() {
             completionSummary: summary,
             technicianNotes: [
                 notes,
-                partsUsed ? `Parts used: ${partsUsed}` : "",
                 `Checklist complete: ${checklist.every(Boolean) ? "yes" : "no"}`,
             ].filter(Boolean).join("\n"),
+            partsUsed: partsUsed
+                .split(",")
+                .map((part) => part.trim())
+                .filter(Boolean),
             completionImageUrls: completionImages,
         }), "Unable to resolve this request.", false);
 
         if (success) {
+            localStorage.removeItem(getCompletionDraftKey(jobId));
             navigate("/technician/dashboard");
         }
     };

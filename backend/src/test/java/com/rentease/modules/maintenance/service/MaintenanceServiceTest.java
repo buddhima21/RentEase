@@ -68,6 +68,7 @@ class MaintenanceServiceTest {
     @BeforeEach
     void setUp() {
                 ReflectionTestUtils.setField(maintenanceService, "closureGraceDays", 7L);
+                ReflectionTestUtils.setField(maintenanceService, "maxActiveJobsPerTechnician", 8L);
 
         testTenant = User.builder()
                 .id("tenant-1")
@@ -395,6 +396,7 @@ class MaintenanceServiceTest {
         MaintenanceRequest updated = MaintenanceRequest.builder()
                 .id("req-1")
                 .tenantId("tenant-1")
+                .propertyId("prop-1")
                 .assignedTechnicianId("tech-1")
                 .assignedByAdminId("admin-1")
                 .assignedAt(LocalDateTime.now())
@@ -402,11 +404,12 @@ class MaintenanceServiceTest {
                 .build();
         when(maintenanceRepository.save(any())).thenReturn(updated);
         when(userRepository.findById("tenant-1")).thenReturn(Optional.of(testTenant));
+        when(propertyRepository.findById("prop-1")).thenReturn(Optional.of(testProperty));
 
         MaintenanceResponse response = maintenanceService.assignTechnician("req-1", assignRequest, "admin-1");
 
         assertThat(response.getAssignedTechnicianId()).isEqualTo("tech-1");
-        verify(maintenanceNotificationService).notifyTechnicianAssigned(eq(testTechnician), any());
+                verify(maintenanceNotificationService).notifyTechnicianAssigned(eq(testTechnician), any(), eq(testTenant), eq(testProperty));
     }
 
     @Test
@@ -647,6 +650,7 @@ class MaintenanceServiceTest {
         MaintenanceResolveRequest resolveRequest = MaintenanceResolveRequest.builder()
                 .completionSummary("Issue fixed")
                 .technicianNotes("Unit repaired")
+                .partsUsed(Arrays.asList("Compressor", "Wiring"))
                 .completionImageUrls(Arrays.asList("after1.jpg", "after2.jpg"))
                 .build();
 
@@ -661,6 +665,7 @@ class MaintenanceServiceTest {
                 .closureDueAt(LocalDateTime.now().plusDays(7))
                 .completionSummary("Issue fixed")
                 .technicianNotes("Unit repaired")
+                .partsUsed(Arrays.asList("Compressor", "Wiring"))
                 .completionImageUrls(Arrays.asList("after1.jpg", "after2.jpg"))
                 .build();
         when(maintenanceRepository.save(any())).thenReturn(updated);
@@ -671,6 +676,7 @@ class MaintenanceServiceTest {
         assertThat(response.getStatus()).isEqualTo(MaintenanceStatus.RESOLVED);
         assertThat(response.getResolvedAt()).isNotNull();
                 assertThat(response.getClosureDueAt()).isNotNull();
+                assertThat(response.getPartsUsed()).containsExactly("Compressor", "Wiring");
         assertThat(response.getCompletionSummary()).isEqualTo("Issue fixed");
     }
 
@@ -920,7 +926,7 @@ class MaintenanceServiceTest {
 
         assertThatThrownBy(() -> maintenanceService.scheduleRequest("req-1", scheduleRequest, "admin-1"))
                 .isInstanceOf(BadRequestException.class)
-                .hasMessageContaining("must be in the future");
+                .hasMessageContaining("at least 1 hour in the future");
 
         verify(maintenanceRepository, never()).save(any());
     }

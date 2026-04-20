@@ -120,14 +120,14 @@ class MaintenanceNotificationServiceTest {
     void notifyTechnicianAssigned_WithValidTechnician_ShouldSendEmail() {
         when(mailSenderProvider.getIfAvailable()).thenReturn(mailSender);
 
-        maintenanceNotificationService.notifyTechnicianAssigned(technician, request);
+        maintenanceNotificationService.notifyTechnicianAssigned(technician, request, tenant, property);
 
         verify(mailSender).send(any(SimpleMailMessage.class));
     }
 
     @Test
     void notifyTechnicianAssigned_WithNullTechnician_ShouldNotSendEmail() {
-        maintenanceNotificationService.notifyTechnicianAssigned(null, request);
+        maintenanceNotificationService.notifyTechnicianAssigned(null, request, tenant, property);
 
         verify(mailSenderProvider, never()).getIfAvailable();
         verify(mailSender, never()).send(any(SimpleMailMessage.class));
@@ -137,7 +137,7 @@ class MaintenanceNotificationServiceTest {
     void notifyTechnicianAssigned_WithBlankEmail_ShouldNotSendEmail() {
         User techWithoutEmail = User.builder().id("tech-2").fullName("No Email Tech").email(" ").build();
 
-        maintenanceNotificationService.notifyTechnicianAssigned(techWithoutEmail, request);
+        maintenanceNotificationService.notifyTechnicianAssigned(techWithoutEmail, request, tenant, property);
 
         verify(mailSenderProvider, never()).getIfAvailable();
         verify(mailSender, never()).send(any(SimpleMailMessage.class));
