@@ -18,6 +18,7 @@ export default function MaintenanceCalendar() {
     const [selectedRequestId, setSelectedRequestId] = useState("");
     const [notes, setNotes] = useState("");
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
 
     const load = async () => {
         setLoading(true);
@@ -66,12 +67,26 @@ export default function MaintenanceCalendar() {
     }, [selectedDate]);
 
     const saveSchedule = async () => {
-        if (!selectedRequestId || !scheduledAt) return;
-        await scheduleMaintenance(selectedRequestId, { scheduledAt, adminNotes: notes, technicianId: selectedTechnicianId || undefined });
-        setSelectedRequestId("");
-        setNotes("");
-        setScheduledAt("");
-        await load();
+        setError("");
+        if (!selectedRequestId || !scheduledAt) {
+            setError("Select a request and schedule time before saving.");
+            return;
+        }
+
+        if (new Date(scheduledAt).getTime() < Date.now()) {
+            setError("Scheduled time must be in the future.");
+            return;
+        }
+
+        try {
+            await scheduleMaintenance(selectedRequestId, { scheduledAt, adminNotes: notes, technicianId: selectedTechnicianId || undefined });
+            setSelectedRequestId("");
+            setNotes("");
+            setScheduledAt("");
+            await load();
+        } catch (err) {
+            setError(err?.response?.data?.message || "Unable to save this schedule.");
+        }
     };
 
     return (
@@ -128,12 +143,13 @@ export default function MaintenanceCalendar() {
                                     <option key={tech.id} value={tech.id}>{tech.fullName}</option>
                                 ))}
                             </select>
-                            <input className="rounded-xl border border-slate-300 bg-white p-3" type="datetime-local" value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} />
-                            <input className="rounded-xl border border-slate-300 bg-white p-3" placeholder="Admin note" value={notes} onChange={(e) => setNotes(e.target.value)} />
+                            <input className="rounded-xl border border-slate-300 bg-white p-3" type="datetime-local" min={new Date().toISOString().slice(0, 16)} value={scheduledAt} onChange={(e) => setScheduledAt(e.target.value)} />
+                            <input className="rounded-xl border border-slate-300 bg-white p-3" placeholder="Admin note" maxLength={1000} value={notes} onChange={(e) => setNotes(e.target.value)} />
                             <button type="button" disabled={loading} className="rounded-xl bg-primary px-4 py-3 font-semibold text-white disabled:opacity-60" onClick={saveSchedule}>
                                 Schedule visit
                             </button>
                         </div>
+                        {error ? <p className="mt-3 text-sm font-medium text-red-600">{error}</p> : null}
 
                         <div className="mt-6 space-y-3">
                             {loading ? <p className="text-slate-500">Loading schedule...</p> : scheduled.map((item) => (

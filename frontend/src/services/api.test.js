@@ -109,7 +109,7 @@ describe("maintenance API wrapper routes", () => {
         });
     });
 
-    it("calls technician action endpoints for accept/start/resolve", () => {
+    it("calls technician action endpoints for accept/start(alias)/resolve", () => {
         const payload = {
             completionSummary: "Issue fixed",
             technicianNotes: "Verified unit performance",
@@ -121,7 +121,8 @@ describe("maintenance API wrapper routes", () => {
         api.resolveMaintenance("req-1", payload);
 
         expect(mockApi.patch).toHaveBeenCalledWith("/api/v1/maintenance/req-1/accept");
-        expect(mockApi.patch).toHaveBeenCalledWith("/api/v1/maintenance/req-1/start");
+        expect(mockApi.patch).toHaveBeenCalledTimes(3);
+        expect(mockApi.patch).toHaveBeenNthCalledWith(2, "/api/v1/maintenance/req-1/accept");
         expect(mockApi.patch).toHaveBeenCalledWith("/api/v1/maintenance/req-1/resolve", payload);
     });
 });

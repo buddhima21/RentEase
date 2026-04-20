@@ -151,6 +151,8 @@ export default function AdminMaintenanceDashboard() {
                             <select className="rounded-xl border border-slate-300 bg-white p-3" value={filters.status} onChange={(e) => setFilters((prev) => ({ ...prev, status: e.target.value }))}>
                                 <option value="">All statuses</option>
                                 <option value="REPORTED">Reported</option>
+                                <option value="ASSIGNED">Assigned</option>
+                                <option value="SCHEDULED">Scheduled</option>
                                 <option value="IN_PROGRESS">In Progress</option>
                                 <option value="RESOLVED">Resolved</option>
                                 <option value="CLOSED">Closed</option>

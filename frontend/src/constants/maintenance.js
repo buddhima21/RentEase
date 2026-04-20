@@ -50,12 +50,14 @@ export const MAINTENANCE_SERVICES = [
 ];
 
 export const MAINTENANCE_PRIORITIES = ["LOW", "MEDIUM", "HIGH", "EMERGENCY"];
+export const MAX_MAINTENANCE_IMAGES = 5;
 
-export const MAINTENANCE_STATUSES = ["REPORTED", "IN_PROGRESS", "RESOLVED", "CLOSED"];
+export const MAINTENANCE_STATUSES = ["REPORTED", "ASSIGNED", "SCHEDULED", "IN_PROGRESS", "PAUSED", "RESOLVED", "CLOSED"];
 
 export const MAINTENANCE_TIMELINE = [
     { key: "REPORTED", label: "Submitted" },
     { key: "ASSIGNED", label: "Assigned" },
+    { key: "SCHEDULED", label: "Scheduled" },
     { key: "IN_PROGRESS", label: "In Progress" },
     { key: "PAUSED", label: "Paused" },
     { key: "RESOLVED", label: "Resolved" },
@@ -72,6 +74,7 @@ export const MAINTENANCE_PRIORITY_META = {
 export const MAINTENANCE_STATUS_META = {
     REPORTED: { label: "Reported", tone: "slate" },
     ASSIGNED: { label: "Assigned", tone: "blue" },
+    SCHEDULED: { label: "Scheduled", tone: "blue" },
     IN_PROGRESS: { label: "In Progress", tone: "amber" },
     PAUSED: { label: "Paused", tone: "slate" },
     RESOLVED: { label: "Resolved", tone: "emerald" },

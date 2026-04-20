@@ -193,4 +193,25 @@ class MaintenanceRepositoryTest {
 
         assertThat(results).isEmpty();
     }
+
+    @Test
+    void findByAssignedTechnicianIdAndPriorityIgnoreCaseOrderByCreatedAtDesc_ShouldFilterByTechnicianAndPriority() {
+        List<MaintenanceRequest> results = maintenanceRepository.findByAssignedTechnicianIdAndPriorityIgnoreCaseOrderByCreatedAtDesc(
+                "tech-1", "HIGH"
+        );
+
+        assertThat(results).hasSize(2);
+        assertThat(results).extracting(MaintenanceRequest::getId)
+                .containsExactly("req-newest", "req-prop2");
+    }
+
+    @Test
+    void findByAssignedTechnicianIdAndStatusAndPriorityIgnoreCaseOrderByCreatedAtDesc_ShouldApplyAllFilters() {
+        List<MaintenanceRequest> results = maintenanceRepository.findByAssignedTechnicianIdAndStatusAndPriorityIgnoreCaseOrderByCreatedAtDesc(
+                "tech-1", MaintenanceStatus.RESOLVED, "high"
+        );
+
+        assertThat(results).hasSize(1);
+        assertThat(results.get(0).getId()).isEqualTo("req-prop2");
+    }
 }

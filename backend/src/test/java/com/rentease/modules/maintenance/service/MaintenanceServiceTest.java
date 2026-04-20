@@ -405,7 +405,7 @@ class MaintenanceServiceTest {
 
         assertThatThrownBy(() -> maintenanceService.assignTechnician("req-1", assignRequest, "admin-1"))
                 .isInstanceOf(BadRequestException.class)
-                .hasMessageContaining("Cannot assign a technician to a closed request");
+                .hasMessageContaining("Cannot assign a technician to a resolved or closed request");
 
         verify(maintenanceRepository, never()).save(any());
     }
@@ -725,6 +725,33 @@ class MaintenanceServiceTest {
         assertThat(responses).hasSize(1);
     }
 
+        @Test
+        void getAdminQueue_WithTechnicianAndStatus_ShouldUseCombinedRepositoryFilter() {
+                when(maintenanceRepository.findByAssignedTechnicianIdAndStatusOrderByCreatedAtDesc("tech-1", MaintenanceStatus.REPORTED))
+                                .thenReturn(Arrays.asList(testRequest));
+
+                List<MaintenanceResponse> responses = maintenanceService.getAdminQueue(MaintenanceStatus.REPORTED, null, "tech-1");
+
+                assertThat(responses).hasSize(1);
+                verify(maintenanceRepository).findByAssignedTechnicianIdAndStatusOrderByCreatedAtDesc("tech-1", MaintenanceStatus.REPORTED);
+                verify(maintenanceRepository, never()).findAll();
+        }
+
+        @Test
+        void getAdminQueue_WithTechnicianStatusAndPriority_ShouldUseFullCombinedRepositoryFilter() {
+                when(maintenanceRepository.findByAssignedTechnicianIdAndStatusAndPriorityIgnoreCaseOrderByCreatedAtDesc(
+                                "tech-1", MaintenanceStatus.REPORTED, "HIGH"
+                )).thenReturn(Arrays.asList(testRequest));
+
+                List<MaintenanceResponse> responses = maintenanceService.getAdminQueue(MaintenanceStatus.REPORTED, "HIGH", "tech-1");
+
+                assertThat(responses).hasSize(1);
+                verify(maintenanceRepository).findByAssignedTechnicianIdAndStatusAndPriorityIgnoreCaseOrderByCreatedAtDesc(
+                                "tech-1", MaintenanceStatus.REPORTED, "HIGH"
+                );
+                verify(maintenanceRepository, never()).findAll();
+        }
+
     @Test
     void getTechnicians_ShouldReturnAllTechnicianUsers() {
         when(userRepository.findByRole(UserRole.TECHNICIAN)).thenReturn(Arrays.asList(testTechnician));
@@ -802,7 +829,7 @@ class MaintenanceServiceTest {
 
         assertThatThrownBy(() -> maintenanceService.scheduleRequest("req-1", scheduleRequest, "admin-1"))
                 .isInstanceOf(BadRequestException.class)
-                .hasMessageContaining("Cannot schedule a closed request");
+                .hasMessageContaining("Cannot schedule a resolved or closed request");
 
         verify(maintenanceRepository, never()).save(any());
     }

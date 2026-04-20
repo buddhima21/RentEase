@@ -9,8 +9,8 @@ import {
     pauseMaintenance,
     resolveMaintenance,
     resumeMaintenance,
-    startMaintenance,
 } from "../services/api";
+import { MAX_MAINTENANCE_IMAGES } from "../constants/maintenance";
 
 const CHECKLIST_ITEMS = [
     "Inspect issue",
@@ -30,13 +30,19 @@ export default function TechnicianJobDetails() {
     const [completionImages, setCompletionImages] = useState([]);
     const [checklist, setChecklist] = useState([false, false, false, false]);
     const [busy, setBusy] = useState(false);
+    const [error, setError] = useState("");
     const fileInputRef = useRef(null);
 
     const load = async () => {
-        if (!jobId) return;
+        if (!jobId) {
+            setError("Invalid job link. Please open the request from your dashboard.");
+            setJob(null);
+            return;
+        }
         const res = await getMaintenanceById(jobId);
         const data = res.data?.data || null;
         if (!data) {
+            setError("Unable to find this maintenance request.");
             setJob(null);
             return;
         }
@@ -44,45 +50,53 @@ export default function TechnicianJobDetails() {
             navigate("/technician/dashboard", { replace: true });
             return;
         }
+        setError("");
         setJob(data);
     };
 
     useEffect(() => {
-        load().catch(() => setJob(null));
+        load().catch(() => {
+            setError("Unable to load this job right now. Please try again.");
+            setJob(null);
+        });
     }, [jobId, user?.id, user?.role]);
 
-    const accept = async () => {
+    const runAction = async (action, fallbackMessage, reloadAfter = true) => {
         setBusy(true);
-        await acceptMaintenance(jobId);
-        await load();
-        setBusy(false);
+        setError("");
+        try {
+            await action();
+            if (reloadAfter) {
+                await load();
+            }
+            return true;
+        } catch (err) {
+            setError(err?.response?.data?.message || fallbackMessage);
+            return false;
+        } finally {
+            setBusy(false);
+        }
     };
 
-    const start = async () => {
-        setBusy(true);
-        await startMaintenance(jobId);
-        await load();
-        setBusy(false);
+    const accept = async () => {
+        await runAction(() => acceptMaintenance(jobId), "Unable to accept this request.");
     };
 
     const pause = async () => {
-        setBusy(true);
-        await pauseMaintenance(jobId);
-        await load();
-        setBusy(false);
+        await runAction(() => pauseMaintenance(jobId), "Unable to pause this request.");
     };
 
     const resume = async () => {
-        setBusy(true);
-        await resumeMaintenance(jobId);
-        await load();
-        setBusy(false);
+        await runAction(() => resumeMaintenance(jobId), "Unable to resume this request.");
     };
 
     const resolve = async () => {
-        if (!summary.trim()) return;
-        setBusy(true);
-        await resolveMaintenance(jobId, {
+        if (!summary.trim()) {
+            setError("Completion summary is required before resolving.");
+            return;
+        }
+
+        const success = await runAction(() => resolveMaintenance(jobId, {
             completionSummary: summary,
             technicianNotes: [
                 notes,
@@ -90,8 +104,11 @@ export default function TechnicianJobDetails() {
                 `Checklist complete: ${checklist.every(Boolean) ? "yes" : "no"}`,
             ].filter(Boolean).join("\n"),
             completionImageUrls: completionImages,
-        });
-        navigate("/technician/dashboard");
+        }), "Unable to resolve this request.", false);
+
+        if (success) {
+            navigate("/technician/dashboard");
+        }
     };
 
     const handleChecklistToggle = (index) => {
@@ -100,7 +117,7 @@ export default function TechnicianJobDetails() {
 
     const handleFileChange = (event) => {
         const files = Array.from(event.target.files || []);
-        files.slice(0, 5 - completionImages.length).forEach((file) => {
+        files.slice(0, MAX_MAINTENANCE_IMAGES - completionImages.length).forEach((file) => {
             const reader = new FileReader();
             reader.onloadend = () => setCompletionImages((prev) => [...prev, reader.result]);
             reader.readAsDataURL(file);
@@ -112,7 +129,7 @@ export default function TechnicianJobDetails() {
     };
 
     if (!job) {
-        return <div className="min-h-screen bg-slate-50 p-8 text-slate-600">Unable to load job.</div>;
+        return <div className="min-h-screen bg-slate-50 p-8 text-slate-600">{error || "Unable to load job."}</div>;
     }
 
     return (
@@ -153,12 +170,12 @@ export default function TechnicianJobDetails() {
                                 <p className="text-sm font-bold uppercase tracking-[0.22em] text-slate-500">Completion notes</p>
                                 <div className="mt-4 space-y-3">
                                     <textarea className="w-full rounded-xl border border-slate-300 p-3 min-h-24" placeholder="Completion summary" value={summary} onChange={(e) => setSummary(e.target.value)} />
-                                    <textarea className="w-full rounded-xl border border-slate-300 p-3 min-h-24" placeholder="Technician notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
-                                    <input className="w-full rounded-xl border border-slate-300 p-3" placeholder="Parts used (optional)" value={partsUsed} onChange={(e) => setPartsUsed(e.target.value)} />
+                                    <textarea className="w-full rounded-xl border border-slate-300 p-3 min-h-24" placeholder="Technician notes" value={notes} maxLength={2000} onChange={(e) => setNotes(e.target.value)} />
+                                    <input className="w-full rounded-xl border border-slate-300 p-3" placeholder="Parts used (optional)" maxLength={250} value={partsUsed} onChange={(e) => setPartsUsed(e.target.value)} />
                                 </div>
                                 <div className="mt-4 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4">
                                     <div className="flex items-center justify-between gap-4">
-                                        <p className="text-sm font-semibold text-slate-700">Completion photos ({completionImages.length}/5)</p>
+                                        <p className="text-sm font-semibold text-slate-700">Completion photos ({completionImages.length}/{MAX_MAINTENANCE_IMAGES})</p>
                                         <button type="button" className="text-sm font-semibold text-emerald-700" onClick={() => fileInputRef.current?.click()}>
                                             Add photos
                                         </button>
@@ -175,15 +192,17 @@ export default function TechnicianJobDetails() {
                                         ))}
                                     </div>
                                 </div>
+                                {error ? <p className="mt-4 text-sm font-medium text-red-600">{error}</p> : null}
                                 <div className="mt-4 flex flex-wrap gap-2">
-                                    <button disabled={busy} className="rounded-xl border border-slate-300 px-4 py-2 font-semibold disabled:opacity-60" onClick={accept}>Accept</button>
-                                    <button disabled={busy} className="rounded-xl border border-slate-300 px-4 py-2 font-semibold disabled:opacity-60" onClick={start}>Start</button>
+                                    {["REPORTED", "ASSIGNED", "SCHEDULED"].includes(job.status) ? (
+                                        <button disabled={busy} className="rounded-xl border border-slate-300 px-4 py-2 font-semibold disabled:opacity-60" onClick={accept}>Accept</button>
+                                    ) : null}
                                     {job.status === "PAUSED" ? (
                                         <button disabled={busy} className="rounded-xl border border-slate-300 px-4 py-2 font-semibold disabled:opacity-60" onClick={resume}>Resume</button>
-                                    ) : (
+                                    ) : job.status === "IN_PROGRESS" ? (
                                         <button disabled={busy} className="rounded-xl border border-slate-300 px-4 py-2 font-semibold disabled:opacity-60" onClick={pause}>Pause</button>
-                                    )}
-                                    <button disabled={busy} className="rounded-xl bg-primary px-5 py-3 font-semibold text-white disabled:opacity-60" onClick={resolve}>Resolve Request</button>
+                                    ) : null}
+                                    <button disabled={busy || (job.status !== "IN_PROGRESS" && job.status !== "PAUSED")} className="rounded-xl bg-primary px-5 py-3 font-semibold text-white disabled:opacity-60" onClick={resolve}>Resolve Request</button>
                                 </div>
                             </div>
                         </div>

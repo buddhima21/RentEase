@@ -22,6 +22,10 @@ public interface MaintenanceRepository extends MongoRepository<MaintenanceReques
 
     List<MaintenanceRequest> findByAssignedTechnicianIdAndStatusOrderByCreatedAtDesc(String assignedTechnicianId, MaintenanceStatus status);
 
+    List<MaintenanceRequest> findByAssignedTechnicianIdAndPriorityIgnoreCaseOrderByCreatedAtDesc(String assignedTechnicianId, String priority);
+
+    List<MaintenanceRequest> findByAssignedTechnicianIdAndStatusAndPriorityIgnoreCaseOrderByCreatedAtDesc(String assignedTechnicianId, MaintenanceStatus status, String priority);
+
     List<MaintenanceRequest> findByStatusOrderByCreatedAtDesc(MaintenanceStatus status);
 
     List<MaintenanceRequest> findByPriorityIgnoreCaseOrderByCreatedAtDesc(String priority);
