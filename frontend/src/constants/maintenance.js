@@ -105,6 +105,28 @@ export function formatMaintenanceDate(value) {
     }).format(date);
 }
 
+function pad2(value) {
+    return String(value).padStart(2, "0");
+}
+
+export function toLocalDateInputValue(value = new Date()) {
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+
+    return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+}
+
+export function toLocalDateKey(value) {
+    return toLocalDateInputValue(value);
+}
+
+export function toLocalDateTimeInputValue(value = new Date()) {
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+
+    return `${toLocalDateInputValue(date)}T${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+}
+
 export function isEmergencyPriority(priority) {
     return String(priority || "").toUpperCase() === "EMERGENCY";
 }

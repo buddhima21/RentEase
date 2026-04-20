@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import MaintenanceBadge from "../components/maintenance/MaintenanceBadge";
 import MaintenanceSectionCard from "../components/maintenance/MaintenanceSectionCard";
-import { formatMaintenanceDate } from "../constants/maintenance";
+import { formatMaintenanceDate, toLocalDateInputValue, toLocalDateKey, toLocalDateTimeInputValue } from "../constants/maintenance";
 import {
     getAdminMaintenanceQueue,
     getMaintenanceTechnicians,
@@ -12,7 +12,7 @@ import {
 export default function MaintenanceCalendar() {
     const [items, setItems] = useState([]);
     const [techs, setTechs] = useState([]);
-    const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().slice(0, 10));
+    const [selectedDate, setSelectedDate] = useState(() => toLocalDateInputValue());
     const [selectedTechnicianId, setSelectedTechnicianId] = useState("");
     const [scheduledAt, setScheduledAt] = useState("");
     const [selectedRequestId, setSelectedRequestId] = useState("");
@@ -20,7 +20,7 @@ export default function MaintenanceCalendar() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [loadError, setLoadError] = useState("");
-    const minScheduleTime = useMemo(() => new Date(Date.now() + 60 * 60 * 1000).toISOString().slice(0, 16), []);
+    const minScheduleTime = useMemo(() => toLocalDateTimeInputValue(new Date(Date.now() + 60 * 60 * 1000)), []);
 
     const load = async () => {
         setLoading(true);
@@ -44,7 +44,7 @@ export default function MaintenanceCalendar() {
 
     const scheduled = useMemo(
         () => items
-            .filter((x) => x.scheduledAt && new Date(x.scheduledAt).toISOString().slice(0, 10) === selectedDate)
+            .filter((x) => x.scheduledAt && toLocalDateKey(x.scheduledAt) === selectedDate)
             .sort((a, b) => new Date(a.scheduledAt) - new Date(b.scheduledAt)),
         [items, selectedDate]
     );
@@ -53,7 +53,7 @@ export default function MaintenanceCalendar() {
         const days = new Map();
         items.forEach((item) => {
             if (!item.scheduledAt) return;
-            const dayKey = new Date(item.scheduledAt).toISOString().slice(0, 10);
+            const dayKey = toLocalDateKey(item.scheduledAt);
             days.set(dayKey, (days.get(dayKey) || 0) + 1);
         });
         return days;
@@ -65,7 +65,7 @@ export default function MaintenanceCalendar() {
         const days = [];
         for (let day = 1; day <= end.getDate(); day += 1) {
             const current = new Date(now.getFullYear(), now.getMonth(), day);
-            days.push(current.toISOString().slice(0, 10));
+            days.push(toLocalDateInputValue(current));
         }
         return days;
     }, [selectedDate]);
@@ -125,7 +125,7 @@ export default function MaintenanceCalendar() {
                                         onClick={() => setSelectedDate(day)}
                                         className={`min-h-24 rounded-2xl border p-3 text-left transition-colors ${active ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-white text-slate-900"}`}
                                     >
-                                        <p className="text-sm font-bold">{new Date(day).getDate()}</p>
+                                        <p className="text-sm font-bold">{new Date(`${day}T00:00:00`).getDate()}</p>
                                         <p className={`mt-2 text-xs ${active ? "text-slate-200" : "text-slate-500"}`}>{hasSchedule ? `${availableDays.get(day)} visit(s)` : "Open"}</p>
                                     </button>
                                 );

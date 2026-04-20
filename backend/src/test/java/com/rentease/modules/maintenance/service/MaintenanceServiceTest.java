@@ -32,6 +32,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.StreamSupport;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -681,25 +682,35 @@ class MaintenanceServiceTest {
     }
 
         @Test
-        void getById_WhenResolvedBeyondClosureDue_ShouldAutoClose() {
+        void getById_WhenResolvedBeyondClosureDue_ShouldRemainResolvedUntilSchedulerRuns() {
                 testRequest.setStatus(MaintenanceStatus.RESOLVED);
                 testRequest.setResolvedAt(LocalDateTime.now().minusDays(10));
                 testRequest.setClosureDueAt(LocalDateTime.now().minusDays(1));
                 when(maintenanceRepository.findById("req-1")).thenReturn(Optional.of(testRequest));
-
-                MaintenanceRequest autoClosed = MaintenanceRequest.builder()
-                                .id("req-1")
-                                .tenantId("tenant-1")
-                                .status(MaintenanceStatus.CLOSED)
-                                .closedAt(LocalDateTime.now())
-                                .build();
-                when(maintenanceRepository.save(any())).thenReturn(autoClosed);
                 when(userRepository.findById("tenant-1")).thenReturn(Optional.of(testTenant));
 
                 MaintenanceResponse response = maintenanceService.getById("req-1");
 
-                assertThat(response.getStatus()).isEqualTo(MaintenanceStatus.CLOSED);
-                verify(maintenanceRepository).save(argThat(req -> req.getStatus() == MaintenanceStatus.CLOSED));
+                assertThat(response.getStatus()).isEqualTo(MaintenanceStatus.RESOLVED);
+                verify(maintenanceRepository, never()).save(any());
+        }
+
+        @Test
+        void autoCloseExpiredResolvedRequests_ShouldCloseExpiredRequests() {
+                testRequest.setStatus(MaintenanceStatus.RESOLVED);
+                testRequest.setClosureDueAt(LocalDateTime.now().minusMinutes(5));
+                when(maintenanceRepository.findByStatusAndClosureDueAtBefore(eq(MaintenanceStatus.RESOLVED), any(LocalDateTime.class)))
+                                .thenReturn(Arrays.asList(testRequest));
+
+                int closedCount = maintenanceService.autoCloseExpiredResolvedRequests();
+
+                assertThat(closedCount).isEqualTo(1);
+                verify(maintenanceRepository).saveAll(argThat(iterable -> {
+                        List<MaintenanceRequest> savedRequests = StreamSupport.stream(iterable.spliterator(), false).toList();
+                        return savedRequests.size() == 1
+                                        && savedRequests.get(0).getStatus() == MaintenanceStatus.CLOSED
+                                        && savedRequests.get(0).getClosedAt() != null;
+                }));
         }
 
     @Test
@@ -726,6 +737,8 @@ class MaintenanceServiceTest {
     @Test
     void closeRequest_OnResolvedRequest_ShouldSucceed() {
         testRequest.setStatus(MaintenanceStatus.RESOLVED);
+        testRequest.setImageUrls(Arrays.asList("before.jpg"));
+        testRequest.setCompletionImageUrls(Arrays.asList("after.jpg"));
         when(maintenanceRepository.findById("req-1")).thenReturn(Optional.of(testRequest));
 
         MaintenanceRequest updated = MaintenanceRequest.builder()
@@ -733,6 +746,8 @@ class MaintenanceServiceTest {
                 .tenantId("tenant-1")
                 .status(MaintenanceStatus.CLOSED)
                 .closedAt(LocalDateTime.now())
+                .imageUrls(Arrays.asList("before.jpg"))
+                .completionImageUrls(Arrays.asList("after.jpg"))
                 .build();
         when(maintenanceRepository.save(any())).thenReturn(updated);
         when(userRepository.findById("tenant-1")).thenReturn(Optional.of(testTenant));
@@ -741,6 +756,11 @@ class MaintenanceServiceTest {
 
         assertThat(response.getStatus()).isEqualTo(MaintenanceStatus.CLOSED);
         assertThat(response.getClosedAt()).isNotNull();
+        verify(maintenanceRepository).save(argThat(req ->
+                req.getMediaArchivedAt() != null
+                        && req.getImageUrls().contains("before.jpg")
+                        && req.getCompletionImageUrls().contains("after.jpg")
+        ));
     }
 
     @Test
@@ -779,6 +799,7 @@ class MaintenanceServiceTest {
 
         assertThat(responses).hasSize(1);
         assertThat(responses.get(0).getTenantId()).isEqualTo("tenant-1");
+                verify(maintenanceRepository, never()).save(any());
     }
 
     @Test

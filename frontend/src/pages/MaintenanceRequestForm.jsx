@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { createMaintenanceRequest, getTenantAgreements } from "../services/api";
 import MaintenanceBadge from "../components/maintenance/MaintenanceBadge";
 import MaintenanceSectionCard from "../components/maintenance/MaintenanceSectionCard";
-import { MAINTENANCE_PRIORITIES, MAINTENANCE_SERVICES, MAX_MAINTENANCE_IMAGES, isEmergencyPriority } from "../constants/maintenance";
+import { MAINTENANCE_PRIORITIES, MAINTENANCE_SERVICES, MAX_MAINTENANCE_IMAGES, isEmergencyPriority, toLocalDateInputValue } from "../constants/maintenance";
 
 export default function MaintenanceRequestForm() {
     const { user } = useAuth();
@@ -12,7 +12,7 @@ export default function MaintenanceRequestForm() {
     const navigate = useNavigate();
     const isEmergency = location.pathname.includes("/emergency");
     const fileInputRef = useRef(null);
-    const today = useMemo(() => new Date().toISOString().slice(0, 10), []);
+    const today = useMemo(() => toLocalDateInputValue(), []);
 
     const [submitting, setSubmitting] = useState(false);
     const [loadingProperties, setLoadingProperties] = useState(false);

@@ -181,20 +181,19 @@ public class MaintenanceService {
     public MaintenanceResponse getById(String id) {
         MaintenanceRequest request = maintenanceRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("MaintenanceRequest", "id", id));
-        request = normalizeOrphanedAssignmentIfNeeded(request);
-        return mapToResponse(applyClosurePolicyIfDue(request));
+        return mapToResponse(request);
     }
 
     public List<MaintenanceResponse> getByTenant(String tenantId) {
         return maintenanceRepository.findByTenantIdOrderByCreatedAtDesc(tenantId)
-                .stream().map(this::normalizeOrphanedAssignmentIfNeeded).map(this::applyClosurePolicyIfDue).map(this::mapToResponse).collect(Collectors.toList());
+                .stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
     public List<MaintenanceResponse> getByTechnician(String technicianId, MaintenanceStatus status) {
         List<MaintenanceRequest> requests = status == null
                 ? maintenanceRepository.findByAssignedTechnicianIdOrderByCreatedAtDesc(technicianId)
                 : maintenanceRepository.findByAssignedTechnicianIdAndStatusOrderByCreatedAtDesc(technicianId, status);
-        return requests.stream().map(this::normalizeOrphanedAssignmentIfNeeded).map(this::applyClosurePolicyIfDue).map(this::mapToResponse).collect(Collectors.toList());
+        return requests.stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
     public List<MaintenanceResponse> getByOwner(String ownerId) {
@@ -207,7 +206,7 @@ public class MaintenanceService {
         }
 
         return maintenanceRepository.findByPropertyIdInOrderByCreatedAtDesc(propertyIds)
-            .stream().map(this::normalizeOrphanedAssignmentIfNeeded).map(this::applyClosurePolicyIfDue).map(this::mapToResponse).collect(Collectors.toList());
+            .stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
     public List<MaintenanceResponse> getAdminQueue(MaintenanceStatus status, String priority, String technicianId) {
@@ -238,12 +237,13 @@ public class MaintenanceService {
                     .collect(Collectors.toList());
         }
 
-        return queue.stream().map(this::normalizeOrphanedAssignmentIfNeeded).map(this::applyClosurePolicyIfDue).map(this::mapToResponse).collect(Collectors.toList());
+        return queue.stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
     @Transactional
     public MaintenanceResponse assignTechnician(String requestId, MaintenanceAssignRequest request, String adminId) {
         MaintenanceRequest maintenanceRequest = getRequestOrThrow(requestId);
+        normalizeOrphanedAssignmentForMutation(maintenanceRequest, adminId);
         User technician = findUserOrThrow(request.getTechnicianId());
         if (technician.getRole() != UserRole.TECHNICIAN) {
             throw new BadRequestException("Assigned user must have TECHNICIAN role");
@@ -310,6 +310,7 @@ public class MaintenanceService {
     @Transactional
     public MaintenanceResponse scheduleRequest(String requestId, MaintenanceScheduleRequest request, String adminId) {
         MaintenanceRequest maintenanceRequest = getRequestOrThrow(requestId);
+        normalizeOrphanedAssignmentForMutation(maintenanceRequest, adminId);
         MaintenanceStatus previousStatus = maintenanceRequest.getStatus();
 
         if (maintenanceRequest.getStatus() == MaintenanceStatus.RESOLVED
@@ -652,17 +653,15 @@ public class MaintenanceService {
         if ((request.getImageUrls() != null && !request.getImageUrls().isEmpty())
                 || (request.getCompletionImageUrls() != null && !request.getCompletionImageUrls().isEmpty())) {
             request.setMediaArchivedAt(LocalDateTime.now());
-            request.setImageUrls(Collections.emptyList());
-            request.setCompletionImageUrls(Collections.emptyList());
         }
     }
 
-    private MaintenanceRequest normalizeOrphanedAssignmentIfNeeded(MaintenanceRequest request) {
+    private void normalizeOrphanedAssignmentForMutation(MaintenanceRequest request, String actorId) {
         if (request.getAssignedTechnicianId() == null || request.getAssignedTechnicianId().isBlank()) {
-            return request;
+            return;
         }
         if (userRepository.findById(request.getAssignedTechnicianId()).isPresent()) {
-            return request;
+            return;
         }
 
         String orphanedTechnicianId = request.getAssignedTechnicianId();
@@ -675,12 +674,11 @@ public class MaintenanceService {
         appendWorkflowEvent(
                 request,
                 "ORPHANED_ASSIGNMENT_CLEARED",
-                "SYSTEM",
+            actorId == null || actorId.isBlank() ? "SYSTEM" : actorId,
                 previousStatus,
                 request.getStatus(),
                 "Cleared missing technician reference: " + orphanedTechnicianId
         );
-        return maintenanceRepository.save(request);
     }
 
     private LocalDateTime calculateSlaDueAt(String priority, LocalDateTime baseTime) {
@@ -694,26 +692,32 @@ public class MaintenanceService {
         return baseTime.plus(target);
     }
 
-    private MaintenanceRequest applyClosurePolicyIfDue(MaintenanceRequest request) {
-        if (request.getStatus() != MaintenanceStatus.RESOLVED || request.getClosureDueAt() == null) {
-            return request;
-        }
-        if (!LocalDateTime.now().isAfter(request.getClosureDueAt())) {
-            return request;
+    @Transactional
+    public int autoCloseExpiredResolvedRequests() {
+        List<MaintenanceRequest> expiredResolved = maintenanceRepository.findByStatusAndClosureDueAtBefore(
+                MaintenanceStatus.RESOLVED,
+                LocalDateTime.now()
+        );
+        if (expiredResolved.isEmpty()) {
+            return 0;
         }
 
-        request.setStatus(MaintenanceStatus.CLOSED);
-        request.setClosedAt(LocalDateTime.now());
-        archiveRequestMedia(request);
-        appendWorkflowEvent(
-                request,
-                "REQUEST_AUTO_CLOSED",
-                "SYSTEM",
-                MaintenanceStatus.RESOLVED,
-                MaintenanceStatus.CLOSED,
-                "Auto-closed by closure policy"
-        );
-        return maintenanceRepository.save(request);
+        LocalDateTime now = LocalDateTime.now();
+        expiredResolved.forEach(request -> {
+            request.setStatus(MaintenanceStatus.CLOSED);
+            request.setClosedAt(now);
+            archiveRequestMedia(request);
+            appendWorkflowEvent(
+                    request,
+                    "REQUEST_AUTO_CLOSED",
+                    "SYSTEM",
+                    MaintenanceStatus.RESOLVED,
+                    MaintenanceStatus.CLOSED,
+                    "Auto-closed by closure policy"
+            );
+        });
+        maintenanceRepository.saveAll(expiredResolved);
+        return expiredResolved.size();
     }
 
     private void appendWorkflowEvent(
