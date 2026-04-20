@@ -25,6 +25,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -66,6 +67,8 @@ class MaintenanceServiceTest {
 
     @BeforeEach
     void setUp() {
+                ReflectionTestUtils.setField(maintenanceService, "closureGraceDays", 7L);
+
         testTenant = User.builder()
                 .id("tenant-1")
                 .fullName("John Tenant")
@@ -112,6 +115,7 @@ class MaintenanceServiceTest {
                 .status(MaintenanceStatus.REPORTED)
                 .imageUrls(Arrays.asList("img1.jpg"))
                 .preferredAt(LocalDateTime.now().plusDays(1))
+                .slaDueAt(LocalDateTime.now().plusDays(3))
                 .createdAt(LocalDateTime.now())
                 .build();
     }
@@ -143,9 +147,22 @@ class MaintenanceServiceTest {
         assertThat(response).isNotNull();
         assertThat(response.getId()).isEqualTo("req-1");
         assertThat(response.getStatus()).isEqualTo(MaintenanceStatus.REPORTED);
+                assertThat(response.getSlaDueAt()).isNotNull();
         verify(maintenanceRepository).save(any(MaintenanceRequest.class));
         verify(maintenanceNotificationService).notifyAdminsOnCreated(anyList(), any(), any(), any());
     }
+
+        @Test
+        void getById_WhenSlaIsPastAndOpen_ShouldMarkAsOverdue() {
+                testRequest.setStatus(MaintenanceStatus.ASSIGNED);
+                testRequest.setSlaDueAt(LocalDateTime.now().minusHours(2));
+                when(maintenanceRepository.findById("req-1")).thenReturn(Optional.of(testRequest));
+                when(userRepository.findById("tenant-1")).thenReturn(Optional.of(testTenant));
+
+                MaintenanceResponse response = maintenanceService.getById("req-1");
+
+                assertThat(response.getOverdue()).isTrue();
+        }
 
     @Test
     void createRequest_NonTenantAttemptingOwnRequest_ShouldSucceedIfAdmin() {
@@ -641,6 +658,7 @@ class MaintenanceServiceTest {
                 .assignedTechnicianId("tech-1")
                 .status(MaintenanceStatus.RESOLVED)
                 .resolvedAt(LocalDateTime.now())
+                .closureDueAt(LocalDateTime.now().plusDays(7))
                 .completionSummary("Issue fixed")
                 .technicianNotes("Unit repaired")
                 .completionImageUrls(Arrays.asList("after1.jpg", "after2.jpg"))
@@ -652,8 +670,31 @@ class MaintenanceServiceTest {
 
         assertThat(response.getStatus()).isEqualTo(MaintenanceStatus.RESOLVED);
         assertThat(response.getResolvedAt()).isNotNull();
+                assertThat(response.getClosureDueAt()).isNotNull();
         assertThat(response.getCompletionSummary()).isEqualTo("Issue fixed");
     }
+
+        @Test
+        void getById_WhenResolvedBeyondClosureDue_ShouldAutoClose() {
+                testRequest.setStatus(MaintenanceStatus.RESOLVED);
+                testRequest.setResolvedAt(LocalDateTime.now().minusDays(10));
+                testRequest.setClosureDueAt(LocalDateTime.now().minusDays(1));
+                when(maintenanceRepository.findById("req-1")).thenReturn(Optional.of(testRequest));
+
+                MaintenanceRequest autoClosed = MaintenanceRequest.builder()
+                                .id("req-1")
+                                .tenantId("tenant-1")
+                                .status(MaintenanceStatus.CLOSED)
+                                .closedAt(LocalDateTime.now())
+                                .build();
+                when(maintenanceRepository.save(any())).thenReturn(autoClosed);
+                when(userRepository.findById("tenant-1")).thenReturn(Optional.of(testTenant));
+
+                MaintenanceResponse response = maintenanceService.getById("req-1");
+
+                assertThat(response.getStatus()).isEqualTo(MaintenanceStatus.CLOSED);
+                verify(maintenanceRepository).save(argThat(req -> req.getStatus() == MaintenanceStatus.CLOSED));
+        }
 
     @Test
     void resolveRequest_WithTooManyCompletionImages_ShouldThrowBadRequest() {

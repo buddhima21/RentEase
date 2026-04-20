@@ -21,8 +21,10 @@ import com.rentease.modules.property.repository.PropertyRepository;
 import com.rentease.modules.user.model.User;
 import com.rentease.modules.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.ArrayList;
@@ -35,11 +37,19 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MaintenanceService {
 
+    private static final Duration SLA_EMERGENCY = Duration.ofHours(4);
+    private static final Duration SLA_HIGH = Duration.ofHours(24);
+    private static final Duration SLA_MEDIUM = Duration.ofHours(72);
+    private static final Duration SLA_LOW = Duration.ofHours(120);
+
     private final MaintenanceRepository maintenanceRepository;
     private final UserRepository userRepository;
     private final PropertyRepository propertyRepository;
     private final AgreementRepository agreementRepository;
     private final MaintenanceNotificationService maintenanceNotificationService;
+
+    @Value("${rentease.maintenance.closure.grace-days:7}")
+    private long closureGraceDays;
 
     public MaintenanceResponse createRequest(MaintenanceRequestDTO dto, String actorId, boolean isAdmin) {
         if (!isAdmin && !Objects.equals(actorId, dto.getTenantId())) {
@@ -72,8 +82,9 @@ public class MaintenanceService {
                 .serviceType(dto.getServiceType())
                 .priority(dto.getPriority())
                 .imageUrls(dto.getImageUrls())
-            .preferredAt(dto.getPreferredAt())
+                .preferredAt(dto.getPreferredAt())
                 .build();
+        request.setSlaDueAt(calculateSlaDueAt(request.getPriority(), LocalDateTime.now()));
 
         appendWorkflowEvent(
             request,
@@ -131,6 +142,11 @@ public class MaintenanceService {
         }
 
         request.setPriority(priority);
+        if (request.getStatus() != MaintenanceStatus.RESOLVED
+                && request.getStatus() != MaintenanceStatus.CLOSED
+                && request.getStatus() != MaintenanceStatus.CANCELLED) {
+            request.setSlaDueAt(calculateSlaDueAt(priority, request.getCreatedAt() != null ? request.getCreatedAt() : LocalDateTime.now()));
+        }
         appendWorkflowEvent(
             request,
             "PRIORITY_UPDATED",
@@ -150,20 +166,21 @@ public class MaintenanceService {
     }
 
     public MaintenanceResponse getById(String id) {
-        return mapToResponse(maintenanceRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("MaintenanceRequest", "id", id)));
+        MaintenanceRequest request = maintenanceRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("MaintenanceRequest", "id", id));
+        return mapToResponse(applyClosurePolicyIfDue(request));
     }
 
     public List<MaintenanceResponse> getByTenant(String tenantId) {
         return maintenanceRepository.findByTenantIdOrderByCreatedAtDesc(tenantId)
-                .stream().map(this::mapToResponse).collect(Collectors.toList());
+                .stream().map(this::applyClosurePolicyIfDue).map(this::mapToResponse).collect(Collectors.toList());
     }
 
     public List<MaintenanceResponse> getByTechnician(String technicianId, MaintenanceStatus status) {
         List<MaintenanceRequest> requests = status == null
                 ? maintenanceRepository.findByAssignedTechnicianIdOrderByCreatedAtDesc(technicianId)
                 : maintenanceRepository.findByAssignedTechnicianIdAndStatusOrderByCreatedAtDesc(technicianId, status);
-        return requests.stream().map(this::mapToResponse).collect(Collectors.toList());
+        return requests.stream().map(this::applyClosurePolicyIfDue).map(this::mapToResponse).collect(Collectors.toList());
     }
 
     public List<MaintenanceResponse> getByOwner(String ownerId) {
@@ -176,7 +193,7 @@ public class MaintenanceService {
         }
 
         return maintenanceRepository.findByPropertyIdInOrderByCreatedAtDesc(propertyIds)
-                .stream().map(this::mapToResponse).collect(Collectors.toList());
+            .stream().map(this::applyClosurePolicyIfDue).map(this::mapToResponse).collect(Collectors.toList());
     }
 
     public List<MaintenanceResponse> getAdminQueue(MaintenanceStatus status, String priority, String technicianId) {
@@ -207,7 +224,7 @@ public class MaintenanceService {
                     .collect(Collectors.toList());
         }
 
-        return queue.stream().map(this::mapToResponse).collect(Collectors.toList());
+        return queue.stream().map(this::applyClosurePolicyIfDue).map(this::mapToResponse).collect(Collectors.toList());
     }
 
     public MaintenanceResponse assignTechnician(String requestId, MaintenanceAssignRequest request, String adminId) {
@@ -472,6 +489,7 @@ public class MaintenanceService {
         MaintenanceStatus previousStatus = request.getStatus();
         request.setStatus(MaintenanceStatus.RESOLVED);
         request.setResolvedAt(LocalDateTime.now());
+        request.setClosureDueAt(request.getResolvedAt().plusDays(closureGraceDays));
         request.setCompletionSummary(resolveRequest.getCompletionSummary());
         request.setTechnicianNotes(resolveRequest.getTechnicianNotes());
         request.setCompletionImageUrls(resolveRequest.getCompletionImageUrls());
@@ -498,6 +516,7 @@ public class MaintenanceService {
         MaintenanceStatus previousStatus = request.getStatus();
         request.setStatus(MaintenanceStatus.CLOSED);
         request.setClosedAt(LocalDateTime.now());
+        request.setClosureDueAt(null);
         request.setAssignedByAdminId(adminId);
         if (adminNote != null && !adminNote.isBlank()) {
             request.setAdminNotes(adminNote);
@@ -588,6 +607,38 @@ public class MaintenanceService {
         }
     }
 
+    private LocalDateTime calculateSlaDueAt(String priority, LocalDateTime baseTime) {
+        Duration target = switch (String.valueOf(priority).toUpperCase(Locale.ROOT)) {
+            case "EMERGENCY" -> SLA_EMERGENCY;
+            case "HIGH" -> SLA_HIGH;
+            case "LOW" -> SLA_LOW;
+            case "MEDIUM" -> SLA_MEDIUM;
+            default -> SLA_MEDIUM;
+        };
+        return baseTime.plus(target);
+    }
+
+    private MaintenanceRequest applyClosurePolicyIfDue(MaintenanceRequest request) {
+        if (request.getStatus() != MaintenanceStatus.RESOLVED || request.getClosureDueAt() == null) {
+            return request;
+        }
+        if (!LocalDateTime.now().isAfter(request.getClosureDueAt())) {
+            return request;
+        }
+
+        request.setStatus(MaintenanceStatus.CLOSED);
+        request.setClosedAt(LocalDateTime.now());
+        appendWorkflowEvent(
+                request,
+                "REQUEST_AUTO_CLOSED",
+                "SYSTEM",
+                MaintenanceStatus.RESOLVED,
+                MaintenanceStatus.CLOSED,
+                "Auto-closed by closure policy"
+        );
+        return maintenanceRepository.save(request);
+    }
+
     private void appendWorkflowEvent(
             MaintenanceRequest request,
             String action,
@@ -638,6 +689,8 @@ public class MaintenanceService {
                 .acceptedAt(req.getAcceptedAt())
                 .startedAt(req.getStartedAt())
                 .resolvedAt(req.getResolvedAt())
+                .slaDueAt(req.getSlaDueAt())
+                .closureDueAt(req.getClosureDueAt())
                 .closedAt(req.getClosedAt())
                 .adminNotes(req.getAdminNotes())
                 .technicianNotes(req.getTechnicianNotes())
@@ -651,6 +704,11 @@ public class MaintenanceService {
                 .technicianEmail(technician != null ? technician.getEmail() : null)
                 .technicianPhone(technician != null ? technician.getPhone() : null)
                 .status(req.getStatus())
+                .overdue(req.getSlaDueAt() != null
+                    && req.getStatus() != MaintenanceStatus.RESOLVED
+                    && req.getStatus() != MaintenanceStatus.CLOSED
+                    && req.getStatus() != MaintenanceStatus.CANCELLED
+                    && LocalDateTime.now().isAfter(req.getSlaDueAt()))
                 .createdAt(req.getCreatedAt())
                 .updatedAt(req.getUpdatedAt())
                 .build();

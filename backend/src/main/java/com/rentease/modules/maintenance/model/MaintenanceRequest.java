@@ -41,6 +41,8 @@ public class MaintenanceRequest {
     private LocalDateTime acceptedAt;
     private LocalDateTime startedAt;
     private LocalDateTime resolvedAt;
+    private LocalDateTime slaDueAt;
+    private LocalDateTime closureDueAt;
     private LocalDateTime closedAt;
 
     private String adminNotes;

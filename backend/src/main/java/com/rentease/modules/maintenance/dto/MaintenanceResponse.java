@@ -33,6 +33,8 @@ public class MaintenanceResponse {
     private LocalDateTime acceptedAt;
     private LocalDateTime startedAt;
     private LocalDateTime resolvedAt;
+    private LocalDateTime slaDueAt;
+    private LocalDateTime closureDueAt;
     private LocalDateTime closedAt;
 
     private String adminNotes;
@@ -49,6 +51,7 @@ public class MaintenanceResponse {
     private String technicianPhone;
 
     private MaintenanceStatus status;
+    private Boolean overdue;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
