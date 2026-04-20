@@ -3,6 +3,7 @@ package com.rentease.modules.maintenance.service;
 import com.rentease.modules.maintenance.model.MaintenanceRequest;
 import com.rentease.modules.property.model.Property;
 import com.rentease.modules.user.model.User;
+import com.rentease.common.enums.MaintenanceStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,6 +57,7 @@ class MaintenanceNotificationServiceTest {
                 .id("req-1")
                 .title("AC Not Working")
                 .priority("HIGH")
+            .status(MaintenanceStatus.REPORTED)
                 .scheduledAt(LocalDateTime.now().plusDays(1))
                 .build();
     }
@@ -144,10 +146,22 @@ class MaintenanceNotificationServiceTest {
     @Test
     void notifyTenantStatusChanged_WithValidTenant_ShouldSendEmail() {
         when(mailSenderProvider.getIfAvailable()).thenReturn(mailSender);
+        request.setStatus(com.rentease.common.enums.MaintenanceStatus.IN_PROGRESS);
 
         maintenanceNotificationService.notifyTenantStatusChanged(tenant, request);
 
         verify(mailSender).send(any(SimpleMailMessage.class));
+    }
+
+    @Test
+    void notifyTenantStatusChanged_WithRapidDuplicateStatus_ShouldSendOnlyOnce() {
+        when(mailSenderProvider.getIfAvailable()).thenReturn(mailSender);
+        request.setStatus(com.rentease.common.enums.MaintenanceStatus.IN_PROGRESS);
+
+        maintenanceNotificationService.notifyTenantStatusChanged(tenant, request);
+        maintenanceNotificationService.notifyTenantStatusChanged(tenant, request);
+
+        verify(mailSender, times(1)).send(any(SimpleMailMessage.class));
     }
 
     @Test

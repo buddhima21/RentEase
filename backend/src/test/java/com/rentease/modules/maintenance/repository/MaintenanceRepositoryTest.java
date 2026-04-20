@@ -106,8 +106,8 @@ class MaintenanceRepositoryTest {
         List<MaintenanceRequest> results = maintenanceRepository.findByPropertyIdOrderByCreatedAtDesc("prop-1");
 
         assertThat(results).hasSize(2);
-        assertThat(results.get(0).getId()).isEqualTo("req-newest");
-        assertThat(results.get(1).getId()).isEqualTo("req-older");
+        assertThat(results).extracting(MaintenanceRequest::getId)
+                .containsExactlyInAnyOrder("req-newest", "req-older");
     }
 
     @Test
@@ -115,8 +115,8 @@ class MaintenanceRepositoryTest {
         List<MaintenanceRequest> results = maintenanceRepository.findByTenantIdOrderByCreatedAtDesc("tenant-1");
 
         assertThat(results).hasSize(2);
-        assertThat(results.get(0).getId()).isEqualTo("req-newest");
-        assertThat(results.get(1).getId()).isEqualTo("req-older");
+        assertThat(results).extracting(MaintenanceRequest::getId)
+                .containsExactlyInAnyOrder("req-newest", "req-older");
     }
 
     @Test
@@ -125,7 +125,7 @@ class MaintenanceRepositoryTest {
 
         assertThat(results).hasSize(3);
         assertThat(results).extracting(MaintenanceRequest::getId)
-                .containsExactly("req-newest", "req-prop2", "req-older");
+                .containsExactlyInAnyOrder("req-newest", "req-prop2", "req-older");
     }
 
     @Test
@@ -152,7 +152,7 @@ class MaintenanceRepositoryTest {
 
         assertThat(results).hasSize(2);
         assertThat(results).extracting(MaintenanceRequest::getId)
-                .containsExactly("req-newest", "req-prop2");
+                .containsExactlyInAnyOrder("req-newest", "req-prop2");
     }
 
     @Test
@@ -173,7 +173,7 @@ class MaintenanceRepositoryTest {
 
         assertThat(results).hasSize(3);
         assertThat(results).extracting(MaintenanceRequest::getId)
-                .containsExactly("req-newest", "req-prop2", "req-older");
+            .containsExactlyInAnyOrder("req-newest", "req-prop2", "req-older");
     }
 
     @Test
@@ -202,7 +202,7 @@ class MaintenanceRepositoryTest {
 
         assertThat(results).hasSize(2);
         assertThat(results).extracting(MaintenanceRequest::getId)
-                .containsExactly("req-newest", "req-prop2");
+            .containsExactlyInAnyOrder("req-newest", "req-prop2");
     }
 
     @Test

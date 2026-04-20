@@ -31,8 +31,13 @@ describe("MaintenanceTracking", () => {
           priority: "HIGH",
           status: "IN_PROGRESS",
           assignedTechnicianId: "tech-1",
+          technicianName: "Tech One",
           serviceType: "HVAC",
           propertyId: "UNIT-3B",
+          workflowEvents: [
+            { action: "REQUEST_CREATED", note: "Created by tenant", occurredAt: "2026-04-20T09:00:00" },
+            { action: "REQUEST_ACCEPTED", note: "Technician accepted and started work", occurredAt: "2026-04-20T10:00:00" },
+          ],
         },
       },
     });
@@ -43,6 +48,8 @@ describe("MaintenanceTracking", () => {
       expect(screen.getByText("AC issue")).toBeInTheDocument();
       expect(screen.getByText(/Technician:/)).toBeInTheDocument();
       expect(screen.getByText(/Service: HVAC/)).toBeInTheDocument();
+      expect(screen.getByText("Event history")).toBeInTheDocument();
+      expect(screen.getByText("REQUEST_ACCEPTED")).toBeInTheDocument();
     });
 
     expect(mockGetMaintenanceById).toHaveBeenCalledWith("req-1");

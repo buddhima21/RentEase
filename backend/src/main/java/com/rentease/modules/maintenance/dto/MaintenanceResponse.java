@@ -1,6 +1,7 @@
 package com.rentease.modules.maintenance.dto;
 
 import com.rentease.common.enums.MaintenanceStatus;
+import com.rentease.modules.maintenance.model.MaintenanceWorkflowEvent;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -38,6 +39,7 @@ public class MaintenanceResponse {
     private String technicianNotes;
     private String completionSummary;
     private List<String> completionImageUrls;
+    private List<MaintenanceWorkflowEvent> workflowEvents;
 
     private String tenantName;
     private String tenantEmail;

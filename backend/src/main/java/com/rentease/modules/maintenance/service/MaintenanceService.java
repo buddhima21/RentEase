@@ -14,6 +14,7 @@ import com.rentease.modules.maintenance.dto.MaintenanceResponse;
 import com.rentease.modules.maintenance.dto.MaintenanceScheduleRequest;
 import com.rentease.modules.maintenance.dto.TechnicianSummaryResponse;
 import com.rentease.modules.maintenance.model.MaintenanceRequest;
+import com.rentease.modules.maintenance.model.MaintenanceWorkflowEvent;
 import com.rentease.modules.maintenance.repository.MaintenanceRepository;
 import com.rentease.modules.property.model.Property;
 import com.rentease.modules.property.repository.PropertyRepository;
@@ -24,6 +25,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -73,6 +75,15 @@ public class MaintenanceService {
             .preferredAt(dto.getPreferredAt())
                 .build();
 
+        appendWorkflowEvent(
+            request,
+            "REQUEST_CREATED",
+            actorId,
+            null,
+            request.getStatus(),
+            isAdmin ? "Created by admin on behalf of tenant" : "Created by tenant"
+        );
+
         MaintenanceRequest saved = maintenanceRepository.save(request);
 
         List<User> admins = userRepository.findByRole(UserRole.ADMIN);
@@ -85,6 +96,7 @@ public class MaintenanceService {
         MaintenanceRequest request = maintenanceRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("MaintenanceRequest", "id", id));
 
+        MaintenanceStatus previousStatus = request.getStatus();
         validateStatusTransition(request.getStatus(), status);
         request.setStatus(status);
         if (status == MaintenanceStatus.RESOLVED) {
@@ -93,6 +105,15 @@ public class MaintenanceService {
         if (status == MaintenanceStatus.CLOSED) {
             request.setClosedAt(LocalDateTime.now());
         }
+
+        appendWorkflowEvent(
+            request,
+            "STATUS_UPDATED",
+            request.getAssignedByAdminId(),
+            previousStatus,
+            status,
+            "Status updated directly"
+        );
 
         MaintenanceRequest updated = maintenanceRepository.save(request);
 
@@ -110,6 +131,14 @@ public class MaintenanceService {
         }
 
         request.setPriority(priority);
+        appendWorkflowEvent(
+            request,
+            "PRIORITY_UPDATED",
+            request.getAssignedByAdminId(),
+            request.getStatus(),
+            request.getStatus(),
+            "Priority changed to " + priority
+        );
         MaintenanceRequest updated = maintenanceRepository.save(request);
         notifyTenantForUpdatedRequest(updated);
         return mapToResponse(updated);
@@ -194,6 +223,7 @@ public class MaintenanceService {
         }
 
         String previousTechnicianId = maintenanceRequest.getAssignedTechnicianId();
+        MaintenanceStatus previousStatus = maintenanceRequest.getStatus();
         boolean isReassignment = previousTechnicianId != null
             && !previousTechnicianId.isBlank()
             && !previousTechnicianId.equals(request.getTechnicianId());
@@ -229,6 +259,15 @@ public class MaintenanceService {
             maintenanceRequest.setAdminNotes(request.getAdminNotes());
         }
 
+        appendWorkflowEvent(
+            maintenanceRequest,
+            isReassignment ? "TECHNICIAN_REASSIGNED" : "TECHNICIAN_ASSIGNED",
+            adminId,
+            previousStatus,
+            maintenanceRequest.getStatus(),
+            "Technician " + request.getTechnicianId() + " assigned"
+        );
+
         MaintenanceRequest updated = maintenanceRepository.save(maintenanceRequest);
         maintenanceNotificationService.notifyTechnicianAssigned(technician, updated);
         userRepository.findById(updated.getTenantId())
@@ -238,6 +277,7 @@ public class MaintenanceService {
 
     public MaintenanceResponse scheduleRequest(String requestId, MaintenanceScheduleRequest request, String adminId) {
         MaintenanceRequest maintenanceRequest = getRequestOrThrow(requestId);
+        MaintenanceStatus previousStatus = maintenanceRequest.getStatus();
 
         if (maintenanceRequest.getStatus() == MaintenanceStatus.RESOLVED
                 || maintenanceRequest.getStatus() == MaintenanceStatus.CLOSED) {
@@ -266,6 +306,15 @@ public class MaintenanceService {
             maintenanceRequest.setAdminNotes(request.getAdminNotes());
         }
 
+        appendWorkflowEvent(
+            maintenanceRequest,
+            "REQUEST_SCHEDULED",
+            adminId,
+            previousStatus,
+            maintenanceRequest.getStatus(),
+            "Scheduled for " + request.getScheduledAt()
+        );
+
         MaintenanceRequest updated = maintenanceRepository.save(maintenanceRequest);
         userRepository.findById(updated.getTenantId())
                 .ifPresent(tenant -> maintenanceNotificationService.notifyTenantStatusChanged(tenant, updated));
@@ -287,7 +336,16 @@ public class MaintenanceService {
             request.setStartedAt(LocalDateTime.now());
         }
         validateStatusTransition(request.getStatus(), MaintenanceStatus.IN_PROGRESS);
+        MaintenanceStatus previousStatus = request.getStatus();
         request.setStatus(MaintenanceStatus.IN_PROGRESS);
+        appendWorkflowEvent(
+            request,
+            "REQUEST_ACCEPTED",
+            technicianId,
+            previousStatus,
+            MaintenanceStatus.IN_PROGRESS,
+            "Technician accepted and started work"
+        );
 
         MaintenanceRequest updated = maintenanceRepository.save(request);
         notifyTenantForUpdatedRequest(updated);
@@ -304,7 +362,16 @@ public class MaintenanceService {
         ensureAssignedToTechnician(request, technicianId);
 
         validateStatusTransition(request.getStatus(), MaintenanceStatus.PAUSED);
+        MaintenanceStatus previousStatus = request.getStatus();
         request.setStatus(MaintenanceStatus.PAUSED);
+        appendWorkflowEvent(
+            request,
+            "WORK_PAUSED",
+            technicianId,
+            previousStatus,
+            MaintenanceStatus.PAUSED,
+            "Work paused"
+        );
         MaintenanceRequest updated = maintenanceRepository.save(request);
         notifyTenantForUpdatedRequest(updated);
         return mapToResponse(updated);
@@ -315,7 +382,16 @@ public class MaintenanceService {
         ensureAssignedToTechnician(request, technicianId);
 
         validateStatusTransition(request.getStatus(), MaintenanceStatus.IN_PROGRESS);
+        MaintenanceStatus previousStatus = request.getStatus();
         request.setStatus(MaintenanceStatus.IN_PROGRESS);
+        appendWorkflowEvent(
+            request,
+            "WORK_RESUMED",
+            technicianId,
+            previousStatus,
+            MaintenanceStatus.IN_PROGRESS,
+            "Work resumed"
+        );
         MaintenanceRequest updated = maintenanceRepository.save(request);
         notifyTenantForUpdatedRequest(updated);
         return mapToResponse(updated);
@@ -331,11 +407,20 @@ public class MaintenanceService {
 
         validateImageCount(resolveRequest.getCompletionImageUrls(), "completion");
         validateStatusTransition(request.getStatus(), MaintenanceStatus.RESOLVED);
+        MaintenanceStatus previousStatus = request.getStatus();
         request.setStatus(MaintenanceStatus.RESOLVED);
         request.setResolvedAt(LocalDateTime.now());
         request.setCompletionSummary(resolveRequest.getCompletionSummary());
         request.setTechnicianNotes(resolveRequest.getTechnicianNotes());
         request.setCompletionImageUrls(resolveRequest.getCompletionImageUrls());
+        appendWorkflowEvent(
+            request,
+            "REQUEST_RESOLVED",
+            technicianId,
+            previousStatus,
+            MaintenanceStatus.RESOLVED,
+            "Resolution submitted"
+        );
 
         MaintenanceRequest updated = maintenanceRepository.save(request);
         notifyTenantForUpdatedRequest(updated);
@@ -348,12 +433,21 @@ public class MaintenanceService {
             throw new BadRequestException("Only resolved requests can be closed");
         }
 
+        MaintenanceStatus previousStatus = request.getStatus();
         request.setStatus(MaintenanceStatus.CLOSED);
         request.setClosedAt(LocalDateTime.now());
         request.setAssignedByAdminId(adminId);
         if (adminNote != null && !adminNote.isBlank()) {
             request.setAdminNotes(adminNote);
         }
+        appendWorkflowEvent(
+            request,
+            "REQUEST_CLOSED",
+            adminId,
+            previousStatus,
+            MaintenanceStatus.CLOSED,
+            adminNote
+        );
 
         MaintenanceRequest updated = maintenanceRepository.save(request);
         notifyTenantForUpdatedRequest(updated);
@@ -423,6 +517,30 @@ public class MaintenanceService {
         }
     }
 
+    private void appendWorkflowEvent(
+            MaintenanceRequest request,
+            String action,
+            String actorId,
+            MaintenanceStatus fromStatus,
+            MaintenanceStatus toStatus,
+            String note
+    ) {
+        List<MaintenanceWorkflowEvent> events = request.getWorkflowEvents();
+        if (events == null) {
+            events = new ArrayList<>();
+            request.setWorkflowEvents(events);
+        }
+
+        events.add(MaintenanceWorkflowEvent.builder()
+                .action(action)
+                .actorId(actorId)
+                .fromStatus(fromStatus)
+                .toStatus(toStatus)
+                .note(note)
+                .occurredAt(LocalDateTime.now())
+                .build());
+    }
+
     private void notifyTenantForUpdatedRequest(MaintenanceRequest request) {
         userRepository.findById(request.getTenantId())
                 .ifPresent(tenant -> maintenanceNotificationService.notifyTenantStatusChanged(tenant, request));
@@ -454,6 +572,7 @@ public class MaintenanceService {
                 .technicianNotes(req.getTechnicianNotes())
                 .completionSummary(req.getCompletionSummary())
                 .completionImageUrls(req.getCompletionImageUrls())
+                .workflowEvents(req.getWorkflowEvents())
                 .tenantName(tenant != null ? tenant.getFullName() : null)
                 .tenantEmail(tenant != null ? tenant.getEmail() : null)
                 .tenantPhone(tenant != null ? tenant.getPhone() : null)

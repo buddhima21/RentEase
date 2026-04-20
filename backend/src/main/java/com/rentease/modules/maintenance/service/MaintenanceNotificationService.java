@@ -11,12 +11,19 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class MaintenanceNotificationService {
+
+    private static final Duration TENANT_STATUS_DEDUP_WINDOW = Duration.ofMinutes(5);
+    private final Map<String, LocalDateTime> tenantStatusNotificationRegistry = new ConcurrentHashMap<>();
 
     private final ObjectProvider<JavaMailSender> mailSenderProvider;
 
@@ -58,6 +65,18 @@ public class MaintenanceNotificationService {
         if (tenant == null || tenant.getEmail() == null || tenant.getEmail().isBlank()) {
             return;
         }
+        if (request == null || request.getId() == null || request.getStatus() == null) {
+            return;
+        }
+
+        String dedupKey = tenant.getEmail() + "|" + request.getId() + "|" + request.getStatus();
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime lastNotifiedAt = tenantStatusNotificationRegistry.get(dedupKey);
+        if (lastNotifiedAt != null && Duration.between(lastNotifiedAt, now).compareTo(TENANT_STATUS_DEDUP_WINDOW) < 0) {
+            log.info("Skipping duplicate tenant status notification for key {}", dedupKey);
+            return;
+        }
+        tenantStatusNotificationRegistry.put(dedupKey, now);
 
         String subject = "Maintenance status update: " + request.getStatus();
         String body = "Your maintenance request has been updated.\n\n"
