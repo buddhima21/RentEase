@@ -357,6 +357,68 @@ public class MaintenanceService {
         return acceptRequest(requestId, technicianId);
     }
 
+    public MaintenanceResponse cancelRequest(String requestId, String tenantId) {
+        MaintenanceRequest request = getRequestOrThrow(requestId);
+        if (!tenantId.equals(request.getTenantId())) {
+            throw new ForbiddenException("Tenants can only cancel their own maintenance requests");
+        }
+
+        if (request.getStatus() == MaintenanceStatus.IN_PROGRESS
+                || request.getStatus() == MaintenanceStatus.PAUSED
+                || request.getStatus() == MaintenanceStatus.RESOLVED
+                || request.getStatus() == MaintenanceStatus.CLOSED
+                || request.getStatus() == MaintenanceStatus.CANCELLED) {
+            throw new BadRequestException("This maintenance request can no longer be cancelled");
+        }
+
+        MaintenanceStatus previousStatus = request.getStatus();
+        validateStatusTransition(request.getStatus(), MaintenanceStatus.CANCELLED);
+        request.setStatus(MaintenanceStatus.CANCELLED);
+        request.setClosedAt(LocalDateTime.now());
+        appendWorkflowEvent(
+            request,
+            "REQUEST_CANCELLED",
+            tenantId,
+            previousStatus,
+            MaintenanceStatus.CANCELLED,
+            "Cancelled by tenant"
+        );
+
+        MaintenanceRequest updated = maintenanceRepository.save(request);
+        return mapToResponse(updated);
+    }
+
+    public MaintenanceResponse declineRequest(String requestId, String technicianId, String reason) {
+        MaintenanceRequest request = getRequestOrThrow(requestId);
+        ensureAssignedToTechnician(request, technicianId);
+
+        if (request.getStatus() == MaintenanceStatus.IN_PROGRESS
+                || request.getStatus() == MaintenanceStatus.PAUSED
+                || request.getStatus() == MaintenanceStatus.RESOLVED
+                || request.getStatus() == MaintenanceStatus.CLOSED
+                || request.getStatus() == MaintenanceStatus.CANCELLED) {
+            throw new BadRequestException("This maintenance request cannot be declined in its current state");
+        }
+
+        MaintenanceStatus previousStatus = request.getStatus();
+        validateStatusTransition(request.getStatus(), MaintenanceStatus.DECLINED);
+        request.setStatus(MaintenanceStatus.DECLINED);
+        request.setAssignedTechnicianId(null);
+        request.setAssignedAt(null);
+        appendWorkflowEvent(
+            request,
+            "REQUEST_DECLINED",
+            technicianId,
+            previousStatus,
+            MaintenanceStatus.DECLINED,
+            (reason != null && !reason.isBlank()) ? reason : "Declined by technician"
+        );
+
+        MaintenanceRequest updated = maintenanceRepository.save(request);
+        notifyTenantForUpdatedRequest(updated);
+        return mapToResponse(updated);
+    }
+
     public MaintenanceResponse pauseRequest(String requestId, String technicianId) {
         MaintenanceRequest request = getRequestOrThrow(requestId);
         ensureAssignedToTechnician(request, technicianId);
@@ -479,13 +541,22 @@ public class MaintenanceService {
         boolean valid = switch (current) {
             case REPORTED -> next == MaintenanceStatus.ASSIGNED
                     || next == MaintenanceStatus.SCHEDULED
-                    || next == MaintenanceStatus.IN_PROGRESS;
-            case ASSIGNED -> next == MaintenanceStatus.SCHEDULED || next == MaintenanceStatus.IN_PROGRESS;
-            case SCHEDULED -> next == MaintenanceStatus.IN_PROGRESS;
+                || next == MaintenanceStatus.IN_PROGRESS
+                || next == MaintenanceStatus.CANCELLED;
+            case ASSIGNED -> next == MaintenanceStatus.SCHEDULED
+                || next == MaintenanceStatus.IN_PROGRESS
+                || next == MaintenanceStatus.DECLINED
+                || next == MaintenanceStatus.CANCELLED;
+            case SCHEDULED -> next == MaintenanceStatus.IN_PROGRESS
+                || next == MaintenanceStatus.DECLINED
+                || next == MaintenanceStatus.CANCELLED;
+            case DECLINED -> next == MaintenanceStatus.ASSIGNED
+                || next == MaintenanceStatus.SCHEDULED
+                || next == MaintenanceStatus.CANCELLED;
             case IN_PROGRESS -> next == MaintenanceStatus.PAUSED || next == MaintenanceStatus.RESOLVED;
             case PAUSED -> next == MaintenanceStatus.IN_PROGRESS;
             case RESOLVED -> next == MaintenanceStatus.CLOSED;
-            case CLOSED -> false;
+            case CANCELLED, CLOSED -> false;
         };
         if (!valid) {
             throw new BadRequestException("Invalid status transition from " + current + " to " + next);

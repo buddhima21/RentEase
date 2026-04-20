@@ -322,6 +322,41 @@ class MaintenanceControllerTest {
     }
 
     @Test
+    void cancelRequest_AsTenant_ShouldInvokeService() {
+                ResponseEntity<?> entity = controller.cancelRequest("req-1", user("tenant-1", UserRole.TENANT));
+
+                assertEquals(200, entity.getStatusCode().value());
+                assertEquals("req-1", maintenanceService.lastRequestId);
+                assertEquals("tenant-1", maintenanceService.lastTenantActorId);
+                assertEquals(MaintenanceStatus.CANCELLED, maintenanceService.simulatedStatus);
+    }
+
+    @Test
+    void cancelRequest_AsTechnician_ShouldThrowForbidden() {
+                assertThrows(ForbiddenException.class, () ->
+                        controller.cancelRequest("req-1", user("tech-1", UserRole.TECHNICIAN))
+                );
+    }
+
+    @Test
+    void declineRequest_AsTechnician_ShouldInvokeService() {
+                ResponseEntity<?> entity = controller.declineRequest("req-1", "conflict", user("tech-1", UserRole.TECHNICIAN));
+
+                assertEquals(200, entity.getStatusCode().value());
+                assertEquals("req-1", maintenanceService.lastRequestId);
+                assertEquals("tech-1", maintenanceService.lastTechnicianActorId);
+                assertEquals("conflict", maintenanceService.lastDeclineReason);
+                assertEquals(MaintenanceStatus.DECLINED, maintenanceService.simulatedStatus);
+    }
+
+    @Test
+    void declineRequest_AsTenant_ShouldThrowForbidden() {
+                assertThrows(ForbiddenException.class, () ->
+                        controller.declineRequest("req-1", "no", user("tenant-1", UserRole.TENANT))
+                );
+    }
+
+    @Test
     void updateStatus_AsAdmin_ShouldForwardStatus() {
                 ResponseEntity<?> entity = controller.updateStatus(
                         "req-1",
@@ -473,6 +508,7 @@ class MaintenanceControllerTest {
                 String lastRequestId;
                 String lastAdminActorId;
                 String lastTechnicianActorId;
+                String lastTenantActorId;
                 String lastTenantId;
                 MaintenanceAssignRequest lastAssignRequest;
                 MaintenanceResolveRequest lastResolveRequest;
@@ -486,6 +522,7 @@ class MaintenanceControllerTest {
                 String lastUpdatedPriority;
                 MaintenanceStatus lastUpdatedStatus;
                 String lastAdminNote;
+                String lastDeclineReason;
                 MaintenanceScheduleRequest lastScheduleRequest;
                 MaintenanceStatus simulatedStatus = MaintenanceStatus.REPORTED;
                 String simulatedAssignedTechnicianId = "tech-1";
@@ -584,6 +621,24 @@ class MaintenanceControllerTest {
                         this.lastTechnicianActorId = technicianId;
                         this.simulatedStatus = MaintenanceStatus.IN_PROGRESS;
                         return MaintenanceResponse.builder().id(requestId).status(MaintenanceStatus.IN_PROGRESS).build();
+                }
+
+                @Override
+                public MaintenanceResponse cancelRequest(String requestId, String tenantId) {
+                        this.lastRequestId = requestId;
+                        this.lastTenantActorId = tenantId;
+                        this.simulatedStatus = MaintenanceStatus.CANCELLED;
+                        return MaintenanceResponse.builder().id(requestId).status(MaintenanceStatus.CANCELLED).build();
+                }
+
+                @Override
+                public MaintenanceResponse declineRequest(String requestId, String technicianId, String reason) {
+                        this.lastRequestId = requestId;
+                        this.lastTechnicianActorId = technicianId;
+                        this.lastDeclineReason = reason;
+                        this.simulatedStatus = MaintenanceStatus.DECLINED;
+                        this.simulatedAssignedTechnicianId = null;
+                        return MaintenanceResponse.builder().id(requestId).status(MaintenanceStatus.DECLINED).build();
                 }
 
                 @Override

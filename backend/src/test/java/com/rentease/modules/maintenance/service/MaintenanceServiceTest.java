@@ -488,6 +488,72 @@ class MaintenanceServiceTest {
         verify(maintenanceRepository).save(argThat(req -> req.getStartedAt() != null));
     }
 
+        @Test
+        void cancelRequest_ByTenantOnReportedRequest_ShouldSetStatusToCancelled() {
+                testRequest.setStatus(MaintenanceStatus.REPORTED);
+                when(maintenanceRepository.findById("req-1")).thenReturn(Optional.of(testRequest));
+
+                MaintenanceRequest updated = MaintenanceRequest.builder()
+                                .id("req-1")
+                                .tenantId("tenant-1")
+                                .status(MaintenanceStatus.CANCELLED)
+                                .closedAt(LocalDateTime.now())
+                                .build();
+                when(maintenanceRepository.save(any())).thenReturn(updated);
+
+                MaintenanceResponse response = maintenanceService.cancelRequest("req-1", "tenant-1");
+
+                assertThat(response.getStatus()).isEqualTo(MaintenanceStatus.CANCELLED);
+                verify(maintenanceRepository).save(any());
+        }
+
+        @Test
+        void cancelRequest_WhenInProgress_ShouldThrowBadRequest() {
+                testRequest.setStatus(MaintenanceStatus.IN_PROGRESS);
+                when(maintenanceRepository.findById("req-1")).thenReturn(Optional.of(testRequest));
+
+                assertThatThrownBy(() -> maintenanceService.cancelRequest("req-1", "tenant-1"))
+                                .isInstanceOf(BadRequestException.class)
+                                .hasMessageContaining("can no longer be cancelled");
+
+                verify(maintenanceRepository, never()).save(any());
+        }
+
+        @Test
+        void declineRequest_ByAssignedTechnician_ShouldSetDeclinedAndUnassign() {
+                testRequest.setStatus(MaintenanceStatus.SCHEDULED);
+                testRequest.setAssignedTechnicianId("tech-1");
+                when(maintenanceRepository.findById("req-1")).thenReturn(Optional.of(testRequest));
+
+                MaintenanceRequest updated = MaintenanceRequest.builder()
+                                .id("req-1")
+                                .tenantId("tenant-1")
+                                .status(MaintenanceStatus.DECLINED)
+                                .assignedTechnicianId(null)
+                                .build();
+                when(maintenanceRepository.save(any())).thenReturn(updated);
+                when(userRepository.findById("tenant-1")).thenReturn(Optional.of(testTenant));
+
+                MaintenanceResponse response = maintenanceService.declineRequest("req-1", "tech-1", "Schedule conflict");
+
+                assertThat(response.getStatus()).isEqualTo(MaintenanceStatus.DECLINED);
+                verify(maintenanceRepository).save(argThat(req -> req.getAssignedTechnicianId() == null));
+                verify(maintenanceNotificationService).notifyTenantStatusChanged(testTenant, updated);
+        }
+
+        @Test
+        void declineRequest_WhenInProgress_ShouldThrowBadRequest() {
+                testRequest.setStatus(MaintenanceStatus.IN_PROGRESS);
+                testRequest.setAssignedTechnicianId("tech-1");
+                when(maintenanceRepository.findById("req-1")).thenReturn(Optional.of(testRequest));
+
+                assertThatThrownBy(() -> maintenanceService.declineRequest("req-1", "tech-1", "Cannot take this now"))
+                                .isInstanceOf(BadRequestException.class)
+                                .hasMessageContaining("cannot be declined");
+
+                verify(maintenanceRepository, never()).save(any());
+        }
+
     @Test
     void pauseRequest_FromInProgress_ShouldSetStatusToPaused() {
         testRequest.setAssignedTechnicianId("tech-1");

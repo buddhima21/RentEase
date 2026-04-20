@@ -250,6 +250,9 @@ export const scheduleMaintenance = (requestId, data) =>
 export const acceptMaintenance = (requestId) => API.patch(`/api/v1/maintenance/${requestId}/accept`);
 // Backward-compatible alias: start now follows the same transition path as accept.
 export const startMaintenance = (requestId) => API.patch(`/api/v1/maintenance/${requestId}/accept`);
+export const cancelMaintenance = (requestId) => API.patch(`/api/v1/maintenance/${requestId}/cancel`);
+export const declineMaintenance = (requestId, reason) =>
+    API.patch(`/api/v1/maintenance/${requestId}/decline`, null, { params: reason ? { reason } : undefined });
 export const pauseMaintenance = (requestId) => API.patch(`/api/v1/maintenance/${requestId}/pause`);
 export const resumeMaintenance = (requestId) => API.patch(`/api/v1/maintenance/${requestId}/resume`);
 export const resolveMaintenance = (requestId, data) => API.patch(`/api/v1/maintenance/${requestId}/resolve`, data);
