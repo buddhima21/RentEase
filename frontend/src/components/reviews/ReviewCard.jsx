@@ -35,7 +35,7 @@ export default function ReviewCard({ review, onEdit, onDelete }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="p-6 md:p-8 bg-white rounded-[2.5rem] border border-slate-100 shadow-[0_4px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all duration-300 mb-6 flex flex-col relative"
+            className="p-6 md:p-8 bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-700/50 shadow-[0_4px_30px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all duration-300 mb-6 flex flex-col relative"
         >
             {/* Header: Verified & Options */}
             <div className="flex justify-between items-center mb-1 relative">
@@ -48,18 +48,18 @@ export default function ReviewCard({ review, onEdit, onDelete }) {
                     <div className="relative">
                         <button 
                             onClick={() => setShowOptions(!showOptions)}
-                            className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-50 transition-colors text-slate-400"
+                            className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-50 dark:bg-slate-800/50 transition-colors text-slate-400"
                         >
                             <span className="material-symbols-outlined text-[20px]">more_vert</span>
                         </button>
                         {showOptions && (
-                            <div className="absolute right-0 top-10 w-36 py-2 bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 z-50 overflow-hidden">
+                            <div className="absolute right-0 top-10 w-36 py-2 bg-white dark:bg-slate-900 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-100 dark:border-slate-700/50 z-50 overflow-hidden">
                                 <button
                                     onClick={() => {
                                         setShowOptions(false);
                                         onEdit(review);
                                     }}
-                                    className="w-full px-4 py-2 text-left text-sm font-semibold text-slate-600 hover:bg-emerald-50 hover:text-emerald-600 flex items-center gap-2 transition-colors"
+                                    className="w-full px-4 py-2 text-left text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-emerald-50 hover:text-emerald-600 flex items-center gap-2 transition-colors"
                                 >
                                     <span className="material-symbols-outlined text-[18px]">edit</span> Edit
                                 </button>
@@ -71,7 +71,7 @@ export default function ReviewCard({ review, onEdit, onDelete }) {
                                             await onDelete(review.id);
                                         }
                                     }}
-                                    className="w-full px-4 py-2 text-left text-sm font-semibold text-slate-600 hover:bg-red-50 hover:text-red-600 flex items-center gap-2 transition-colors"
+                                    className="w-full px-4 py-2 text-left text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-red-50 hover:text-red-600 flex items-center gap-2 transition-colors"
                                     disabled={isDeleting}
                                 >
                                     <span className="material-symbols-outlined text-[18px]">delete</span> Delete
@@ -82,14 +82,14 @@ export default function ReviewCard({ review, onEdit, onDelete }) {
                 }
                 
                 {!isAuthor && (
-                    <button className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-50 transition-colors text-slate-400">
+                    <button className="w-8 h-8 rounded-full flex items-center justify-center hover:bg-slate-50 dark:bg-slate-800/50 transition-colors text-slate-400">
                         <span className="material-symbols-outlined text-[20px]">more_vert</span>
                     </button>
                 )}
             </div>
 
             {/* Property Name */}
-            <h3 className="text-[22px] md:text-[28px] font-black text-slate-900 tracking-tight mb-2 leading-tight">
+            <h3 className="text-[22px] md:text-[28px] font-black text-slate-900 dark:text-white tracking-tight mb-2 leading-tight">
                 {propertyName}
             </h3>
 
@@ -108,7 +108,7 @@ export default function ReviewCard({ review, onEdit, onDelete }) {
 
                 {/* Detailed Breakdown (if exists) */}
                 {review.detailedRating && (
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-slate-50/50 rounded-2xl border border-slate-100/50">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-slate-50/50 dark:bg-slate-800/50 rounded-2xl border border-slate-100/50 dark:border-slate-700/50">
                         {Object.entries(review.detailedRating).map(([key, val]) => (
                             <div key={key} className="flex flex-col gap-1">
                                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{key}</span>
@@ -120,7 +120,7 @@ export default function ReviewCard({ review, onEdit, onDelete }) {
                                             </span>
                                         ))}
                                     </div>
-                                    <span className="text-[10px] font-bold text-slate-500">{val}.0</span>
+                                    <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">{val}.0</span>
                                 </div>
                             </div>
                         ))}
@@ -129,7 +129,7 @@ export default function ReviewCard({ review, onEdit, onDelete }) {
             </div>
 
             {/* Review Body */}
-            <div className="text-slate-600 leading-[1.7] text-[15px] md:text-[17px] font-medium italic mb-8 pr-4">
+            <div className="text-slate-600 dark:text-slate-300 leading-[1.7] text-[15px] md:text-[17px] font-medium italic mb-8 pr-4">
                 <p>"{displayText}"</p>
                 {shouldTruncate && (
                     <button
@@ -145,16 +145,16 @@ export default function ReviewCard({ review, onEdit, onDelete }) {
             {/* Photos */}
             {review.photo && (
                 <div className="flex gap-4 mb-6 overflow-x-auto pb-2 scrollbar-none items-center">
-                    <img src={review.photo} alt="Review" className="w-[120px] h-[120px] object-cover rounded-[1.5rem] border border-slate-100 flex-shrink-0 hover:-translate-y-1 hover:shadow-lg transition-all cursor-pointer" />
+                    <img src={review.photo} alt="Review" className="w-[120px] h-[120px] object-cover rounded-[1.5rem] border border-slate-100 dark:border-slate-700/50 flex-shrink-0 hover:-translate-y-1 hover:shadow-lg transition-all cursor-pointer" />
                     {/* Mock additional photo for design parity if only one is uploaded as in mockup */}
-                    <img src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=300&q=80" alt="Review interior" className="w-[120px] h-[120px] object-cover rounded-[1.5rem] border border-slate-100 flex-shrink-0 hover:-translate-y-1 hover:shadow-lg transition-all cursor-pointer" />
+                    <img src="https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=300&q=80" alt="Review interior" className="w-[120px] h-[120px] object-cover rounded-[1.5rem] border border-slate-100 dark:border-slate-700/50 flex-shrink-0 hover:-translate-y-1 hover:shadow-lg transition-all cursor-pointer" />
                 </div>
             )}
 
             {/* Tags */}
             <div className="flex flex-wrap gap-2.5 mb-8 mt-auto">
                 {tags.map((tag, idx) => (
-                    <span key={idx} className="bg-slate-50 border border-slate-100/80 text-[#94A3B8] text-xs font-bold px-3.5 py-1.5 rounded-full tracking-wide">
+                    <span key={idx} className="bg-slate-50 dark:bg-slate-800/50 border border-slate-100/80 text-[#94A3B8] text-xs font-bold px-3.5 py-1.5 rounded-full tracking-wide">
                         {tag}
                     </span>
                 ))}
@@ -163,18 +163,18 @@ export default function ReviewCard({ review, onEdit, onDelete }) {
             {/* Footer Status & Likes */}
             <div className="flex justify-between items-center">
                 {review.status === "PENDING" ? (
-                    <div className="flex items-center gap-1.5 bg-amber-50 text-amber-600 px-3.5 py-1.5 rounded-full border border-amber-100">
+                    <div className="flex items-center gap-1.5 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-500 px-3.5 py-1.5 rounded-full border border-amber-100 dark:border-amber-500/20">
                         <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>schedule</span>
                         <span className="text-[11px] font-black tracking-widest leading-none">PENDING MODERATION</span>
                     </div>
                 ) : (
-                    <div className="flex items-center gap-1.5 bg-[#ECFDF5] text-[#059669] px-3.5 py-1.5 rounded-full border border-[#D1FAE5]">
+                    <div className="flex items-center gap-1.5 bg-[#ECFDF5] dark:bg-emerald-500/10 text-[#059669] dark:text-emerald-400 px-3.5 py-1.5 rounded-full border border-[#D1FAE5] dark:border-emerald-500/20">
                         <span className="material-symbols-outlined text-[16px]" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
                         <span className="text-[11px] font-black tracking-widest leading-none">PUBLISHED</span>
                     </div>
                 )}
                 
-                <button className="flex items-center gap-2 text-[#94A3B8] hover:text-slate-600 transition-colors bg-slate-50 px-3 py-1.5 rounded-full">
+                <button className="flex items-center gap-2 text-[#94A3B8] hover:text-slate-600 dark:text-slate-300 transition-colors bg-slate-50 dark:bg-slate-800/50 px-3 py-1.5 rounded-full">
                     <span className="material-symbols-outlined text-[18px]">thumb_up</span>
                     <span className="text-[13px] font-bold">12</span>
                 </button>
@@ -182,10 +182,10 @@ export default function ReviewCard({ review, onEdit, onDelete }) {
             
             {/* Admin Response */}
             {review.ownerReply && (
-                <div className="mt-8 bg-[#F8FAFC] p-5 rounded-3xl border border-slate-100 relative">
+                <div className="mt-8 bg-[#F8FAFC] dark:bg-slate-800/50 p-5 rounded-3xl border border-slate-100 dark:border-slate-700/50 relative">
                     <div className="flex flex-col mb-2">
-                        <span className="text-[11px] font-black text-slate-800 uppercase tracking-widest text-slate-400 mb-1">Response from host</span>
-                        <div className="text-[15px] text-slate-700 italic font-medium leading-relaxed">
+                        <span className="text-[11px] font-black text-slate-800 dark:text-slate-100 uppercase tracking-widest text-slate-400 mb-1">Response from host</span>
+                        <div className="text-[15px] text-slate-700 dark:text-slate-200 italic font-medium leading-relaxed">
                             "{review.ownerReply}"
                         </div>
                     </div>

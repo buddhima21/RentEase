@@ -47,11 +47,11 @@ export default function OwnerAgreements() {
     };
 
     return (
-        <div className="flex min-h-screen bg-[#f6f8f7]">
+        <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-emerald-950/20">
             <Sidebar />
             <main className="flex-1 flex flex-col min-w-0">
-                <header className="h-20 bg-white border-b border-emerald-100 px-6 flex items-center justify-between shrink-0">
-                    <h1 className="text-xl font-bold text-slate-900 pl-12 lg:pl-0">Rental agreements</h1>
+                <header className="h-20 bg-white dark:bg-slate-900/90 backdrop-blur-md border-b border-emerald-100 dark:border-slate-700/80 px-6 flex items-center justify-between shrink-0">
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-white pl-12 lg:pl-0">Rental agreements</h1>
                     {user ? (
                         <UserDropdown user={user} onLogout={logout} />
                     ) : (
@@ -62,7 +62,7 @@ export default function OwnerAgreements() {
                     )}
                 </header>
                 <div className="flex-1 overflow-y-auto p-6 lg:p-8 pl-12 lg:pl-8 max-w-4xl">
-                    <p className="text-sm text-slate-500 mb-6">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
                         Agreements created by your tenants after approving their bookings. Set property terms under{" "}
                         <Link to="/owner/properties" className="text-primary font-bold">
                             My Properties → Edit
@@ -70,19 +70,19 @@ export default function OwnerAgreements() {
                         .
                     </p>
                     {loading ? (
-                        <p className="text-slate-500">Loading…</p>
+                        <p className="text-slate-500 dark:text-slate-400">Loading…</p>
                     ) : list.length === 0 ? (
-                        <p className="text-slate-500 text-sm">No agreements yet.</p>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm">No agreements yet.</p>
                     ) : (
                         <ul className="space-y-3">
                             {list.map((a) => (
                                 <li
                                     key={a.id}
-                                    className="bg-white rounded-xl border border-emerald-100 p-5 flex flex-wrap items-center justify-between gap-4"
+                                    className="bg-white dark:bg-slate-900 rounded-xl border border-emerald-100 p-5 flex flex-wrap items-center justify-between gap-4"
                                 >
                                     <div>
-                                        <p className="font-bold text-slate-900">{a.agreementNumber}</p>
-                                        <p className="text-sm text-slate-500">{a.propertyTitle || a.propertyId}</p>
+                                        <p className="font-bold text-slate-900 dark:text-white">{a.agreementNumber}</p>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400">{a.propertyTitle || a.propertyId}</p>
                                         <p className="text-xs text-slate-400 mt-1">
                                             Tenant: {a.tenantName || a.tenantId} · {a.status}
                                         </p>

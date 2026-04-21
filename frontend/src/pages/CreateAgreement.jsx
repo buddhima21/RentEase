@@ -77,19 +77,19 @@ export default function CreateAgreement() {
     const today = new Date().toISOString().slice(0, 10);
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50">
             <Navbar />
             <div className="max-w-xl mx-auto px-4 py-8">
                 <Link to="/tenant/agreements" className="text-sm font-bold text-primary hover:underline inline-flex items-center gap-1 mb-6">
                     <span className="material-symbols-outlined text-[16px]">arrow_back</span>
                     Back to agreements
                 </Link>
-                <h1 className="text-2xl font-black text-slate-900 mb-2">Create rental agreement</h1>
-                <p className="text-sm text-slate-500 mb-8">
+                <h1 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Create rental agreement</h1>
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-8">
                     Only bookings approved by the owner appear here. Dates must be today or in the future; end date must be after start date.
                 </p>
 
-                {loading && <p className="text-slate-500">Loading…</p>}
+                {loading && <p className="text-slate-500 dark:text-slate-400">Loading…</p>}
                 {!loading && bookings.length === 0 && (
                     <div className="rounded-2xl border border-amber-200 bg-amber-50 text-amber-900 p-5 text-sm">
                         You have no eligible bookings. Request a property and wait for the owner to approve your booking first.
@@ -99,12 +99,12 @@ export default function CreateAgreement() {
                     </div>
                 )}
                 {!loading && bookings.length > 0 && (
-                    <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-slate-200 p-6 space-y-5 shadow-sm">
+                    <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 space-y-5 shadow-sm">
                         {formError && (
                             <div className="rounded-xl bg-red-50 border border-red-200 text-red-800 text-sm p-3 font-medium">{formError}</div>
                         )}
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">Booking</label>
+                            <label className="block text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">Booking</label>
                             <select
                                 required
                                 value={bookingId}
@@ -113,7 +113,7 @@ export default function CreateAgreement() {
                                     const b = bookings.find((x) => x.id === e.target.value);
                                     if (b?.monthlyRent) setRentAmount(String(b.monthlyRent));
                                 }}
-                                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/30 focus:border-primary"
+                                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-3 text-sm font-medium focus:ring-2 focus:ring-primary/30 focus:border-primary"
                             >
                                 <option value="">Select booking</option>
                                 {bookings.map((b) => (
@@ -125,30 +125,30 @@ export default function CreateAgreement() {
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">Start date</label>
+                                <label className="block text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">Start date</label>
                                 <input
                                     type="date"
                                     required
                                     min={today}
                                     value={startDate}
                                     onChange={(e) => setStartDate(e.target.value)}
-                                    className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:ring-2 focus:ring-primary/30"
+                                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-3 text-sm focus:ring-2 focus:ring-primary/30"
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">End date</label>
+                                <label className="block text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">End date</label>
                                 <input
                                     type="date"
                                     required
                                     min={startDate || today}
                                     value={endDate}
                                     onChange={(e) => setEndDate(e.target.value)}
-                                    className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:ring-2 focus:ring-primary/30"
+                                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-3 text-sm focus:ring-2 focus:ring-primary/30"
                                 />
                             </div>
                         </div>
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">
+                            <label className="block text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">
                                 Monthly rent (LKR) <span className="font-normal normal-case text-slate-400">— optional; defaults to booking</span>
                             </label>
                             <input
@@ -158,16 +158,16 @@ export default function CreateAgreement() {
                                 value={rentAmount}
                                 onChange={(e) => setRentAmount(e.target.value)}
                                 placeholder={selectedBooking?.monthlyRent ? String(selectedBooking.monthlyRent) : "e.g. 50000"}
-                                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:ring-2 focus:ring-primary/30"
+                                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-3 text-sm focus:ring-2 focus:ring-primary/30"
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">Rules / notes</label>
+                            <label className="block text-xs font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-2">Rules / notes</label>
                             <textarea
                                 value={rulesNotes}
                                 onChange={(e) => setRulesNotes(e.target.value)}
                                 rows={4}
-                                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm focus:ring-2 focus:ring-primary/30 resize-none"
+                                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-3 text-sm focus:ring-2 focus:ring-primary/30 resize-none"
                                 placeholder="Optional notes for this agreement…"
                             />
                         </div>

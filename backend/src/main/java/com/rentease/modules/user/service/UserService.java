@@ -135,6 +135,40 @@ public class UserService {
                 .collect(java.util.stream.Collectors.toList());
     }
 
+    public UserResponse addFavorite(String userId, String propertyId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+        if (user.getFavoritePropertyIds() == null) {
+            user.setFavoritePropertyIds(new java.util.ArrayList<>());
+        }
+        if (!user.getFavoritePropertyIds().contains(propertyId)) {
+            user.getFavoritePropertyIds().add(propertyId);
+            user = userRepository.save(user);
+        }
+        return mapToResponse(user, null);
+    }
+
+    public UserResponse removeFavorite(String userId, String propertyId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+        if (user.getFavoritePropertyIds() != null && user.getFavoritePropertyIds().contains(propertyId)) {
+            user.getFavoritePropertyIds().remove(propertyId);
+            user = userRepository.save(user);
+        }
+        return mapToResponse(user, null);
+    }
+
+    public java.util.List<Property> getFavoriteProperties(String userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+        if (user.getFavoritePropertyIds() == null || user.getFavoritePropertyIds().isEmpty()) {
+            return new java.util.ArrayList<>();
+        }
+        return java.util.stream.StreamSupport.stream(
+                propertyRepository.findAllById(user.getFavoritePropertyIds()).spliterator(), false
+        ).collect(java.util.stream.Collectors.toList());
+    }
+
     private UserResponse mapToResponse(User user, String token) {
         return UserResponse.builder()
                 .id(user.getId())
@@ -145,6 +179,7 @@ public class UserService {
                 .profileImageUrl(user.getProfileImageUrl())
                 .bio(user.getBio())
                 .location(user.getLocation())
+                .favoritePropertyIds(user.getFavoritePropertyIds() != null ? user.getFavoritePropertyIds() : new java.util.ArrayList<>())
                 .createdAt(user.getCreatedAt())
                 .token(token)
                 .build();

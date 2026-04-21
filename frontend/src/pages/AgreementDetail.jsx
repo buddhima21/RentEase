@@ -65,14 +65,14 @@ export default function AgreementDetail() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+            <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 flex items-center justify-center">
                 <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
             </div>
         );
     }
     if (error || !agreement) {
         return (
-            <div className="min-h-screen bg-slate-50">
+            <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50">
                 <Navbar />
                 <div className="max-w-lg mx-auto px-4 py-16 text-center">
                     <p className="text-red-600 font-medium">{error || "Not found"}</p>
@@ -87,7 +87,7 @@ export default function AgreementDetail() {
     const canTerminate = agreement.status === "ACTIVE";
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50">
             <Navbar />
             <div className="max-w-2xl mx-auto px-4 py-8">
                 <Link to="/tenant/agreements" className="text-sm font-bold text-primary hover:underline inline-flex items-center gap-1 mb-6">
@@ -95,43 +95,43 @@ export default function AgreementDetail() {
                     All agreements
                 </Link>
 
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                    <div className="p-6 border-b border-slate-100 flex flex-wrap items-start justify-between gap-4">
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                    <div className="p-6 border-b border-slate-100 dark:border-slate-700/50 flex flex-wrap items-start justify-between gap-4">
                         <div>
-                            <h1 className="text-xl font-black text-slate-900">{agreement.agreementNumber}</h1>
-                            <p className="text-slate-500 text-sm mt-1">{agreement.propertyTitle}</p>
+                            <h1 className="text-xl font-black text-slate-900 dark:text-white">{agreement.agreementNumber}</h1>
+                            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{agreement.propertyTitle}</p>
                         </div>
-                        <span className="text-xs font-bold px-3 py-1 rounded-full bg-slate-100 text-slate-700">{agreement.status}</span>
+                        <span className="text-xs font-bold px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">{agreement.status}</span>
                     </div>
                     <div className="p-6 space-y-4 text-sm">
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <p className="text-xs font-bold text-slate-400 uppercase">Start</p>
-                                <p className="font-semibold text-slate-800">{agreement.startDate}</p>
+                                <p className="font-semibold text-slate-800 dark:text-slate-100">{agreement.startDate}</p>
                             </div>
                             <div>
                                 <p className="text-xs font-bold text-slate-400 uppercase">End</p>
-                                <p className="font-semibold text-slate-800">{agreement.endDate}</p>
+                                <p className="font-semibold text-slate-800 dark:text-slate-100">{agreement.endDate}</p>
                             </div>
                             <div>
                                 <p className="text-xs font-bold text-slate-400 uppercase">Duration</p>
-                                <p className="font-semibold text-slate-800">{agreement.durationMonths} months</p>
+                                <p className="font-semibold text-slate-800 dark:text-slate-100">{agreement.durationMonths} months</p>
                             </div>
                             <div>
                                 <p className="text-xs font-bold text-slate-400 uppercase">Rent / month</p>
-                                <p className="font-semibold text-slate-800">LKR {Number(agreement.rentAmount).toLocaleString()}</p>
+                                <p className="font-semibold text-slate-800 dark:text-slate-100">LKR {Number(agreement.rentAmount).toLocaleString()}</p>
                             </div>
                         </div>
                         {agreement.rulesNotes && (
                             <div>
                                 <p className="text-xs font-bold text-slate-400 uppercase mb-1">Your notes</p>
-                                <p className="text-slate-600 whitespace-pre-wrap">{agreement.rulesNotes}</p>
+                                <p className="text-slate-600 dark:text-slate-300 whitespace-pre-wrap">{agreement.rulesNotes}</p>
                             </div>
                         )}
                         {agreement.propertyTermsSnapshot && (
                             <div>
                                 <p className="text-xs font-bold text-slate-400 uppercase mb-1">Property terms (at signing)</p>
-                                <p className="text-slate-600 whitespace-pre-wrap text-xs leading-relaxed border border-slate-100 rounded-xl p-3 bg-slate-50">
+                                <p className="text-slate-600 dark:text-slate-300 whitespace-pre-wrap text-xs leading-relaxed border border-slate-100 dark:border-slate-700/50 rounded-xl p-3 bg-slate-50 dark:bg-slate-800/50">
                                     {agreement.propertyTermsSnapshot}
                                 </p>
                             </div>
@@ -146,7 +146,7 @@ export default function AgreementDetail() {
                             </div>
                         )}
                     </div>
-                    <div className="p-6 bg-slate-50 border-t border-slate-100 flex flex-wrap gap-3">
+                    <div className="p-6 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-700/50 flex flex-wrap gap-3">
                         <button
                             type="button"
                             onClick={handlePdf}
@@ -170,19 +170,19 @@ export default function AgreementDetail() {
 
             {showTerminate && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60">
-                    <form onSubmit={handleTerminate} className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
-                        <h3 className="font-black text-slate-900">Terminate early?</h3>
-                        <p className="text-sm text-slate-600">
+                    <form onSubmit={handleTerminate} className="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
+                        <h3 className="font-black text-slate-900 dark:text-white">Terminate early?</h3>
+                        <p className="text-sm text-slate-600 dark:text-slate-300">
                             A penalty may apply: remaining months × monthly rent × 50%, as calculated by the system.
                         </p>
                         <textarea
                             value={termReason}
                             onChange={(e) => setTermReason(e.target.value)}
                             placeholder="Optional reason"
-                            className="w-full border border-slate-200 rounded-xl p-3 text-sm min-h-[80px]"
+                            className="w-full border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-sm min-h-[80px]"
                         />
                         <div className="flex gap-3">
-                            <button type="button" onClick={() => setShowTerminate(false)} className="flex-1 py-2.5 rounded-xl border font-bold text-slate-600">
+                            <button type="button" onClick={() => setShowTerminate(false)} className="flex-1 py-2.5 rounded-xl border font-bold text-slate-600 dark:text-slate-300">
                                 Cancel
                             </button>
                             <button

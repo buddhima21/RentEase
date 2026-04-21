@@ -153,12 +153,12 @@ export default function BookingCard({ property, user, availableSlots }) {
     return (
         <>
             <div className="lg:w-[400px] shrink-0">
-                <div className="sticky top-24 border border-slate-200 bg-white rounded-2xl shadow-xl overflow-hidden">
+                <div className="sticky top-24 border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 rounded-2xl shadow-xl overflow-hidden">
                     <div className="p-6">
                         <div className="flex justify-between items-center mb-6">
                             <div className="flex items-baseline gap-1">
                                 <span className="text-2xl font-black text-primary">LKR {formattedPrice}</span>
-                                <span className="text-slate-500 text-sm">/ month</span>
+                                <span className="text-slate-500 dark:text-slate-400 text-sm">/ month</span>
                             </div>
                             <div className="flex items-center gap-1 text-sm">
                                 <span
@@ -171,10 +171,10 @@ export default function BookingCard({ property, user, availableSlots }) {
                             </div>
                         </div>
 
-                        <div className="border border-slate-200 rounded-xl mb-4 overflow-hidden">
+                        <div className="border border-slate-200 dark:border-slate-700 rounded-xl mb-4 overflow-hidden">
                             <div className="grid grid-cols-2 divide-x divide-slate-200">
                                 <div className="p-3">
-                                    <p className="text-[10px] font-bold uppercase text-slate-500">Available From</p>
+                                    <p className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400">Available From</p>
                                     <p className="text-sm font-medium">
                                         {new Date(property.availableFrom).toLocaleDateString("en-GB", {
                                             day: "numeric",
@@ -184,19 +184,19 @@ export default function BookingCard({ property, user, availableSlots }) {
                                     </p>
                                 </div>
                                 <div className="p-3">
-                                    <p className="text-[10px] font-bold uppercase text-slate-500">Min Stay</p>
+                                    <p className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400">Min Stay</p>
                                     <p className="text-sm font-medium">6 Months</p>
                                 </div>
                             </div>
-                            <div className="p-3 border-t border-slate-200">
-                                <p className="text-[10px] font-bold uppercase text-slate-500">Occupants</p>
+                            <div className="p-3 border-t border-slate-200 dark:border-slate-700">
+                                <p className="text-[10px] font-bold uppercase text-slate-500 dark:text-slate-400">Occupants</p>
                                 <p className="text-sm font-medium">1 Person</p>
                             </div>
                         </div>
 
                         {/* Availability badge */}
                         {isSlotsLoading ? (
-                            <div className="mb-4 flex items-center gap-2 px-3 py-2 bg-slate-100 rounded-xl animate-pulse">
+                            <div className="mb-4 flex items-center gap-2 px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse">
                                 <div className="w-2 h-2 rounded-full bg-slate-300" />
                                 <span className="text-xs text-slate-400 font-medium">Checking availability...</span>
                             </div>
@@ -243,7 +243,7 @@ export default function BookingCard({ property, user, availableSlots }) {
                                 ${isFullyBooked
                                     ? "bg-red-100 text-red-400 cursor-not-allowed shadow-none"
                                     : buttonDisabled
-                                    ? "bg-slate-300 text-slate-500 cursor-not-allowed shadow-none"
+                                    ? "bg-slate-300 text-slate-500 dark:text-slate-400 cursor-not-allowed shadow-none"
                                     : "bg-primary text-white shadow-primary/30 hover:bg-primary/90 cursor-pointer"
                                 }`}
                         >
@@ -252,30 +252,30 @@ export default function BookingCard({ property, user, availableSlots }) {
                             )}
                             {buttonLabel}
                         </button>
-                        <p className="text-center text-xs text-slate-500 mb-6">You won't be charged yet</p>
+                        <p className="text-center text-xs text-slate-500 dark:text-slate-400 mb-6">You won't be charged yet</p>
 
                         <div className="space-y-4">
                             <div className="flex justify-between text-sm">
-                                <span className="text-slate-600">Monthly Rent</span>
+                                <span className="text-slate-600 dark:text-slate-300">Monthly Rent</span>
                                 <span className="font-medium">LKR {formattedPrice}</span>
                             </div>
                             <div className="flex justify-between text-sm">
-                                <span className="text-slate-600">Security Deposit</span>
+                                <span className="text-slate-600 dark:text-slate-300">Security Deposit</span>
                                 <span className="font-medium">LKR {deposit}</span>
                             </div>
-                            <div className="border-t border-slate-200 pt-4 flex justify-between font-black text-lg">
+                            <div className="border-t border-slate-200 dark:border-slate-700 pt-4 flex justify-between font-black text-lg">
                                 <span>Total to pay now</span>
                                 <span className="text-primary">LKR {total}</span>
                             </div>
                         </div>
                     </div>
 
-                    <div className="bg-slate-50 p-6 flex items-center justify-between border-t border-slate-200">
+                    <div className="bg-slate-50 dark:bg-slate-800/50 p-6 flex items-center justify-between border-t border-slate-200 dark:border-slate-700">
                         <div className="flex items-center gap-2">
                             <span className="material-symbols-outlined text-primary">verified_user</span>
                             <span className="text-xs font-bold">Secure Payment Protection</span>
                         </div>
-                        <span className="material-symbols-outlined text-slate-400 cursor-pointer hover:text-slate-600 transition-colors">
+                        <span className="material-symbols-outlined text-slate-400 cursor-pointer hover:text-slate-600 dark:text-slate-300 transition-colors">
                             info
                         </span>
                     </div>
@@ -292,7 +292,7 @@ export default function BookingCard({ property, user, availableSlots }) {
             {/* Booking Modal */}
             {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 animate-in fade-in zoom-in-95 duration-200">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl max-w-md w-full p-8 animate-in fade-in zoom-in-95 duration-200">
 
                         {/* Header */}
                         <div className="flex items-center gap-3 mb-6">
@@ -300,14 +300,14 @@ export default function BookingCard({ property, user, availableSlots }) {
                                 <span className="material-symbols-outlined text-primary text-2xl">home</span>
                             </div>
                             <div>
-                                <h3 className="text-lg font-black text-slate-900">Confirm Booking Request</h3>
-                                <p className="text-xs text-slate-500">This sends a request to the owner for approval</p>
+                                <h3 className="text-lg font-black text-slate-900 dark:text-white">Confirm Booking Request</h3>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">This sends a request to the owner for approval</p>
                             </div>
                         </div>
 
                         {/* Date Picker */}
                         <div className="mb-5">
-                            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+                            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
                                 <span className="flex items-center gap-1">
                                     <span className="material-symbols-outlined text-sm">event</span>
                                     Move-in Date <span className="text-red-500">*</span>
@@ -321,7 +321,7 @@ export default function BookingCard({ property, user, availableSlots }) {
                                 className={`w-full rounded-xl border px-4 py-3 text-sm font-medium focus:outline-none focus:ring-2 transition-all
                                     ${dateError
                                         ? "border-red-400 focus:ring-red-300 bg-red-50"
-                                        : "border-slate-200 focus:ring-primary/30 focus:border-primary bg-slate-50"
+                                        : "border-slate-200 dark:border-slate-700 focus:ring-primary/30 focus:border-primary bg-slate-50 dark:bg-slate-800/50"
                                     }`}
                             />
                             {dateError && (
@@ -339,25 +339,25 @@ export default function BookingCard({ property, user, availableSlots }) {
                         </div>
 
                         {/* Booking Summary */}
-                        <div className="bg-slate-50 rounded-xl p-4 mb-5 space-y-2.5 border border-slate-200">
+                        <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 mb-5 space-y-2.5 border border-slate-200 dark:border-slate-700">
                             <div className="flex justify-between text-sm">
-                                <span className="text-slate-500">Property</span>
-                                <span className="font-semibold text-slate-800 text-right max-w-[200px] line-clamp-1">{property.title}</span>
+                                <span className="text-slate-500 dark:text-slate-400">Property</span>
+                                <span className="font-semibold text-slate-800 dark:text-slate-100 text-right max-w-[200px] line-clamp-1">{property.title}</span>
                             </div>
                             <div className="flex justify-between text-sm">
-                                <span className="text-slate-500">Monthly Rent</span>
+                                <span className="text-slate-500 dark:text-slate-400">Monthly Rent</span>
                                 <span className="font-semibold text-primary">LKR {formattedPrice}</span>
                             </div>
                             <div className="flex justify-between text-sm">
-                                <span className="text-slate-500">Start Date</span>
+                                <span className="text-slate-500 dark:text-slate-400">Start Date</span>
                                 <span className="font-semibold">{startDate ? formatDate(startDate) : "—"}</span>
                             </div>
                             <div className="flex justify-between text-sm">
-                                <span className="text-slate-500">End Date</span>
+                                <span className="text-slate-500 dark:text-slate-400">End Date</span>
                                 <span className="font-semibold">{endDate ? formatDate(endDate) : "—"}</span>
                             </div>
                             <div className="flex justify-between text-sm">
-                                <span className="text-slate-500">Duration</span>
+                                <span className="text-slate-500 dark:text-slate-400">Duration</span>
                                 <span className="font-semibold">6 months (min)</span>
                             </div>
                         </div>
@@ -379,7 +379,7 @@ export default function BookingCard({ property, user, availableSlots }) {
                             <button
                                 onClick={handleCloseModal}
                                 disabled={isSubmitting}
-                                className="flex-1 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all"
+                                className="flex-1 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-50 dark:bg-slate-800/50 transition-all"
                             >
                                 Cancel
                             </button>
@@ -388,7 +388,7 @@ export default function BookingCard({ property, user, availableSlots }) {
                                 disabled={isSubmitting || !!dateError || !startDate}
                                 className={`flex-1 py-3 rounded-xl font-bold transition-all shadow-lg flex items-center justify-center gap-2
                                     ${isSubmitting || dateError || !startDate
-                                        ? "bg-slate-300 text-slate-500 cursor-not-allowed shadow-none"
+                                        ? "bg-slate-300 text-slate-500 dark:text-slate-400 cursor-not-allowed shadow-none"
                                         : "bg-primary text-white shadow-primary/25 hover:bg-primary/90"
                                     }`}
                             >

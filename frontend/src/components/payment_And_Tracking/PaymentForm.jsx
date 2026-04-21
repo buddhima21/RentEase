@@ -39,14 +39,14 @@ export default function PaymentForm() {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-emerald-100 shadow-sm p-8">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-emerald-100 shadow-sm p-8">
       <div className="flex items-center gap-3 pb-6 border-b border-emerald-100">
         <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center text-emerald-700">
           <span className="material-symbols-outlined text-xl">payment</span>
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Pay Your Rent</h2>
-          <p className="text-xs text-slate-500 font-medium">Record your monthly payment</p>
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Pay Your Rent</h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Record your monthly payment</p>
         </div>
       </div>
 
@@ -63,7 +63,7 @@ export default function PaymentForm() {
       <form onSubmit={handleSubmit} className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Invoice ID / Reference */}
         <div className="space-y-2">
-          <label className="text-sm font-semibold text-slate-600">Invoice Reference #</label>
+          <label className="text-sm font-semibold text-slate-600 dark:text-slate-300">Invoice Reference #</label>
           <input 
             type="text" 
             required 
@@ -76,7 +76,7 @@ export default function PaymentForm() {
 
         {/* Amount Paid */}
         <div className="space-y-2">
-          <label className="text-sm font-semibold text-slate-600">Amount Paid (LKR)</label>
+          <label className="text-sm font-semibold text-slate-600 dark:text-slate-300">Amount Paid (LKR)</label>
           <input 
             type="number" 
             required 
@@ -90,7 +90,7 @@ export default function PaymentForm() {
 
         {/* Payment Date */}
         <div className="space-y-2">
-          <label className="text-sm font-semibold text-slate-600">Date Paid</label>
+          <label className="text-sm font-semibold text-slate-600 dark:text-slate-300">Date Paid</label>
           <input 
             type="date" 
             required 
@@ -102,9 +102,9 @@ export default function PaymentForm() {
 
         {/* Payment Method */}
         <div className="space-y-2">
-          <label className="text-sm font-semibold text-slate-600">Payment Method</label>
+          <label className="text-sm font-semibold text-slate-600 dark:text-slate-300">Payment Method</label>
           <select 
-            className="w-full p-3 border border-emerald-100 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-white transition-all"
+            className="w-full p-3 border border-emerald-100 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-white dark:bg-slate-900 transition-all"
             value={formData.paymentMethod}
             onChange={(e) => setFormData({...formData, paymentMethod: e.target.value})}
           >

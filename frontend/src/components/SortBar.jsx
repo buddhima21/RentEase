@@ -2,17 +2,17 @@ import { sortOptions } from "../data/filterOptions";
 
 export default function SortBar({ count, sortBy, onSortChange, onToggleFilters }) {
     return (
-        <div className="px-6 py-4 bg-white border-b border-slate-200 sticky top-0 z-10 flex items-center justify-between gap-4">
+        <div className="px-6 py-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
                 <button
                     onClick={onToggleFilters}
-                    className="md:hidden p-2 rounded-xl border border-slate-200 text-slate-600 hover:bg-primary/10 hover:text-primary transition-all"
+                    className="md:hidden p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-primary/10 hover:text-primary transition-all"
                 >
                     <span className="material-symbols-outlined">tune</span>
                 </button>
                 <div>
                     <h1 className="text-lg font-bold">Listings</h1>
-                    <p className="text-sm text-slate-500">{count} properties found</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">{count} properties found</p>
                 </div>
             </div>
             <div className="flex items-center gap-2">
