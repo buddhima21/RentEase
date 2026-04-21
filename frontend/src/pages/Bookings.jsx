@@ -48,7 +48,7 @@ export default function Bookings() {
                         </div>
 
                         {/* Notifications */}
-                        <button className="relative p-2 rounded-full hover:bg-emerald-50 transition-colors text-slate-500 hover:text-slate-700">
+                        <button className="relative p-2 rounded-full hover:bg-emerald-50 transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-200">
                             <span className="material-symbols-outlined text-[22px]">notifications</span>
                             <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full" />
                         </button>
@@ -71,12 +71,12 @@ export default function Bookings() {
                     {/* Header Section */}
                     <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
                         <div>
-                            <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Booking Requests</h2>
-                            <p className="text-slate-500 mt-1">
+                            <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Booking Requests</h2>
+                            <p className="text-slate-500 dark:text-slate-400 mt-1">
                                 You have <span className="font-semibold text-primary">12 pending</span> requests across your portfolio.
                             </p>
                         </div>
-                        <div className="flex bg-white p-1 rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
+                        <div className="flex bg-white dark:bg-slate-900 p-1 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-x-auto">
                             {tabs.map(tab => (
                                 <button
                                     key={tab}
@@ -84,7 +84,7 @@ export default function Bookings() {
                                     className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
                                         activeTab === tab
                                             ? "bg-primary text-white shadow-sm"
-                                            : "text-slate-500 hover:text-primary hover:bg-slate-50"
+                                            : "text-slate-500 dark:text-slate-400 hover:text-primary hover:bg-slate-50 dark:bg-slate-800/50"
                                     }`}
                                 >
                                     {tab}
@@ -100,7 +100,7 @@ export default function Bookings() {
                                 <BookingRequestCard key={booking.id} booking={booking} />
                             ))
                         ) : (
-                            <div className="text-center py-12 text-slate-500">
+                            <div className="text-center py-12 text-slate-500 dark:text-slate-400">
                                 No booking requests found for this status.
                             </div>
                         )}
@@ -108,17 +108,17 @@ export default function Bookings() {
 
                     {/* Footer Pagination */}
                     <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <p className="text-sm text-slate-500">
-                            Showing <span className="font-semibold text-slate-800">1-{filteredBookings.length}</span> of 12 requests
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Showing <span className="font-semibold text-slate-800 dark:text-slate-100">1-{filteredBookings.length}</span> of 12 requests
                         </p>
                         <div className="flex gap-2">
-                            <button className="p-2 rounded-lg border border-slate-200 text-slate-400 hover:bg-white transition-colors">
+                            <button className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 hover:bg-white dark:bg-slate-900 transition-colors">
                                 <span className="material-symbols-outlined">chevron_left</span>
                             </button>
                             <button className="px-4 py-2 rounded-lg border-2 border-primary text-primary font-bold bg-primary/5">1</button>
-                            <button className="px-4 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-white transition-colors">2</button>
-                            <button className="px-4 py-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-white transition-colors">3</button>
-                            <button className="p-2 rounded-lg border border-slate-200 text-slate-400 hover:bg-white transition-colors">
+                            <button className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-white dark:bg-slate-900 transition-colors">2</button>
+                            <button className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-white dark:bg-slate-900 transition-colors">3</button>
+                            <button className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 hover:bg-white dark:bg-slate-900 transition-colors">
                                 <span className="material-symbols-outlined">chevron_right</span>
                             </button>
                         </div>

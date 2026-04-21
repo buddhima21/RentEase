@@ -61,37 +61,37 @@ export default function AboutUs() {
     }, []);
 
     return (
-        <section ref={sectionRef} className="py-20 bg-white overflow-hidden" id="about-us">
+        <section ref={sectionRef} className="py-20 bg-white dark:bg-slate-900 overflow-hidden" id="about-us">
             <div className="container mx-auto px-4">
                 <div ref={textRef} className="text-center max-w-3xl mx-auto mb-16">
                     <span className="text-primary font-bold tracking-wider text-sm uppercase mb-2 block">Our Story</span>
-                    <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Reimagining How You Rent</h2>
-                    <p className="text-slate-600 text-lg leading-relaxed">
+                    <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">Reimagining How You Rent</h2>
+                    <p className="text-slate-600 dark:text-slate-300 text-lg leading-relaxed">
                         RentEase was born from a simple idea: renting shouldn't be a hassle. We bridge the gap between property owners and tenants with transparency, trust, and technology.
                     </p>
                 </div>
 
                 <div ref={gridRef} className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
-                    <div className="bg-slate-50 p-8 rounded-2xl border border-slate-100 text-center hover:shadow-lg transition-shadow duration-300">
+                    <div className="bg-slate-50 dark:bg-slate-800/50 p-8 rounded-2xl border border-slate-100 dark:border-slate-700/50 text-center hover:shadow-lg transition-shadow duration-300">
                         <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
                             <span className="material-symbols-outlined text-3xl">verified_user</span>
                         </div>
-                        <h3 className="text-xl font-bold text-slate-900 mb-3">Verified Listings</h3>
-                        <p className="text-slate-600">Every property on our platform is verified by our team to ensure you get exactly what you see. No surprises.</p>
+                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">Verified Listings</h3>
+                        <p className="text-slate-600 dark:text-slate-300">Every property on our platform is verified by our team to ensure you get exactly what you see. No surprises.</p>
                     </div>
-                    <div className="bg-slate-50 p-8 rounded-2xl border border-slate-100 text-center hover:shadow-lg transition-shadow duration-300">
+                    <div className="bg-slate-50 dark:bg-slate-800/50 p-8 rounded-2xl border border-slate-100 dark:border-slate-700/50 text-center hover:shadow-lg transition-shadow duration-300">
                         <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
                             <span className="material-symbols-outlined text-3xl">handshake</span>
                         </div>
-                        <h3 className="text-xl font-bold text-slate-900 mb-3">Direct Communication</h3>
-                        <p className="text-slate-600">Connect directly with property owners. Our secure messaging system keeps your conversation private and safe.</p>
+                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">Direct Communication</h3>
+                        <p className="text-slate-600 dark:text-slate-300">Connect directly with property owners. Our secure messaging system keeps your conversation private and safe.</p>
                     </div>
-                    <div className="bg-slate-50 p-8 rounded-2xl border border-slate-100 text-center hover:shadow-lg transition-shadow duration-300">
+                    <div className="bg-slate-50 dark:bg-slate-800/50 p-8 rounded-2xl border border-slate-100 dark:border-slate-700/50 text-center hover:shadow-lg transition-shadow duration-300">
                         <div className="w-16 h-16 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
                             <span className="material-symbols-outlined text-3xl">sentiment_satisfied</span>
                         </div>
-                        <h3 className="text-xl font-bold text-slate-900 mb-3">Hassle-free Process</h3>
-                        <p className="text-slate-600">From viewing to signing the lease, our digital tools make the entire rental journey smooth and paperless.</p>
+                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">Hassle-free Process</h3>
+                        <p className="text-slate-600 dark:text-slate-300">From viewing to signing the lease, our digital tools make the entire rental journey smooth and paperless.</p>
                     </div>
                 </div>
 

@@ -16,6 +16,7 @@ const ITEMS_PER_PAGE = 8; // Increased for grid layout
 const statusStyles = {
     Published: "bg-emerald-500/90 text-white backdrop-blur-md shadow-lg shadow-emerald-500/20",
     Pending: "bg-amber-500/90 text-white backdrop-blur-md shadow-lg shadow-amber-500/20",
+    Booked: "bg-violet-500/90 text-white backdrop-blur-md shadow-lg shadow-violet-500/20",
     Occupied: "bg-blue-500/90 text-white backdrop-blur-md shadow-lg shadow-blue-500/20",
     Rejected: "bg-rose-500/90 text-white backdrop-blur-md shadow-lg shadow-rose-500/20",
     Archived: "bg-slate-600/90 text-white backdrop-blur-md shadow-lg shadow-slate-600/20",
@@ -71,12 +72,13 @@ export default function MyProperties() {
     const mapStatusMapping = (backendStatus) => {
         switch (backendStatus) {
             case 'PENDING_APPROVAL': return 'Pending';
-            case 'APPROVED': return 'Published';
-            case 'RENTED': return 'Occupied';
-            case 'REJECTED': return 'Rejected';
-            case 'PENDING_DELETE': return 'Archived';
-            case 'DELETED': return 'Archived';
-            default: return 'Draft';
+            case 'APPROVED':         return 'Published';
+            case 'BOOKED':           return 'Booked';
+            case 'RENTED':           return 'Occupied';
+            case 'REJECTED':         return 'Rejected';
+            case 'PENDING_DELETE':   return 'Archived';
+            case 'DELETED':          return 'Archived';
+            default:                 return 'Draft';
         }
     };
 
@@ -138,7 +140,7 @@ export default function MyProperties() {
         setCurrentPage(1);
     };
 
-    const tabs = ["All", "Published", "Pending", "Occupied", "Rejected", "Archived"];
+    const tabs = ["All", "Published", "Booked", "Pending", "Occupied", "Rejected", "Archived"];
 
     // Animation variants
     const containerVariants = {
@@ -156,7 +158,7 @@ export default function MyProperties() {
     };
 
     return (
-        <div className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-emerald-50/30">
+        <div className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-emerald-950/20">
             <Sidebar />
 
             <main className="flex-1 flex flex-col overflow-hidden min-w-0 font-sans">
@@ -164,10 +166,10 @@ export default function MyProperties() {
                 <motion.header
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="h-[72px] bg-white/70 backdrop-blur-xl border-b border-slate-100/80 px-6 lg:px-8 flex items-center justify-between shrink-0 gap-4 z-30 sticky top-0"
+                    className="h-[72px] bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl border-b border-slate-100/80 dark:border-slate-700/80 px-6 lg:px-8 flex items-center justify-between shrink-0 gap-4 z-30 sticky top-0"
                 >
                     <div className="flex items-center gap-6 flex-1 max-w-2xl">
-                        <h2 className="text-xl font-extrabold tracking-tight whitespace-nowrap pl-12 lg:pl-0 text-slate-800 flex items-center gap-2">
+                        <h2 className="text-xl font-extrabold tracking-tight whitespace-nowrap pl-12 lg:pl-0 text-slate-800 dark:text-slate-100 flex items-center gap-2">
                             Properties
                         </h2>
 
@@ -184,7 +186,7 @@ export default function MyProperties() {
                                     setSearchQuery(e.target.value);
                                     setCurrentPage(1);
                                 }}
-                                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200/80 rounded-full text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all focus:bg-white shadow-sm hover:border-slate-300"
+                                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 rounded-full text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all focus:bg-white dark:bg-slate-900 shadow-sm hover:border-slate-300 dark:border-slate-600"
                                 placeholder="Search your properties..."
                                 type="text"
                             />
@@ -222,13 +224,13 @@ export default function MyProperties() {
                                     className={`px-4 py-2 text-sm whitespace-nowrap transition-all duration-300 rounded-full flex items-center gap-2 snap-center shrink-0 border
                                         ${isActive
                                             ? "bg-slate-900 border-slate-900 text-white shadow-md shadow-slate-900/20"
-                                            : "bg-white border-slate-200 text-slate-600 hover:border-emerald-500 hover:text-emerald-700 hover:bg-emerald-50"
+                                            : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-emerald-500 hover:text-emerald-700 hover:bg-emerald-50"
                                         }`}
                                 >
                                     <span className="font-semibold">{tab === "All" ? "All Properties" : tab}</span>
                                     {count > 0 && (
                                         <span className={`text-[10px] py-0.5 px-2 rounded-full font-bold
-                                            ${isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-emerald-100 group-hover:text-emerald-700'}
+                                            ${isActive ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 group-hover:bg-emerald-100 group-hover:text-emerald-700'}
                                         `}>
                                             {count}
                                         </span>
@@ -280,10 +282,10 @@ export default function MyProperties() {
                                         key={prop.id}
                                         variants={cardVariants}
                                         layoutId={`card-${prop.id}`}
-                                        className="group relative flex flex-col bg-white rounded-[24px] border border-slate-100 shadow-sm hover:shadow-xl hover:border-emerald-200 transition-all duration-500"
+                                        className="group relative flex flex-col bg-white dark:bg-slate-900 rounded-[24px] border border-slate-100 dark:border-slate-700/50 shadow-sm hover:shadow-xl hover:border-emerald-200 transition-all duration-500"
                                     >
                                         {/* Image Header */}
-                                        <div className="relative aspect-[4/3] overflow-hidden rounded-t-[24px] bg-slate-100 cursor-pointer" onClick={() => navigate(`/owner/properties/${prop.id}`)}>
+                                        <div className="relative aspect-[4/3] overflow-hidden rounded-t-[24px] bg-slate-100 dark:bg-slate-800 cursor-pointer" onClick={() => navigate(`/owner/properties/${prop.id}`)}>
                                             <img
                                                 src={prop.thumbnail}
                                                 alt={prop.name}
@@ -325,12 +327,12 @@ export default function MyProperties() {
                                             onClick={() => navigate(`/owner/properties/${prop.id}`)}
                                         >
                                             <div className="flex justify-between items-start mb-1">
-                                                <h3 className="font-extrabold text-slate-800 text-[16px] leading-tight line-clamp-1 group-hover:text-emerald-600 transition-colors">
+                                                <h3 className="font-extrabold text-slate-800 dark:text-slate-100 text-[16px] leading-tight line-clamp-1 group-hover:text-emerald-600 transition-colors">
                                                     {prop.name}
                                                 </h3>
                                             </div>
 
-                                            <p className="text-sm text-slate-500 flex items-center gap-1.5 mb-3">
+                                            <p className="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-1.5 mb-3">
                                                 <span className="material-symbols-outlined text-[16px]">location_on</span>
                                                 <span className="truncate">{prop.location}</span>
                                             </p>
@@ -338,10 +340,10 @@ export default function MyProperties() {
                                             <div className="mt-auto pt-3 border-t border-slate-50 flex items-end justify-between">
                                                 <div>
                                                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Property Type</p>
-                                                    <p className="text-sm font-semibold text-slate-700">{prop.type}</p>
+                                                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">{prop.type}</p>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="text-lg font-extrabold text-slate-900 tracking-tight">
+                                                    <p className="text-lg font-extrabold text-slate-900 dark:text-white tracking-tight">
                                                         {prop.rent}
                                                     </p>
                                                 </div>
@@ -354,13 +356,13 @@ export default function MyProperties() {
                             <motion.div
                                 key="empty"
                                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-                                className="flex flex-col items-center justify-center py-24 px-4 bg-white rounded-3xl border border-slate-100 border-dashed"
+                                className="flex flex-col items-center justify-center py-24 px-4 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-700/50 border-dashed"
                             >
                                 <div className="w-24 h-24 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mb-6 shadow-inner">
                                     <span className="material-symbols-outlined text-5xl">holiday_village</span>
                                 </div>
-                                <h3 className="text-2xl font-bold text-slate-800 mb-2">No properties found</h3>
-                                <p className="text-slate-500 text-center max-w-md mb-8">
+                                <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">No properties found</h3>
+                                <p className="text-slate-500 dark:text-slate-400 text-center max-w-md mb-8">
                                     {searchQuery ? "We couldn't find any properties matching your search criteria." : "You haven't listed any properties yet. Start earning by adding your first listing!"}
                                 </p>
                                 <motion.button
@@ -378,11 +380,11 @@ export default function MyProperties() {
                     {/* ── Pagination ────────────────────────────── */}
                     {filteredProperties.length > ITEMS_PER_PAGE && (
                         <div className="mt-10 mb-6 flex justify-center">
-                            <div className="bg-white/80 backdrop-blur-md border border-slate-200 rounded-full p-1.5 flex items-center gap-1 shadow-sm">
+                            <div className="bg-white/80 backdrop-blur-md border border-slate-200 dark:border-slate-700 rounded-full p-1.5 flex items-center gap-1 shadow-sm">
                                 <button
                                     onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                                     disabled={safeCurrentPage === 1}
-                                    className="w-10 h-10 flex items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
+                                    className="w-10 h-10 flex items-center justify-center rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:bg-slate-800 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
                                 >
                                     <span className="material-symbols-outlined text-sm">arrow_back_ios_new</span>
                                 </button>
@@ -394,7 +396,7 @@ export default function MyProperties() {
                                             onClick={() => setCurrentPage(i + 1)}
                                             className={`w-10 h-10 flex items-center justify-center rounded-full font-bold text-sm transition-all duration-300 ${safeCurrentPage === i + 1
                                                 ? "bg-slate-900 text-white shadow-md shadow-slate-900/20 scale-110"
-                                                : "bg-transparent text-slate-600 hover:bg-slate-100"
+                                                : "bg-transparent text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:bg-slate-800"
                                                 }`}
                                         >
                                             {i + 1}
@@ -405,7 +407,7 @@ export default function MyProperties() {
                                 <button
                                     onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                                     disabled={safeCurrentPage === totalPages}
-                                    className="w-10 h-10 flex items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
+                                    className="w-10 h-10 flex items-center justify-center rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:bg-slate-800 disabled:opacity-30 disabled:hover:bg-transparent transition-all"
                                 >
                                     <span className="material-symbols-outlined text-sm">arrow_forward_ios</span>
                                 </button>

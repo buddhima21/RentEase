@@ -6,7 +6,7 @@ import { getTenantAgreements } from "../services/api";
 
 const STATUS_STYLE = {
     ACTIVE: "bg-emerald-50 text-emerald-800 border-emerald-200",
-    EXPIRED: "bg-slate-100 text-slate-600 border-slate-200",
+    EXPIRED: "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700",
     TERMINATED: "bg-amber-50 text-amber-800 border-amber-200",
 };
 
@@ -40,13 +40,13 @@ export default function TenantAgreements() {
     }, [user, navigate]);
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50">
             <Navbar />
             <div className="max-w-4xl mx-auto px-4 py-8">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                     <div>
-                        <h1 className="text-2xl font-black text-slate-900">Rental agreements</h1>
-                        <p className="text-slate-500 text-sm mt-1">View and download your digital contracts</p>
+                        <h1 className="text-2xl font-black text-slate-900 dark:text-white">Rental agreements</h1>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">View and download your digital contracts</p>
                     </div>
                     <Link
                         to="/tenant/agreements/new"
@@ -66,9 +66,9 @@ export default function TenantAgreements() {
                     <div className="rounded-2xl border border-red-200 bg-red-50 text-red-800 p-4 text-sm font-medium">{error}</div>
                 )}
                 {!loading && !error && list.length === 0 && (
-                    <div className="text-center py-20 rounded-2xl border border-slate-200 bg-white">
+                    <div className="text-center py-20 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
                         <span className="material-symbols-outlined text-5xl text-slate-200">description</span>
-                        <p className="mt-4 text-slate-600 font-medium">No agreements yet</p>
+                        <p className="mt-4 text-slate-600 dark:text-slate-300 font-medium">No agreements yet</p>
                         <p className="text-sm text-slate-400 mt-2 max-w-sm mx-auto">
                             After your booking is approved by the owner, you can create a rental agreement here.
                         </p>
@@ -83,12 +83,12 @@ export default function TenantAgreements() {
                             <li key={a.id}>
                                 <Link
                                     to={`/tenant/agreements/${a.id}`}
-                                    className="block bg-white rounded-2xl border border-slate-200 p-5 hover:border-primary/40 hover:shadow-md transition-all"
+                                    className="block bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 hover:border-primary/40 hover:shadow-md transition-all"
                                 >
                                     <div className="flex flex-wrap items-start justify-between gap-3">
                                         <div>
-                                            <p className="font-black text-slate-900">{a.agreementNumber}</p>
-                                            <p className="text-sm text-slate-500 mt-1">{a.propertyTitle || "Property"}</p>
+                                            <p className="font-black text-slate-900 dark:text-white">{a.agreementNumber}</p>
+                                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{a.propertyTitle || "Property"}</p>
                                             <p className="text-xs text-slate-400 mt-2">
                                                 {a.startDate} → {a.endDate} · LKR {Number(a.rentAmount).toLocaleString()} / mo
                                             </p>

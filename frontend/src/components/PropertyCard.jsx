@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 const FALLBACK_IMAGE = "https://placehold.co/600x400/f1f5f9/94a3b8?text=No+Image";
 
@@ -21,35 +22,44 @@ function normalizeAmenityKey(value) {
 }
 
 export default function PropertyCard({ property }) {
+    const { user, toggleFavorite } = useAuth();
+    const navigate = useNavigate();
     const {
         id,
-        title,
-        price,
-        address,
-        city,
+        title = "Unnamed Property",
+        price = 0,
+        address = "",
+        city = "",
         type,
-        bedrooms,
-        bathrooms,
-        amenities,
-        distanceKm,
-        featured,
-        verified,
-        rating,
-        reviewsCount,
+        propertyType,
+        bedrooms = 0,
+        bathrooms = 0,
+        amenities = [],
+        distanceKm = 0,
+        featured = false,
+        verified = true,
+        rating = 0,
+        reviewsCount = 0,
         image,
+        imageUrls,
         availableFrom,
+        createdAt,
     } = property;
+
+    const displayImage = image || (imageUrls && imageUrls.length > 0 ? imageUrls[0] : null);
+    const displayType = type || propertyType || "Property";
+    const displayDate = availableFrom || createdAt || new Date().toISOString();
 
     const formattedPrice = new Intl.NumberFormat("en-LK").format(price);
 
     return (
-        <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100">
+        <div className="group bg-white dark:bg-slate-900 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-100 dark:border-slate-700/50">
             <div className="relative h-52 w-full bg-slate-200 overflow-hidden flex items-center justify-center">
                 <span className="material-symbols-outlined text-5xl text-slate-300 absolute z-0">home_work</span>
-                {image && (
+                {displayImage && (
                     <img
                         className="relative z-10 h-full w-full object-cover group-hover:scale-105 transition-transform duration-500 text-transparent"
-                        src={image}
+                        src={displayImage}
                         alt={title}
                         loading="lazy"
                         onError={(e) => {
@@ -71,12 +81,31 @@ export default function PropertyCard({ property }) {
                     )}
                 </div>
 
-                <button className="absolute top-3 right-3 p-2 rounded-full bg-white/20 hover:bg-white/50 backdrop-blur-md text-white transition-all">
-                    <span className="material-symbols-outlined text-[20px]">favorite</span>
+                <button 
+                    onClick={(e) => {
+                        e.preventDefault();
+                        if (!user) {
+                            navigate("/login");
+                            return;
+                        }
+                        toggleFavorite(id);
+                    }}
+                    className={`absolute top-3 right-3 p-2 rounded-full backdrop-blur-md transition-all shadow-sm ${
+                        user?.favoritePropertyIds?.includes(id)
+                            ? 'bg-white text-rose-500 hover:bg-rose-50' 
+                            : 'bg-black/20 hover:bg-black/40 text-white'
+                    }`}
+                >
+                    <span 
+                        className="material-symbols-outlined text-[20px] transition-all" 
+                        style={{ fontVariationSettings: user?.favoritePropertyIds?.includes(id) ? "'FILL' 1" : "'FILL' 0" }}
+                    >
+                        favorite
+                    </span>
                 </button>
 
                 <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded-lg">
-                    <span className="text-[11px] font-bold text-slate-600">{type}</span>
+                    <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">{displayType}</span>
                 </div>
             </div>
 
@@ -91,7 +120,7 @@ export default function PropertyCard({ property }) {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-1 text-slate-500 text-sm mb-3">
+                <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-sm mb-3">
                     <span className="material-symbols-outlined text-sm">location_on</span>
                     <span className="line-clamp-1">{address}, {city}</span>
                 </div>
@@ -117,7 +146,7 @@ export default function PropertyCard({ property }) {
                     </div>
                 </div>
 
-                <div className="flex flex-wrap gap-1.5 mb-4 border-t border-slate-100 pt-3">
+                <div className="flex flex-wrap gap-1.5 mb-4 border-t border-slate-100 dark:border-slate-700/50 pt-3">
                     {(amenities || [])
                         .map((amenity) => {
                             const key = normalizeAmenityKey(amenity);
@@ -129,7 +158,7 @@ export default function PropertyCard({ property }) {
                         .map(({ key, meta }, idx) => (
                             <span
                                 key={`${key}-${idx}`}
-                                className="inline-flex items-center gap-1 bg-slate-50 text-slate-600 px-2 py-1 rounded-md text-[11px] font-medium"
+                                className="inline-flex items-center gap-1 bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 px-2 py-1 rounded-md text-[11px] font-medium"
                             >
                                 <span className="material-symbols-outlined text-[14px]">
                                     {meta.icon}
@@ -138,7 +167,7 @@ export default function PropertyCard({ property }) {
                             </span>
                         ))}
                     {(amenities || []).length > 4 && (
-                        <span className="inline-flex items-center bg-slate-50 text-slate-500 px-2 py-1 rounded-md text-[11px] font-medium">
+                        <span className="inline-flex items-center bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 px-2 py-1 rounded-md text-[11px] font-medium">
                             +{amenities.length - 4} more
                         </span>
                     )}
@@ -151,13 +180,13 @@ export default function PropertyCard({ property }) {
                     >
                         View Details
                     </Link>
-                    <button className="p-2.5 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">
+                    <button className="p-2.5 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:bg-slate-800/50 transition-colors">
                         <span className="material-symbols-outlined text-primary">chat</span>
                     </button>
                 </div>
 
                 <p className="text-[10px] text-slate-400 mt-2">
-                    Available from {new Date(availableFrom).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                    Available from {new Date(displayDate).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
                 </p>
             </div>
         </div>

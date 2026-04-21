@@ -2,6 +2,9 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/forms";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
+
 /* ===== Custom Theme (mirrors the original HTML design tokens) ===== */
 @theme {
   --color-primary: #26C289;
@@ -21,6 +24,7 @@ body {
   font-family: "Public Sans", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  @apply bg-slate-50 text-slate-900 transition-colors duration-300 dark:bg-[#0b1120] dark:text-slate-50;
 }
 
 /* Material Symbols baseline alignment */

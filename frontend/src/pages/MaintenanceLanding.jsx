@@ -7,22 +7,22 @@ import { MAINTENANCE_SERVICES } from "../constants/maintenance";
 
 export default function MaintenanceLanding() {
     return (
-        <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white flex flex-col">
             <Navbar />
             <main className="flex-1">
                 <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-10 md:px-6 md:py-14">
-                    <section className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-sm">
+                    <section className="overflow-hidden rounded-[2rem] border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-sm">
                         <div className="grid gap-0 lg:grid-cols-[1.2fr_0.8fr]">
                             <div className="p-8 md:p-12">
                                 <p className="text-xs font-bold uppercase tracking-[0.28em] text-emerald-600">Maintenance Services</p>
-                                <h1 className="mt-4 max-w-2xl text-4xl font-black tracking-tight text-slate-900 md:text-5xl">
+                                <h1 className="mt-4 max-w-2xl text-4xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
                                     Fast, tracked home maintenance for tenants
                                 </h1>
-                                <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 md:text-lg">
+                                <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600 dark:text-slate-300 md:text-lg">
                                     Report issues, follow technician progress, and choose the right service path before you submit a request.
                                 </p>
                                 <div className="mt-8 flex flex-wrap gap-3">
-                                    <Link to="/maintenance/services" className="rounded-full border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-700 transition-colors hover:bg-slate-50">
+                                    <Link to="/maintenance/services" className="rounded-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-5 py-3 font-semibold text-slate-700 dark:text-slate-200 transition-colors hover:bg-slate-50 dark:bg-slate-800/50">
                                         Browse Services
                                     </Link>
                                     <Link to="/technician/login" state={{ fromMaintenance: true }} className="rounded-full border border-emerald-500 bg-emerald-50 px-5 py-3 font-semibold text-emerald-700 transition-colors hover:bg-emerald-100">
@@ -59,10 +59,10 @@ export default function MaintenanceLanding() {
                                 { step: "02", title: "Submit the request", body: "Add the unit, description, priority, and photos so the team can triage quickly." },
                                 { step: "03", title: "Track completion", body: "Watch the request move from submitted to resolved and closed in the tenant flow." },
                             ].map((item) => (
-                                <div key={item.step} className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                                <div key={item.step} className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-5">
                                     <p className="text-xs font-bold uppercase tracking-[0.24em] text-emerald-600">Step {item.step}</p>
-                                    <h3 className="mt-3 text-xl font-black tracking-tight text-slate-900">{item.title}</h3>
-                                    <p className="mt-2 text-sm leading-6 text-slate-600">{item.body}</p>
+                                    <h3 className="mt-3 text-xl font-black tracking-tight text-slate-900 dark:text-white">{item.title}</h3>
+                                    <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{item.body}</p>
                                 </div>
                             ))}
                         </div>
@@ -75,10 +75,10 @@ export default function MaintenanceLanding() {
                     >
                         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                             {MAINTENANCE_SERVICES.map((service) => (
-                                <article key={service.key} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition-transform hover:-translate-y-0.5">
+                                <article key={service.key} className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5 shadow-sm transition-transform hover:-translate-y-0.5">
                                     <p className="text-xs font-bold uppercase tracking-[0.24em] text-emerald-600">{service.key}</p>
-                                    <h3 className="mt-3 text-xl font-black tracking-tight text-slate-900">{service.label}</h3>
-                                    <p className="mt-2 text-sm leading-6 text-slate-600">{service.description}</p>
+                                    <h3 className="mt-3 text-xl font-black tracking-tight text-slate-900 dark:text-white">{service.label}</h3>
+                                    <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{service.description}</p>
                                     <Link to="/maintenance/services" className="mt-4 inline-flex text-sm font-semibold text-emerald-700 hover:text-emerald-800">
                                         Open service details
                                     </Link>

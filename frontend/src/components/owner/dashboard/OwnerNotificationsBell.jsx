@@ -45,14 +45,14 @@ export default function OwnerNotificationsBell({ showLabel }) {
             </button>
 
             {showLabel && (
-                <span className="hidden md:inline text-xs font-medium text-slate-500 ml-2">Notifications</span>
+                <span className="hidden md:inline text-xs font-medium text-slate-500 dark:text-slate-400 ml-2">Notifications</span>
             )}
 
             {showDropdown && (
-                <div className="absolute right-0 mt-3 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl shadow-slate-900/5 z-40">
-                    <div className="px-4 pt-3 pb-2 border-b border-slate-100 flex items-center justify-between gap-2">
+                <div className="absolute right-0 mt-3 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl shadow-slate-900/5 z-40">
+                    <div className="px-4 pt-3 pb-2 border-b border-slate-100 dark:border-slate-700/50 flex items-center justify-between gap-2">
                         <div>
-                            <p className="text-sm font-bold text-slate-900">Notifications</p>
+                            <p className="text-sm font-bold text-slate-900 dark:text-white">Notifications</p>
                             <p className="text-[11px] text-slate-400">
                                 {unreadCount > 0 ? `${unreadCount} new updates` : "You're all caught up"}
                             </p>
@@ -75,7 +75,7 @@ export default function OwnerNotificationsBell({ showLabel }) {
                                     key={item.id}
                                     type="button"
                                     onClick={() => markOwnerNotificationRead(item.id)}
-                                    className={`w-full px-4 py-3 flex items-start gap-3 text-left hover:bg-slate-50 transition-colors ${
+                                    className={`w-full px-4 py-3 flex items-start gap-3 text-left hover:bg-slate-50 dark:bg-slate-800/50 transition-colors ${
                                         item.unread ? "bg-emerald-50/40" : ""
                                     }`}
                                 >
@@ -90,7 +90,7 @@ export default function OwnerNotificationsBell({ showLabel }) {
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2">
-                                            <p className="text-sm font-semibold text-slate-900 truncate">
+                                            <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">
                                                 {item.title}
                                             </p>
                                             {item.unread && (
@@ -98,7 +98,7 @@ export default function OwnerNotificationsBell({ showLabel }) {
                                             )}
                                         </div>
                                         {item.description && (
-                                            <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">
                                                 {item.description}
                                             </p>
                                         )}
@@ -122,7 +122,7 @@ export default function OwnerNotificationsBell({ showLabel }) {
                         )}
                     </div>
 
-                    <div className="px-4 py-2 border-t border-slate-100 text-[11px] text-slate-500 text-center">
+                    <div className="px-4 py-2 border-t border-slate-100 dark:border-slate-700/50 text-[11px] text-slate-500 dark:text-slate-400 text-center">
                         View detailed history in the activity panel on the right
                     </div>
                 </div>
