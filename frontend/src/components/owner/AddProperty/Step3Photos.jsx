@@ -49,12 +49,12 @@ const Step3Photos = ({ formData, updateFormData, prevStep, submitForm, isSubmitt
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
       {/* Left Column: Upload Area */}
-      <div className="lg:col-span-2 bg-white p-8 md:p-10 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/60 flex flex-col h-full">
+      <div className="lg:col-span-2 bg-white dark:bg-slate-900 p-8 md:p-10 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/60 flex flex-col h-full">
         <div className="mb-8">
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">
+          <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-2">
             Upload Property Photos
           </h1>
-          <p className="text-slate-500 font-medium">
+          <p className="text-slate-500 dark:text-slate-400 font-medium">
             High-quality images help your listing stand out. Drag and drop or browse to upload.
           </p>
         </div>
@@ -68,15 +68,15 @@ const Step3Photos = ({ formData, updateFormData, prevStep, submitForm, isSubmitt
             <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary group-hover:scale-110 transition-transform">
               <span className="material-symbols-outlined text-[32px]">cloud_upload</span>
             </div>
-            <h3 className="text-lg font-extrabold text-slate-800">
+            <h3 className="text-lg font-extrabold text-slate-800 dark:text-slate-100">
               Click to browse files
             </h3>
-            <p className="mt-2 text-sm text-slate-500 font-medium max-w-[250px]">
+            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400 font-medium max-w-[250px]">
               Supports: JPG, PNG, WEBP. Minimum 1200x800px recommended.
             </p>
             <button
               type="button"
-              className="mt-6 inline-flex items-center justify-center rounded-xl bg-white border border-slate-200 px-6 py-2.5 text-sm font-bold text-slate-700 shadow-sm hover:shadow hover:border-slate-300 transition-all pointer-events-none"
+              className="mt-6 inline-flex items-center justify-center rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-6 py-2.5 text-sm font-bold text-slate-700 dark:text-slate-200 shadow-sm hover:shadow hover:border-slate-300 dark:border-slate-600 transition-all pointer-events-none"
             >
               Select Files
             </button>
@@ -93,11 +93,11 @@ const Step3Photos = ({ formData, updateFormData, prevStep, submitForm, isSubmitt
 
         {/* Gallery Grid */}
         <div className="flex-1">
-          <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
-            <h4 className="font-extrabold text-slate-800 text-lg">
+          <div className="flex items-center justify-between mb-4 border-b border-slate-100 dark:border-slate-700/50 pb-3">
+            <h4 className="font-extrabold text-slate-800 dark:text-slate-100 text-lg">
               Gallery
             </h4>
-            <span className="text-sm font-bold text-slate-400 bg-slate-100 px-3 py-1 rounded-full">
+            <span className="text-sm font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full">
               {formData.images.length} / 15 selected
             </span>
           </div>
@@ -106,7 +106,7 @@ const Step3Photos = ({ formData, updateFormData, prevStep, submitForm, isSubmitt
             {formData.images.map((img) => (
               <div
                 key={img.id}
-                className="relative aspect-square rounded-xl bg-slate-100 border border-slate-200 overflow-hidden group shadow-sm"
+                className="relative aspect-square rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 overflow-hidden group shadow-sm"
               >
                 <img
                   src={img.url}
@@ -127,12 +127,12 @@ const Step3Photos = ({ formData, updateFormData, prevStep, submitForm, isSubmitt
             {formData.images.length < 15 && (
               <div
                 onClick={handleClickUpload}
-                className="aspect-square rounded-xl bg-slate-50 border-2 border-dashed border-slate-300 flex flex-col items-center justify-center gap-2 group hover:border-primary/50 hover:bg-primary/[0.02] transition-colors cursor-pointer"
+                className="aspect-square rounded-xl bg-slate-50 dark:bg-slate-800/50 border-2 border-dashed border-slate-300 dark:border-slate-600 flex flex-col items-center justify-center gap-2 group hover:border-primary/50 hover:bg-primary/[0.02] transition-colors cursor-pointer"
               >
                 <span className="material-symbols-outlined text-slate-400 text-3xl group-hover:text-primary transition-colors">
                   add_photo_alternate
                 </span>
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest group-hover:text-primary">
+                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest group-hover:text-primary">
                   Add More
                 </span>
               </div>
@@ -143,15 +143,15 @@ const Step3Photos = ({ formData, updateFormData, prevStep, submitForm, isSubmitt
 
       {/* Right Column: Live Preview & Actions */}
       <div className="lg:col-span-1 flex flex-col gap-6">
-        <div className="sticky top-28 bg-white p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/60">
-          <h4 className="font-extrabold text-slate-800 flex items-center gap-2 mb-6">
+        <div className="sticky top-28 bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/60">
+          <h4 className="font-extrabold text-slate-800 dark:text-slate-100 flex items-center gap-2 mb-6">
             <span className="material-symbols-outlined text-primary text-xl">visibility</span>
             Live Preview
           </h4>
 
           {/* Preview Card */}
-          <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-lg shadow-slate-200/40 relative">
-            <div className="relative aspect-[4/3] bg-slate-100 flex items-center justify-center overflow-hidden">
+          <div className="overflow-hidden rounded-2xl border border-slate-100 dark:border-slate-700/50 bg-white dark:bg-slate-900 shadow-lg shadow-slate-200/40 relative">
+            <div className="relative aspect-[4/3] bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden">
               {getPreviewImage() ? (
                 <img
                   src={getPreviewImage()}
@@ -165,7 +165,7 @@ const Step3Photos = ({ formData, updateFormData, prevStep, submitForm, isSubmitt
                 </div>
               )}
               <div className="absolute top-3 left-3 flex gap-2">
-                <span className="bg-white/95 backdrop-blur-sm text-slate-800 px-3 py-1.5 rounded-lg text-[10px] font-extrabold uppercase tracking-widest shadow-sm">
+                <span className="bg-white/95 backdrop-blur-sm text-slate-800 dark:text-slate-100 px-3 py-1.5 rounded-lg text-[10px] font-extrabold uppercase tracking-widest shadow-sm">
                   Preview
                 </span>
               </div>
@@ -181,25 +181,25 @@ const Step3Photos = ({ formData, updateFormData, prevStep, submitForm, isSubmitt
 
             <div className="p-5 space-y-4">
               <div className="space-y-1.5">
-                <h5 className="font-bold text-lg leading-tight text-slate-900 truncate">
+                <h5 className="font-bold text-lg leading-tight text-slate-900 dark:text-white truncate">
                   {formData.title || 'Property Title'}
                 </h5>
-                <div className="flex items-center gap-1.5 text-slate-500 text-sm truncate">
+                <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-sm truncate">
                   <span className="material-symbols-outlined text-[18px]">location_on</span>
                   <span className="truncate font-medium">{formData.fullAddress || 'San Francisco, CA'}</span>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between py-3 border-y border-slate-100">
+              <div className="flex items-center justify-between py-3 border-y border-slate-100 dark:border-slate-700/50">
                 <div className="flex items-center gap-2">
                   <span className="material-symbols-outlined text-slate-400 text-lg">hotel</span>
-                  <span className="text-sm font-bold text-slate-700">
+                  <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
                     {formData.maxOccupants || 1} Guests
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="material-symbols-outlined text-slate-400 text-lg">style</span>
-                  <span className="text-sm font-bold text-slate-700 capitalize">
+                  <span className="text-sm font-bold text-slate-700 dark:text-slate-200 capitalize">
                     {formData.category || 'Category'}
                   </span>
                 </div>
@@ -207,10 +207,10 @@ const Step3Photos = ({ formData, updateFormData, prevStep, submitForm, isSubmitt
 
               <div className="flex items-center justify-between pt-1">
                 <div className="flex flex-col">
-                  <span className="text-[11px] text-slate-500 font-bold uppercase tracking-wider">
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">
                     Monthly Rent
                   </span>
-                  <span className="text-xl font-extrabold text-slate-900">
+                  <span className="text-xl font-extrabold text-slate-900 dark:text-white">
                     Rs. {formData.monthlyRent || '0'}
                   </span>
                 </div>
@@ -231,7 +231,7 @@ const Step3Photos = ({ formData, updateFormData, prevStep, submitForm, isSubmitt
             <button
                 type="button"
                 onClick={prevStep}
-                className="w-full py-3.5 rounded-xl border-2 border-slate-200 text-slate-600 font-bold hover:bg-slate-50 hover:border-slate-300 transition-all flex items-center justify-center gap-2"
+                className="w-full py-3.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold hover:bg-slate-50 dark:bg-slate-800/50 hover:border-slate-300 dark:border-slate-600 transition-all flex items-center justify-center gap-2"
             >
                 <span className="material-symbols-outlined text-[20px]">arrow_back</span>
                 Back to Details

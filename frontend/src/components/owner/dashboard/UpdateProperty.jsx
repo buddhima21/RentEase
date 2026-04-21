@@ -121,7 +121,7 @@ export default function UpdateProperty() {
     if (isLoading) {
         return (
             <div className="min-h-screen grid place-items-center bg-[#f6f8f7]">
-                <p className="text-slate-600 font-semibold">Loading property details...</p>
+                <p className="text-slate-600 dark:text-slate-300 font-semibold">Loading property details...</p>
             </div>
         );
     }
@@ -134,7 +134,7 @@ export default function UpdateProperty() {
             {/* ── Main Content ────────────────────────────────── */}
             <main className="flex-1 flex flex-col overflow-hidden min-w-0">
                 {/* ── Top Bar ───────────────────────────────────── */}
-                <header className="h-20 bg-white border-b border-emerald-100 px-6 lg:px-8 flex items-center justify-between shrink-0 gap-4">
+                <header className="h-20 bg-white dark:bg-slate-900 border-b border-emerald-100 px-6 lg:px-8 flex items-center justify-between shrink-0 gap-4">
                     <div className="flex items-center gap-6 flex-1 max-w-2xl">
                         <h2 className="text-xl font-bold whitespace-nowrap pl-12 lg:pl-0">Update Property</h2>
                     </div>
@@ -159,8 +159,8 @@ export default function UpdateProperty() {
                             <span className="material-symbols-outlined text-sm">arrow_back</span>
                             <span className="text-xs uppercase tracking-[0.15em] font-[Inter]">Back to Property List</span>
                         </Link>
-                        <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">Update Property</h1>
-                        <p className="text-slate-500 mt-2 max-w-2xl text-sm leading-relaxed">Modify listing details for your property. Note that core structural identifiers are locked to ensure lease integrity.</p>
+                        <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">Update Property</h1>
+                        <p className="text-slate-500 dark:text-slate-400 mt-2 max-w-2xl text-sm leading-relaxed">Modify listing details for your property. Note that core structural identifiers are locked to ensure lease integrity.</p>
                     </header>
 
                     {/* Bento Layout Form */}
@@ -168,27 +168,27 @@ export default function UpdateProperty() {
                         {/* LEFT COLUMN: Editable Fields */}
                         <div className="lg:col-span-8 space-y-6 lg:space-y-8">
                             {/* Section 1: Basic Information */}
-                            <section className="bg-white p-6 lg:p-8 rounded-xl shadow-sm border border-emerald-100 space-y-6">
+                            <section className="bg-white dark:bg-slate-900 p-6 lg:p-8 rounded-xl shadow-sm border border-emerald-100 space-y-6">
                                 <div className="flex items-center gap-3 mb-2">
                                     <span className="material-symbols-outlined text-primary bg-emerald-50 p-2 rounded-lg">edit_note</span>
-                                    <h3 className="text-lg font-bold text-slate-900">Basic Information</h3>
+                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Basic Information</h3>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="flex flex-col gap-2">
-                                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Property Title</label>
+                                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Property Title</label>
                                         <input 
                                             name="title"
-                                            className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary transition-all text-slate-900 font-medium" 
+                                            className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary transition-all text-slate-900 dark:text-white font-medium" 
                                             type="text" 
                                             value={formData.title} 
                                             onChange={(e) => setFormData({...formData, title: e.target.value})}
                                         />
                                     </div>
                                     <div className="flex flex-col gap-2">
-                                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Property Category</label>
+                                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Property Category</label>
                                         <select 
                                             name="category"
-                                            className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary transition-all text-slate-900 font-medium appearance-none"
+                                            className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary transition-all text-slate-900 dark:text-white font-medium appearance-none"
                                             value={formData.category}
                                             onChange={(e) => setFormData({...formData, category: e.target.value})}
                                         >
@@ -199,21 +199,21 @@ export default function UpdateProperty() {
                                     </div>
                                 </div>
                                 <div className="flex flex-col gap-2">
-                                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Property Description</label>
+                                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Property Description</label>
                                     <textarea 
                                         name="description"
-                                        className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary transition-all text-slate-900 font-medium resize-none min-h-[120px]" 
+                                        className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary transition-all text-slate-900 dark:text-white font-medium resize-none min-h-[120px]" 
                                         value={formData.description}
                                         onChange={(e) => setFormData({...formData, description: e.target.value})}
                                     ></textarea>
                                 </div>
                                 <div className="flex flex-col gap-2">
-                                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                                    <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                                         Terms &amp; conditions <span className="font-normal text-slate-400">(visible to tenants)</span>
                                     </label>
                                     <textarea
                                         name="termsAndConditions"
-                                        className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary transition-all text-slate-900 font-medium resize-none min-h-[140px]"
+                                        className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg p-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary transition-all text-slate-900 dark:text-white font-medium resize-none min-h-[140px]"
                                         value={formData.termsAndConditions}
                                         onChange={(e) => setFormData({ ...formData, termsAndConditions: e.target.value })}
                                         placeholder="House rules, deposit terms, notice period, etc."
@@ -222,19 +222,19 @@ export default function UpdateProperty() {
                             </section>
 
                             {/* Section 2: Financial Terms */}
-                            <section className="bg-white p-6 lg:p-8 rounded-xl shadow-sm border border-emerald-100 space-y-6">
+                            <section className="bg-white dark:bg-slate-900 p-6 lg:p-8 rounded-xl shadow-sm border border-emerald-100 space-y-6">
                                 <div className="flex items-center gap-3 mb-2">
                                     <span className="material-symbols-outlined text-primary bg-emerald-50 p-2 rounded-lg">payments</span>
-                                    <h3 className="text-lg font-bold text-slate-900">Financial Terms</h3>
+                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Financial Terms</h3>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="flex flex-col gap-2 relative">
-                                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Monthly Rent</label>
+                                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Monthly Rent</label>
                                         <div className="relative">
                                             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">LKR</span>
                                             <input 
                                                 name="rent"
-                                                className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-14 pr-3 py-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary transition-all text-slate-900 font-bold font-mono text-base" 
+                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg pl-14 pr-3 py-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary transition-all text-slate-900 dark:text-white font-bold font-mono text-base" 
                                                 type="number" 
                                                 value={formData.rent} 
                                                 onChange={(e) => setFormData({...formData, rent: Number(e.target.value)})}
@@ -242,12 +242,12 @@ export default function UpdateProperty() {
                                         </div>
                                     </div>
                                     <div className="flex flex-col gap-2 relative">
-                                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500">Security Deposit</label>
+                                        <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Security Deposit</label>
                                         <div className="relative">
                                             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">LKR</span>
                                             <input 
                                                 name="deposit"
-                                                className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-14 pr-3 py-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary transition-all text-slate-900 font-bold font-mono text-base" 
+                                                className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg pl-14 pr-3 py-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary transition-all text-slate-900 dark:text-white font-bold font-mono text-base" 
                                                 type="number" 
                                                 value={formData.deposit} 
                                                 onChange={(e) => setFormData({...formData, deposit: Number(e.target.value)})}
@@ -258,10 +258,10 @@ export default function UpdateProperty() {
                             </section>
 
                             {/* Section 3: Amenities */}
-                            <section className="bg-white p-6 lg:p-8 rounded-xl shadow-sm border border-emerald-100 space-y-6">
+                            <section className="bg-white dark:bg-slate-900 p-6 lg:p-8 rounded-xl shadow-sm border border-emerald-100 space-y-6">
                                 <div className="flex items-center gap-3 mb-2">
                                     <span className="material-symbols-outlined text-primary bg-emerald-50 p-2 rounded-lg">check_circle</span>
-                                    <h3 className="text-lg font-bold text-slate-900">Amenities</h3>
+                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Amenities</h3>
                                 </div>
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                     {Object.entries(formData.amenities).map(([key, value]) => (
@@ -272,10 +272,10 @@ export default function UpdateProperty() {
                                                     ...formData, 
                                                     amenities: { ...formData.amenities, [key]: e.target.checked }
                                                 })}
-                                                className="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary focus:ring-offset-0 transition-all cursor-pointer" 
+                                                className="w-5 h-5 rounded border-slate-300 dark:border-slate-600 text-primary focus:ring-primary focus:ring-offset-0 transition-all cursor-pointer" 
                                                 type="checkbox"
                                             />
-                                            <span className="text-sm font-medium text-slate-600 group-hover:text-primary transition-colors capitalize">
+                                            <span className="text-sm font-medium text-slate-600 dark:text-slate-300 group-hover:text-primary transition-colors capitalize">
                                                 {key === 'ac' ? 'A/C' : key}
                                             </span>
                                         </label>
@@ -294,7 +294,7 @@ export default function UpdateProperty() {
                                 </button>
                                 <button 
                                     onClick={handleCancel}
-                                    className="w-full sm:w-auto px-10 py-3.5 bg-white border border-slate-200 text-slate-700 rounded-lg font-bold hover:bg-slate-50 hover:text-slate-900 transition-all"
+                                    className="w-full sm:w-auto px-10 py-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-lg font-bold hover:bg-slate-50 dark:bg-slate-800/50 hover:text-slate-900 dark:text-white transition-all"
                                 >
                                     Cancel
                                 </button>
@@ -346,14 +346,14 @@ export default function UpdateProperty() {
                             </section>
 
                             {/* Map Thumbnail (View Only) */}
-                            <div className="rounded-xl overflow-hidden shadow-sm h-48 relative border border-slate-200">
+                            <div className="rounded-xl overflow-hidden shadow-sm h-48 relative border border-slate-200 dark:border-slate-700">
                                 <img 
                                     alt="Property Location Map" 
                                     className="w-full h-full object-cover" 
                                     src={propertyData?.imageUrls?.[0] || "https://images.unsplash.com/photo-1524661135-423995f22d0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"} 
                                 />
                                 <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-                                    <span className="bg-white/90 backdrop-blur-md px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest text-slate-900 flex items-center gap-1.5 shadow-sm">
+                                    <span className="bg-white/90 backdrop-blur-md px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest text-slate-900 dark:text-white flex items-center gap-1.5 shadow-sm">
                                         <span className="material-symbols-outlined text-sm text-primary">location_on</span> 
                                         Fixed Location
                                     </span>

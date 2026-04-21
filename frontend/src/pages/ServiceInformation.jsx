@@ -6,7 +6,7 @@ import { MAINTENANCE_SERVICES } from "../constants/maintenance";
 
 export default function ServiceInformation() {
     return (
-        <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white flex flex-col">
             <Navbar />
             <main className="flex-1">
                 <div className="mx-auto w-full max-w-6xl px-4 py-10 md:px-6 md:py-14">
@@ -17,23 +17,23 @@ export default function ServiceInformation() {
                     >
                         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                             {MAINTENANCE_SERVICES.map((service) => (
-                                <article key={service.key} className="rounded-3xl border border-slate-200 bg-slate-50 p-5 transition-transform hover:-translate-y-0.5">
+                                <article key={service.key} className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-5 transition-transform hover:-translate-y-0.5">
                                     <p className="text-xs font-bold uppercase tracking-[0.24em] text-emerald-600">{service.key}</p>
-                                    <h3 className="mt-3 text-xl font-black tracking-tight text-slate-900">{service.label}</h3>
-                                    <p className="mt-2 text-sm leading-6 text-slate-600">{service.description}</p>
-                                    <div className="mt-4 space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
+                                    <h3 className="mt-3 text-xl font-black tracking-tight text-slate-900 dark:text-white">{service.label}</h3>
+                                    <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{service.description}</p>
+                                    <div className="mt-4 space-y-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4">
                                         <div>
-                                            <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-500">Common issues</p>
-                                            <p className="mt-1 text-sm text-slate-700">{service.commonIssues.join(" • ")}</p>
+                                            <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Common issues</p>
+                                            <p className="mt-1 text-sm text-slate-700 dark:text-slate-200">{service.commonIssues.join(" • ")}</p>
                                         </div>
                                         <div className="grid grid-cols-2 gap-3 text-sm">
                                             <div>
-                                                <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-500">Repair time</p>
-                                                <p className="mt-1 font-semibold text-slate-800">{service.averageRepairTime}</p>
+                                                <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Repair time</p>
+                                                <p className="mt-1 font-semibold text-slate-800 dark:text-slate-100">{service.averageRepairTime}</p>
                                             </div>
                                             <div>
-                                                <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-500">Cost range</p>
-                                                <p className="mt-1 font-semibold text-slate-800">{service.costRange}</p>
+                                                <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Cost range</p>
+                                                <p className="mt-1 font-semibold text-slate-800 dark:text-slate-100">{service.costRange}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -50,7 +50,7 @@ export default function ServiceInformation() {
                             <Link to="/tenant/maintenance/request" className="rounded-full bg-primary px-5 py-3 font-semibold text-white transition-colors hover:bg-primary/90">
                                 Get started
                             </Link>
-                            <Link to="/maintenance" className="rounded-full border border-slate-300 bg-white px-5 py-3 font-semibold text-slate-700 transition-colors hover:bg-slate-50">
+                            <Link to="/maintenance" className="rounded-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-5 py-3 font-semibold text-slate-700 dark:text-slate-200 transition-colors hover:bg-slate-50 dark:bg-slate-800/50">
                                 Back to maintenance
                             </Link>
                         </div>

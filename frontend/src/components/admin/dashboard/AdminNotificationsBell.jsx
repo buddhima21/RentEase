@@ -32,7 +32,7 @@ export default function AdminNotificationsBell() {
             <button
                 type="button"
                 onClick={() => setOpen((prev) => !prev)}
-                className="relative p-2 rounded-full hover:bg-emerald-50 transition-colors text-slate-500 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
+                className="relative p-2 rounded-full hover:bg-emerald-50 transition-colors text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
                 aria-label="Open notifications"
             >
                 <span className="material-symbols-outlined text-[22px]">notifications</span>
@@ -44,10 +44,10 @@ export default function AdminNotificationsBell() {
             </button>
 
             {open && (
-                <div className="absolute right-0 mt-3 w-80 bg-white border border-slate-200 rounded-2xl shadow-xl shadow-slate-900/5 z-40">
-                    <div className="px-4 pt-3 pb-2 border-b border-slate-100 flex items-center justify-between gap-2">
+                <div className="absolute right-0 mt-3 w-80 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl shadow-slate-900/5 z-40">
+                    <div className="px-4 pt-3 pb-2 border-b border-slate-100 dark:border-slate-700/50 flex items-center justify-between gap-2">
                         <div>
-                            <p className="text-sm font-bold text-slate-900">Admin notifications</p>
+                            <p className="text-sm font-bold text-slate-900 dark:text-white">Admin notifications</p>
                             <p className="text-[11px] text-slate-400">
                                 {unreadCount > 0 ? `${unreadCount} new items require attention` : "No critical alerts right now"}
                             </p>
@@ -70,7 +70,7 @@ export default function AdminNotificationsBell() {
                                     key={item.id}
                                     type="button"
                                     onClick={() => markAdminNotificationRead(item.id)}
-                                    className={`w-full px-4 py-3 flex items-start gap-3 text-left hover:bg-slate-50 transition-colors ${
+                                    className={`w-full px-4 py-3 flex items-start gap-3 text-left hover:bg-slate-50 dark:bg-slate-800/50 transition-colors ${
                                         item.unread ? "bg-amber-50/40" : ""
                                     }`}
                                 >
@@ -85,7 +85,7 @@ export default function AdminNotificationsBell() {
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2">
-                                            <p className="text-sm font-semibold text-slate-900 truncate">
+                                            <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">
                                                 {item.title}
                                             </p>
                                             {item.unread && (
@@ -93,7 +93,7 @@ export default function AdminNotificationsBell() {
                                             )}
                                         </div>
                                         {item.description && (
-                                            <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-2">
                                                 {item.description}
                                             </p>
                                         )}
@@ -117,7 +117,7 @@ export default function AdminNotificationsBell() {
                         )}
                     </div>
 
-                    <div className="px-4 py-2 border-t border-slate-100 text-[11px] text-slate-500 text-center">
+                    <div className="px-4 py-2 border-t border-slate-100 dark:border-slate-700/50 text-[11px] text-slate-500 dark:text-slate-400 text-center">
                         See detailed logs in the activity panel on the right
                     </div>
                 </div>

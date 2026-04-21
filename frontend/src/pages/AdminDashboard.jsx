@@ -89,7 +89,7 @@ export default function AdminDashboard() {
             <main className="flex-1 flex flex-col min-w-0">
                 {/* ── Header ────────────────────────────────────── */}
                 <header className="sticky top-0 z-30 h-[88px] bg-[#F8FAFC]/80 backdrop-blur-xl border-b border-white/50 px-8 flex items-center justify-between gap-4 shrink-0">
-                    <h2 className="text-[22px] font-black tracking-tight whitespace-nowrap pl-12 lg:pl-0 text-slate-800">
+                    <h2 className="text-[22px] font-black tracking-tight whitespace-nowrap pl-12 lg:pl-0 text-slate-800 dark:text-slate-100">
                         System Analytics
                     </h2>
 
@@ -102,14 +102,14 @@ export default function AdminDashboard() {
                             <input
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-12 pr-4 py-3 bg-white border border-slate-100 rounded-full focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm placeholder-slate-400 shadow-sm transition-all outline-none"
+                                className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-700/50 rounded-full focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm placeholder-slate-400 shadow-sm transition-all outline-none"
                                 placeholder="Search platform data..."
                                 type="text"
                             />
                         </div>
 
                         {/* Notifications */}
-                        <div className="bg-white border border-slate-100 p-2.5 rounded-full shadow-sm text-slate-400 hover:text-blue-600 cursor-pointer transition-colors relative">
+                        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-700/50 p-2.5 rounded-full shadow-sm text-slate-400 hover:text-blue-600 cursor-pointer transition-colors relative">
                              <AdminNotificationsBell />
                         </div>
 
@@ -130,13 +130,13 @@ export default function AdminDashboard() {
                               <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
                               <span className="text-[10px] font-black tracking-widest uppercase">Active Session</span>
                           </div>
-                          <h1 className="text-[32px] md:text-[40px] font-black tracking-tight text-slate-900 leading-[1.1]">
+                          <h1 className="text-[32px] md:text-[40px] font-black tracking-tight text-slate-900 dark:text-white leading-[1.1]">
                               Hi, Admin👋
                           </h1>
-                          <p className="text-slate-500 font-medium mt-2 text-[15px]">Central command for RentEase platform safety.</p>
+                          <p className="text-slate-500 dark:text-slate-400 font-medium mt-2 text-[15px]">Central command for RentEase platform safety.</p>
                        </div>
                               <div className="flex flex-col items-end gap-3">
-                                  <div className="bg-white border border-slate-100 shadow-sm px-4 py-2.5 rounded-xl flex items-center gap-2 text-sm font-bold text-slate-700">
+                                  <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-700/50 shadow-sm px-4 py-2.5 rounded-xl flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-200">
                                       <span className="material-symbols-outlined text-slate-400 text-[18px]">calendar_month</span>
                                       {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
                                   </div>
@@ -157,14 +157,14 @@ export default function AdminDashboard() {
                        <div className="lg:col-span-8 flex flex-col md:flex-row gap-6">
                            
                            {/* Flagged Content */}
-                           <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.03)] p-8 flex flex-col items-center justify-between flex-1 text-center group hover:bg-red-50/30 transition-colors">
+                           <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-700/50 shadow-[0_8px_30px_rgb(0,0,0,0.03)] p-8 flex flex-col items-center justify-between flex-1 text-center group hover:bg-red-50/30 transition-colors">
                               <div className="w-16 h-16 rounded-3xl bg-red-50 text-red-500 flex flex-col items-center justify-center mb-6 border border-red-100/50">
                                  <span className="material-symbols-outlined text-[28px]">error</span>
                               </div>
                               <div className="mb-8">
                                  <h3 className="text-[11px] font-bold tracking-widest uppercase text-slate-400 mb-2">Flagged Content</h3>
                                  <div className="text-[48px] font-black text-red-600 leading-none">12</div>
-                                 <p className="text-sm font-medium text-slate-500 mt-2">Priority Queue</p>
+                                 <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-2">Priority Queue</p>
                               </div>
                               <button className="w-full bg-red-600 text-white font-bold py-3.5 rounded-full hover:bg-red-700 shadow-md shadow-red-600/20 transition-all active:scale-[0.98]">
                                  Manage Stream
@@ -172,27 +172,27 @@ export default function AdminDashboard() {
                            </div>
 
                            {/* Active Nodes */}
-                           <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.03)] p-8 flex flex-col items-center justify-between flex-1 text-center group hover:bg-emerald-50/30 transition-colors">
+                           <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-700/50 shadow-[0_8px_30px_rgb(0,0,0,0.03)] p-8 flex flex-col items-center justify-between flex-1 text-center group hover:bg-emerald-50/30 transition-colors">
                               <div className="w-16 h-16 rounded-3xl bg-emerald-50 text-emerald-500 flex flex-col items-center justify-center mb-6 border border-emerald-100/50">
                                  <span className="material-symbols-outlined text-[28px]">group</span>
                               </div>
                               <div className="mb-8">
                                  <h3 className="text-[11px] font-bold tracking-widest uppercase text-slate-400 mb-2">Active Nodes</h3>
                                  <div className="text-[48px] font-black text-emerald-600 leading-none">{analytics?.totalUsers?.toLocaleString() || '1,420'}</div>
-                                 <p className="text-sm font-medium text-slate-500 mt-2">User Connection</p>
+                                 <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-2">User Connection</p>
                               </div>
-                              <div className="w-full h-[52px] bg-slate-50 rounded-full border border-slate-100/50 mt-auto"></div>
+                              <div className="w-full h-[52px] bg-slate-50 dark:bg-slate-800/50 rounded-full border border-slate-100/50 mt-auto"></div>
                            </div>
 
                            {/* System Uptime */}
-                           <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.03)] p-8 flex flex-col items-center justify-between flex-1 text-center group hover:bg-blue-50/30 transition-colors">
+                           <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-700/50 shadow-[0_8px_30px_rgb(0,0,0,0.03)] p-8 flex flex-col items-center justify-between flex-1 text-center group hover:bg-blue-50/30 transition-colors">
                               <div className="w-16 h-16 rounded-3xl bg-blue-50 text-blue-600 flex flex-col items-center justify-center mb-6 border border-blue-100/50">
                                  <span className="material-symbols-outlined text-[28px]">verified_user</span>
                               </div>
                               <div className="mb-8">
                                  <h3 className="text-[11px] font-bold tracking-widest uppercase text-slate-400 mb-2">System Uptime</h3>
                                  <div className="text-[48px] font-black text-blue-600 leading-none">99.9%</div>
-                                 <p className="text-sm font-medium text-slate-500 mt-2">Live Infrastructure</p>
+                                 <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-2">Live Infrastructure</p>
                               </div>
                               <button className="w-full bg-blue-600 text-white font-bold py-3.5 rounded-full hover:bg-blue-700 shadow-md shadow-blue-600/20 transition-all active:scale-[0.98]">
                                  Manage System
@@ -202,21 +202,21 @@ export default function AdminDashboard() {
                        </div>
 
                        {/* Right side - can be used for extra activity if needed, but in wireframe The charts take up full width below */}
-                       <div className="lg:col-span-4 bg-white rounded-[2.5rem] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.03)] p-6 md:p-8">
+                       <div className="lg:col-span-4 bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-700/50 shadow-[0_8px_30px_rgb(0,0,0,0.03)] p-6 md:p-8">
                           <AdminActivityList />
                        </div>
 
                     </div>
 
                     {/* Global Platform Velocity Chart */}
-                    <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.03)] p-8 md:p-10">
+                    <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-100 dark:border-slate-700/50 shadow-[0_8px_30px_rgb(0,0,0,0.03)] p-8 md:p-10">
                         <div className="flex items-center gap-4 mb-2">
                            <div className="bg-[#F3E8FF] text-[#9333EA] p-2 rounded-xl">
                               <span className="material-symbols-outlined text-[24px]">dashboard</span>
                            </div>
                            <div>
-                              <h2 className="text-[24px] font-black text-slate-900 tracking-tight">Global Platform Velocity</h2>
-                              <p className="text-slate-500 font-medium text-sm mt-1">Volume of platform-wide user interactions and safety reports</p>
+                              <h2 className="text-[24px] font-black text-slate-900 dark:text-white tracking-tight">Global Platform Velocity</h2>
+                              <p className="text-slate-500 dark:text-slate-400 font-medium text-sm mt-1">Volume of platform-wide user interactions and safety reports</p>
                            </div>
                         </div>
                         

@@ -76,6 +76,11 @@ export const loginUser = (data) => API.post("/api/v1/auth/login", data);
  */
 export const updateUser = (userId, userData) => API.put(`/api/v1/users/${userId}`, userData);
 
+// ── Favorites ─────────────────────────────────────────
+export const addFavorite = (userId, propertyId) => API.post(`/api/v1/users/${userId}/favorites/${propertyId}`);
+export const removeFavorite = (userId, propertyId) => API.delete(`/api/v1/users/${userId}/favorites/${propertyId}`);
+export const getFavorites = (userId) => API.get(`/api/v1/users/${userId}/favorites`);
+
 // ── Properties (Public) ───────────────────────────────
 /**
  * Public fetches all approved properties

@@ -99,7 +99,7 @@ export default function Login() {
 
     return (
         <div className="bg-[#f6f8f7] min-h-screen flex items-center justify-center p-4 font-['Inter']">
-            <div className="max-w-5xl w-full bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[700px]">
+            <div className="max-w-5xl w-full bg-white dark:bg-slate-900 rounded-xl shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[700px]">
                 {/* ═══════════════ Left Panel: Image ═══════════════ */}
                 <div className="hidden md:block md:w-1/2 relative">
                     <div
@@ -126,8 +126,8 @@ export default function Login() {
                 <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
                     {/* Heading */}
                     <div className="mb-8">
-                        <h2 className="text-2xl font-bold text-slate-900 mb-2">Welcome Back</h2>
-                        <p className="text-slate-500">Please enter your details to sign in to your account.</p>
+                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Welcome Back</h2>
+                        <p className="text-slate-500 dark:text-slate-400">Please enter your details to sign in to your account.</p>
                     </div>
 
                     {/* ── Error Message ── */}
@@ -143,7 +143,7 @@ export default function Login() {
                         <div className="relative flex h-14 w-full items-center rounded-2xl bg-slate-100/80 p-1.5 ring-1 ring-slate-200">
                             {/* Sliding Background */}
                             <motion.div
-                                className="absolute top-1.5 bottom-1.5 left-1.5 rounded-xl bg-white shadow-sm border border-slate-100"
+                                className="absolute top-1.5 bottom-1.5 left-1.5 rounded-xl bg-white dark:bg-slate-900 shadow-sm border border-slate-100 dark:border-slate-700/50"
                                 initial={false}
                                 animate={{
                                     x: role === "TENANT" ? "0%" : "100%"
@@ -157,7 +157,7 @@ export default function Login() {
                                 type="button"
                                 onClick={() => setRole("TENANT")}
                                 className={`relative z-10 w-1/2 flex items-center justify-center gap-2 text-sm font-bold transition-colors duration-200 ${
-                                    role === "TENANT" ? "text-[#13ec6d]" : "text-slate-500 hover:text-slate-700"
+                                    role === "TENANT" ? "text-[#13ec6d]" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-200"
                                 }`}
                             >
                                 <span className="material-symbols-outlined text-[20px]">person</span>
@@ -169,7 +169,7 @@ export default function Login() {
                                 type="button"
                                 onClick={() => setRole("OWNER")}
                                 className={`relative z-10 w-1/2 flex items-center justify-center gap-2 text-sm font-bold transition-colors duration-200 ${
-                                    role === "OWNER" ? "text-blue-600" : "text-slate-500 hover:text-slate-700"
+                                    role === "OWNER" ? "text-blue-600" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-200"
                                 }`}
                             >
                                 <span className="material-symbols-outlined text-[20px]">real_estate_agent</span>
@@ -182,7 +182,7 @@ export default function Login() {
                     <form className="space-y-5" onSubmit={handleSubmit} noValidate>
                         {/* Email */}
                         <div>
-                            <label htmlFor="login-email" className="block text-sm font-semibold text-slate-700 mb-2">
+                            <label htmlFor="login-email" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
                                 Email Address
                             </label>
                             <div className="relative">
@@ -196,7 +196,7 @@ export default function Login() {
                                     placeholder="name@example.com"
                                     value={formData.email}
                                     onChange={handleChange}
-                                    className={`block w-full pl-11 pr-4 py-3 border rounded-xl bg-slate-50 text-slate-900 placeholder-slate-400 outline-none transition-all focus:ring-2 focus:ring-[#13ec6d]/50 focus:border-[#13ec6d] ${submitted && errors.email ? "border-red-400" : "border-slate-200"
+                                    className={`block w-full pl-11 pr-4 py-3 border rounded-xl bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white placeholder-slate-400 outline-none transition-all focus:ring-2 focus:ring-[#13ec6d]/50 focus:border-[#13ec6d] ${submitted && errors.email ? "border-red-400" : "border-slate-200 dark:border-slate-700"
                                         }`}
                                 />
                             </div>
@@ -207,7 +207,7 @@ export default function Login() {
 
                         {/* Password */}
                         <div>
-                            <label htmlFor="login-password" className="block text-sm font-semibold text-slate-700 mb-2">
+                            <label htmlFor="login-password" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
                                 Password
                             </label>
                             <div className="relative">
@@ -221,13 +221,13 @@ export default function Login() {
                                     placeholder="••••••••"
                                     value={formData.password}
                                     onChange={handleChange}
-                                    className={`block w-full pl-11 pr-12 py-3 border rounded-xl bg-slate-50 text-slate-900 placeholder-slate-400 outline-none transition-all focus:ring-2 focus:ring-[#13ec6d]/50 focus:border-[#13ec6d] ${submitted && errors.password ? "border-red-400" : "border-slate-200"
+                                    className={`block w-full pl-11 pr-12 py-3 border rounded-xl bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white placeholder-slate-400 outline-none transition-all focus:ring-2 focus:ring-[#13ec6d]/50 focus:border-[#13ec6d] ${submitted && errors.password ? "border-red-400" : "border-slate-200 dark:border-slate-700"
                                         }`}
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword((v) => !v)}
-                                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 dark:text-slate-300 cursor-pointer"
                                     aria-label={showPassword ? "Hide password" : "Show password"}
                                 >
                                     <span className="material-symbols-outlined text-xl">
@@ -247,9 +247,9 @@ export default function Login() {
                                     type="checkbox"
                                     checked={rememberMe}
                                     onChange={(e) => setRememberMe(e.target.checked)}
-                                    className="size-4 rounded border-slate-300 text-[#13ec6d] focus:ring-[#13ec6d] cursor-pointer"
+                                    className="size-4 rounded border-slate-300 dark:border-slate-600 text-[#13ec6d] focus:ring-[#13ec6d] cursor-pointer"
                                 />
-                                <span className="text-sm text-slate-600">Remember me</span>
+                                <span className="text-sm text-slate-600 dark:text-slate-300">Remember me</span>
                             </label>
                             <a href="#" className="text-sm font-semibold text-[#13ec6d] hover:underline">
                                 Forgot password?
@@ -260,7 +260,7 @@ export default function Login() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-[#13ec6d] hover:bg-[#13ec6d]/90 text-slate-900 font-bold py-3.5 rounded-xl shadow-lg shadow-[#13ec6d]/20 transition-all transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                            className="w-full bg-[#13ec6d] hover:bg-[#13ec6d]/90 text-slate-900 dark:text-white font-bold py-3.5 rounded-xl shadow-lg shadow-[#13ec6d]/20 transition-all transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
                         >
                             {loading ? (
                                 <>
@@ -277,11 +277,11 @@ export default function Login() {
 
                         {/* Divider */}
                         <div className="relative flex items-center py-4">
-                            <div className="flex-grow border-t border-slate-200" />
+                            <div className="flex-grow border-t border-slate-200 dark:border-slate-700" />
                             <span className="shrink mx-4 text-slate-400 text-xs font-bold uppercase tracking-widest">
                                 Or continue with
                             </span>
-                            <div className="flex-grow border-t border-slate-200" />
+                            <div className="flex-grow border-t border-slate-200 dark:border-slate-700" />
                         </div>
 
                         {/* Social Logins */}
@@ -289,24 +289,24 @@ export default function Login() {
                             <button
                                 type="button"
                                 onClick={() => console.log("Google login clicked")}
-                                className="flex items-center justify-center gap-2 py-3 px-4 border border-slate-200 rounded-xl hover:bg-slate-50 transition-all cursor-pointer"
+                                className="flex items-center justify-center gap-2 py-3 px-4 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:bg-slate-800/50 transition-all cursor-pointer"
                             >
                                 <GoogleIcon />
-                                <span className="text-sm font-semibold text-slate-700">Google</span>
+                                <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">Google</span>
                             </button>
                             <button
                                 type="button"
                                 onClick={() => console.log("Apple login clicked")}
-                                className="flex items-center justify-center gap-2 py-3 px-4 border border-slate-200 rounded-xl hover:bg-slate-50 transition-all cursor-pointer"
+                                className="flex items-center justify-center gap-2 py-3 px-4 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 dark:bg-slate-800/50 transition-all cursor-pointer"
                             >
                                 <AppleIcon />
-                                <span className="text-sm font-semibold text-slate-700">Apple</span>
+                                <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">Apple</span>
                             </button>
                         </div>
                     </form>
 
                     {/* Sign Up Link */}
-                    <p className="mt-8 text-center text-sm text-slate-500">
+                    <p className="mt-8 text-center text-sm text-slate-500 dark:text-slate-400">
                         Don&apos;t have an account?{" "}
                         <Link to="/signup" className="font-bold text-[#13ec6d] hover:underline">
                             Create an account
