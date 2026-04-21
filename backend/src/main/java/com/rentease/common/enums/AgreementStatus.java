@@ -12,6 +12,8 @@ public enum AgreementStatus {
     CANCELLED,
     /** End date has passed (updated by scheduler or on read). */
     EXPIRED,
+    /** Tenant requested early termination, awaits owner approval. */
+    TERMINATION_REQUESTED,
     /** Ended before the scheduled end date (early termination). */
     TERMINATED
 }

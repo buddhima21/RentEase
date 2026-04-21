@@ -92,13 +92,41 @@ public class AgreementController {
                 .body(pdf);
     }
 
+    // ── Early Termination Two-Step Workflow ───────────────────────────────
+
+    /**
+     * Tenant requests early termination (or Owner terminates immediately).
+     */
     @PatchMapping("/{id}/terminate")
     public ResponseEntity<ApiResponse<AgreementResponse>> terminateEarly(
             @PathVariable String id,
             @RequestBody(required = false) EarlyTerminateRequest body) {
         CustomUserDetails user = requireUser();
         AgreementResponse response = agreementService.terminateEarly(id, body, user.getId());
-        return ResponseEntity.ok(ApiResponse.success(response, "Agreement terminated early"));
+        String msg = user.getId().equals(response.getTenantId()) 
+                ? "Early termination requested. Awaiting owner approval."
+                : "Agreement terminated early.";
+        return ResponseEntity.ok(ApiResponse.success(response, msg));
+    }
+
+    /**
+     * Owner accepts early termination request.
+     */
+    @PatchMapping("/{id}/terminate/accept")
+    public ResponseEntity<ApiResponse<AgreementResponse>> acceptTermination(@PathVariable String id) {
+        CustomUserDetails user = requireUser();
+        AgreementResponse response = agreementService.acceptEarlyTermination(id, user.getId());
+        return ResponseEntity.ok(ApiResponse.success(response, "Early termination accepted. Status is now TERMINATED."));
+    }
+
+    /**
+     * Owner rejects early termination request.
+     */
+    @PatchMapping("/{id}/terminate/reject")
+    public ResponseEntity<ApiResponse<AgreementResponse>> rejectTermination(@PathVariable String id) {
+        CustomUserDetails user = requireUser();
+        AgreementResponse response = agreementService.rejectEarlyTermination(id, user.getId());
+        return ResponseEntity.ok(ApiResponse.success(response, "Early termination rejected. Agreement continues as ACTIVE."));
     }
 
     // ── New endpoints for auto-creation workflow ────────────────────────────

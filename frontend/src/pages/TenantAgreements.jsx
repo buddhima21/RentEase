@@ -6,11 +6,12 @@ import { getTenantAgreements } from "../services/api";
 
 // Status badge styles — updated to include PENDING and CANCELLED
 const STATUS_STYLE = {
-    PENDING:   { cls: "bg-amber-50 text-amber-800 border-amber-200",   icon: "hourglass_top",    label: "Pending"   },
-    ACTIVE:    { cls: "bg-emerald-50 text-emerald-800 border-emerald-200", icon: "check_circle",  label: "Active"    },
-    CANCELLED: { cls: "bg-red-50 text-red-700 border-red-200",          icon: "cancel",           label: "Cancelled" },
-    EXPIRED:   { cls: "bg-slate-100 text-slate-600 border-slate-200",   icon: "schedule",         label: "Expired"   },
-    TERMINATED:{ cls: "bg-amber-50 text-amber-800 border-amber-200",    icon: "highlight_off",    label: "Terminated"},
+    PENDING:               { cls: "bg-amber-50 text-amber-800 border-amber-200",     icon: "hourglass_top",    label: "Pending"   },
+    ACTIVE:                { cls: "bg-emerald-50 text-emerald-800 border-emerald-200", icon: "check_circle",  label: "Active"    },
+    CANCELLED:             { cls: "bg-red-50 text-red-700 border-red-200",             icon: "cancel",           label: "Cancelled" },
+    EXPIRED:               { cls: "bg-slate-100 text-slate-600 border-slate-200",      icon: "schedule",         label: "Expired"   },
+    TERMINATION_REQUESTED: { cls: "bg-orange-50 text-orange-800 border-orange-200",    icon: "assignment_late",  label: "Term Request"},
+    TERMINATED:            { cls: "bg-amber-50 text-amber-800 border-amber-200",       icon: "highlight_off",    label: "Terminated"},
 };
 
 function StatusBadge({ status }) {

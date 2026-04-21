@@ -233,6 +233,10 @@ export const downloadAgreementPdf = (id) =>
     API.get(`/api/v1/agreements/${id}/pdf`, { responseType: "blob" });
 export const terminateAgreementEarly = (id, data) =>
     API.patch(`/api/v1/agreements/${id}/terminate`, data ?? {});
+/** Owner accepts a tenant's early termination request */
+export const acceptEarlyTermination = (id) => API.patch(`/api/v1/agreements/${id}/terminate/accept`);
+/** Owner rejects a tenant's early termination request */
+export const rejectEarlyTermination = (id) => API.patch(`/api/v1/agreements/${id}/terminate/reject`);
 /** Tenant accepts a PENDING agreement → status becomes ACTIVE */
 export const acceptAgreement = (id) => API.patch(`/api/v1/agreements/${id}/accept`);
 /** Tenant rejects a PENDING agreement → status becomes CANCELLED */

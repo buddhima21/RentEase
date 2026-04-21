@@ -8,15 +8,18 @@ import {
     getAgreementById,
     rejectAgreement,
     terminateAgreementEarly,
+    acceptEarlyTermination,
+    rejectEarlyTermination
 } from "../services/api";
 
 // Status badge config — covers all possible states
 const STATUS_CONFIG = {
-    PENDING:    { cls: "bg-amber-100 text-amber-800",   icon: "hourglass_top",  label: "Pending — Awaiting Your Response" },
-    ACTIVE:     { cls: "bg-emerald-100 text-emerald-800", icon: "check_circle", label: "Active"     },
-    CANCELLED:  { cls: "bg-red-100 text-red-700",       icon: "cancel",         label: "Cancelled"  },
-    EXPIRED:    { cls: "bg-slate-100 text-slate-600",   icon: "schedule",       label: "Expired"    },
-    TERMINATED: { cls: "bg-amber-50 text-amber-800",    icon: "highlight_off",  label: "Terminated" },
+    PENDING:               { cls: "bg-amber-100 text-amber-800",   icon: "hourglass_top",  label: "Pending — Awaiting Your Response" },
+    ACTIVE:                { cls: "bg-emerald-100 text-emerald-800", icon: "check_circle", label: "Active"     },
+    CANCELLED:             { cls: "bg-red-100 text-red-700",       icon: "cancel",         label: "Cancelled"  },
+    EXPIRED:               { cls: "bg-slate-100 text-slate-600",   icon: "schedule",       label: "Expired"    },
+    TERMINATION_REQUESTED: { cls: "bg-orange-100 text-orange-800", icon: "assignment_late", label: "Termination Requested" },
+    TERMINATED:            { cls: "bg-amber-50 text-amber-800",    icon: "highlight_off",  label: "Terminated" },
 };
 
 export default function AgreementDetail() {
@@ -75,15 +78,55 @@ export default function AgreementDetail() {
 
     const handleTerminate = async (e) => {
         e.preventDefault();
+        if (isOwner && (!termReason || termReason.trim() === "")) {
+            alert("Owners must provide a reason to terminate the agreement early.");
+            return;
+        }
+
         try {
             setTerminating(true);
             const res = await terminateAgreementEarly(id, { reason: termReason || undefined });
             setAgreement(res.data?.data);
             setShowTerminate(false);
+            if (isTenant) {
+                setActionMsg({ type: "info", text: "Early termination requested. Awaiting owner approval." });
+            } else {
+                setActionMsg({ type: "success", text: "Agreement terminated early." });
+            }
         } catch (err) {
             alert(err.response?.data?.message || "Could not terminate agreement.");
         } finally {
             setTerminating(false);
+        }
+    };
+
+    /** Owner accepts early termination request */
+    const handleAcceptTermination = async () => {
+        if (!confirm("Are you sure you want to approve this early termination? The agreement will be terminated immediately and a penalty will be enforced.")) return;
+        setActionLoading("accept-term");
+        try {
+            const res = await acceptEarlyTermination(id);
+            setAgreement(res.data?.data);
+            setActionMsg({ type: "success", text: "Early termination approved. Agreement is now TERMINATED." });
+        } catch (err) {
+            setActionMsg({ type: "error", text: err.response?.data?.message || "Could not approve termination." });
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
+    /** Owner rejects early termination request */
+    const handleRejectTermination = async () => {
+        if (!confirm("Are you sure you want to reject this early termination? The agreement will remain active.")) return;
+        setActionLoading("reject-term");
+        try {
+            const res = await rejectEarlyTermination(id);
+            setAgreement(res.data?.data);
+            setActionMsg({ type: "info", text: "Early termination rejected. Agreement remains ACTIVE." });
+        } catch (err) {
+            setActionMsg({ type: "error", text: err.response?.data?.message || "Could not reject termination." });
+        } finally {
+            setActionLoading(null);
         }
     };
 
@@ -147,6 +190,7 @@ export default function AgreementDetail() {
     const canTerminate = agreement.status === "ACTIVE";
     // Show Accept/Reject ONLY to tenant AND only when status is PENDING
     const showTenantActions = isTenant && agreement.status === "PENDING";
+    const showOwnerTermActions = isOwner && agreement.status === "TERMINATION_REQUESTED";
     const statusCfg = STATUS_CONFIG[agreement.status] || STATUS_CONFIG["PENDING"];
 
     return (
@@ -200,6 +244,24 @@ export default function AgreementDetail() {
                                 The owner has approved your booking and generated this rental agreement.
                                 Please review the details below and choose to Accept or Reject.
                             </p>
+                        </div>
+                    )}
+
+                    {/* TERMINATION_REQUESTED banner */}
+                    {agreement.status === "TERMINATION_REQUESTED" && (
+                        <div className="mx-6 mt-5 p-4 rounded-xl border border-orange-200 bg-orange-50">
+                            <p className="text-sm font-bold text-orange-800 flex items-center gap-2">
+                                <span className="material-symbols-outlined text-[18px]">assignment_late</span>
+                                Early Termination Requested
+                            </p>
+                            <p className="text-xs text-orange-700 mt-1 mb-2">
+                                {isTenant ? "You have requested to terminate this agreement early. Awaiting owner approval." : "The tenant has requested to terminate this agreement early."}
+                            </p>
+                            {agreement.terminationReason && (
+                                <div className="bg-white/60 p-3 rounded-lg text-xs text-orange-900 border border-orange-100">
+                                    <span className="font-bold">Reason provided: </span>{agreement.terminationReason}
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -352,6 +414,38 @@ export default function AgreementDetail() {
                                 End agreement early
                             </button>
                         )}
+                        
+                        {/* Owner Actions for Termination Request */}
+                        {showOwnerTermActions && (
+                            <>
+                                <button
+                                    type="button"
+                                    onClick={handleAcceptTermination}
+                                    disabled={!!actionLoading}
+                                    className="inline-flex items-center gap-2 bg-red-600 text-white font-bold px-5 py-2.5 rounded-xl text-sm hover:bg-red-700 disabled:opacity-60"
+                                >
+                                    {actionLoading === "accept-term" ? (
+                                        <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    ) : (
+                                        <span className="material-symbols-outlined text-[18px]">check_circle</span>
+                                    )}
+                                    Approve Termination
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleRejectTermination}
+                                    disabled={!!actionLoading}
+                                    className="inline-flex items-center gap-2 border border-slate-300 text-slate-700 font-bold px-5 py-2.5 rounded-xl text-sm hover:bg-slate-50 disabled:opacity-60"
+                                >
+                                    {actionLoading === "reject-term" ? (
+                                        <span className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
+                                    ) : (
+                                        <span className="material-symbols-outlined text-[18px]">cancel</span>
+                                    )}
+                                    Reject Request
+                                </button>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>
@@ -362,12 +456,14 @@ export default function AgreementDetail() {
                     <form onSubmit={handleTerminate} className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
                         <h3 className="font-black text-slate-900">Terminate early?</h3>
                         <p className="text-sm text-slate-600">
-                            A penalty may apply: remaining months × monthly rent × 50%, as calculated by the system.
+                            {isTenant 
+                                ? "This will send an early termination request to the owner. A penalty of remaining months × monthly rent × 50% may apply upon approval." 
+                                : "As the owner, you must provide a reason. The agreement will be terminated immediately and a penalty enforced."}
                         </p>
                         <textarea
                             value={termReason}
                             onChange={(e) => setTermReason(e.target.value)}
-                            placeholder="Optional reason"
+                            placeholder={isOwner ? "Reason (Required)" : "Optional reason for termination"}
                             className="w-full border border-slate-200 rounded-xl p-3 text-sm min-h-[80px]"
                         />
                         <div className="flex gap-3">

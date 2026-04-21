@@ -312,7 +312,7 @@ export default function OwnerBookings() {
             const agreement = res.data?.data;
             if (agreement?.id) {
                 // Navigate to the agreement detail page (accessible to owner via AgreementDetail)
-                navigate(`/tenant/agreements/${agreement.id}`);
+                navigate(`/owner/agreements/${agreement.id}`);
             } else {
                 navigate("/owner/agreements");
             }
