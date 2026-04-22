@@ -4,6 +4,7 @@ import AdminNotificationsBell from "../components/admin/dashboard/AdminNotificat
 import AdminProfileDropdown from "../components/admin/dashboard/AdminProfileDropdown";
 import AdminSidebar from "../components/admin/dashboard/AdminSidebar";
 import MaintenanceBadge from "../components/maintenance/MaintenanceBadge";
+import MaintenanceQueueTable from "../components/maintenance/MaintenanceQueueTable";
 import MaintenanceSectionCard from "../components/maintenance/MaintenanceSectionCard";
 import MaintenanceStatCard from "../components/maintenance/MaintenanceStatCard";
 import {
@@ -296,113 +297,116 @@ export default function AdminMaintenanceDashboard() {
 
                         {loadError ? <p className="mb-4 text-sm font-medium text-red-600">{loadError}</p> : null}
                         {actionError ? <p className="mb-4 text-sm font-medium text-red-600">{actionError}</p> : null}
-                        <div className="overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-700">
-                            <table className="w-full text-sm">
-                                <thead className="bg-slate-100 dark:bg-slate-800">
-                                    <tr>
-                                        <th className="text-left p-3">Title</th>
-                                        <th className="text-left p-3">Priority</th>
-                                        <th className="text-left p-3">Status</th>
-                                        <th className="text-left p-3">Technician</th>
-                                        <th className="text-left p-3">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white dark:bg-slate-900">
-                                    {loading ? (
-                                        <tr><td className="p-6 text-center text-slate-500 dark:text-slate-400" colSpan={5}>Loading queue...</td></tr>
-                                    ) : filteredQueue.map((item) => (
-                                        <tr key={item.id} className="border-t border-slate-200 dark:border-slate-700">
-                                            <td className="p-3 font-medium text-slate-900 dark:text-white">{item.title}</td>
-                                            <td className="p-3">
-                                                <div className="flex flex-col gap-2">
-                                                    <MaintenanceBadge kind="priority" value={item.priority} />
-                                                    <div className="flex gap-2">
-                                                        <select
-                                                            className="rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-1 text-xs"
-                                                            aria-label={`Priority for ${item.title}`}
-                                                            value={priorityDrafts[item.id] || item.priority}
-                                                            onChange={(e) => setPriorityDrafts((prev) => ({ ...prev, [item.id]: e.target.value }))}
-                                                        >
-                                                            <option value="LOW">Low</option>
-                                                            <option value="MEDIUM">Medium</option>
-                                                            <option value="HIGH">High</option>
-                                                            <option value="EMERGENCY">Emergency</option>
-                                                        </select>
-                                                        <button
-                                                            type="button"
-                                                            aria-label={`Save priority for ${item.title}`}
-                                                            className="rounded-xl border border-slate-300 dark:border-slate-600 px-2 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200"
-                                                            onClick={() => savePriority(item.id)}
-                                                        >
-                                                            Save
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td className="p-3"><MaintenanceBadge value={item.status} /></td>
-                                            <td className="p-3">
-                                                <div className="flex flex-col gap-2">
+                        <MaintenanceQueueTable
+                            loading={loading}
+                            data={filteredQueue}
+                            emptyMessage={loadError ? "Unable to load queue." : normalizedSearch ? "No matching requests." : "No requests in queue."}
+                            columns={[
+                                {
+                                    header: "Title",
+                                    sortable: true,
+                                    sortKey: "title",
+                                    render: (item) => (
+                                        <div className="flex flex-col">
+                                            <span className="font-semibold text-slate-900 dark:text-white">{item.title}</span>
+                                            <span className="text-xs text-slate-500 font-medium tracking-wide">#{item.id.slice(0, 6).toUpperCase()}</span>
+                                        </div>
+                                    )
+                                },
+                                {
+                                    header: "Priority",
+                                    sortable: true,
+                                    sortKey: "priority",
+                                    render: (item) => (
+                                        <div className="relative inline-block group/priority">
+                                            <MaintenanceBadge kind="priority" value={item.priority} />
+                                            <select
+                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                value={item.priority}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    runAction(() => updateMaintenancePriority(item.id, val), "Unable to update priority.");
+                                                }}
+                                                title="Change Priority"
+                                            >
+                                                <option value="LOW">Low</option>
+                                                <option value="MEDIUM">Medium</option>
+                                                <option value="HIGH">High</option>
+                                                <option value="EMERGENCY">Emergency</option>
+                                            </select>
+                                        </div>
+                                    )
+                                },
+                                {
+                                    header: "Status",
+                                    sortable: true,
+                                    sortKey: "status",
+                                    render: (item) => <MaintenanceBadge value={item.status} />
+                                },
+                                {
+                                    header: "Technician",
+                                    render: (item) => (
+                                        <div className="relative flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-xs font-bold text-blue-700 dark:text-blue-400">
+                                                {(item.technicianName || item.assignedTechnicianId || "U")[0].toUpperCase()}
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-slate-900 dark:text-white font-semibold">
+                                                    {item.technicianName || "Unassigned"}
+                                                </span>
+                                                {!item.assignedTechnicianId && (
+                                                    <span className="text-[11px] text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        Click to assign
+                                                    </span>
+                                                )}
+                                            </div>
+                                            {!item.assignedTechnicianId && (
+                                                <select
+                                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                    value={""}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value;
+                                                        if (val) {
+                                                            runAction(() => assignMaintenanceTechnician(item.id, { technicianId: val }), "Unable to assign technician.");
+                                                        }
+                                                    }}
+                                                    title="Assign Technician"
+                                                >
+                                                    <option value="">Assign tech...</option>
+                                                    {techs.map((tech) => (
+                                                        <option key={tech.id} value={tech.id}>{tech.fullName}</option>
+                                                    ))}
+                                                </select>
+                                            )}
+                                        </div>
+                                    )
+                                },
+                                {
+                                    header: "",
+                                    className: "text-right w-48",
+                                    render: (item) => (
+                                        <div className="flex items-center justify-end">
+                                            {item.status === "RESOLVED" && (
+                                                <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                     <input
-                                                        className="rounded-xl border border-slate-300 bg-white px-2 py-1 text-xs"
-                                                        placeholder="Search technician"
-                                                        aria-label={`Search technician for ${item.title}`}
-                                                        value={technicianSearchByRequest[item.id] || ""}
-                                                        onChange={(e) => setTechnicianSearchByRequest((prev) => ({ ...prev, [item.id]: e.target.value }))}
+                                                        className="w-32 rounded-lg bg-slate-100 dark:bg-slate-800 border-none px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-slate-200 dark:focus:ring-slate-700 transition-all"
+                                                        placeholder="Closure note..."
+                                                        value={closeNotes[item.id] || ""}
+                                                        onChange={(e) => setCloseNotes((prev) => ({ ...prev, [item.id]: e.target.value }))}
                                                     />
-                                                    <select
-                                                        className="rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 p-2"
-                                                        aria-label={`Technician for ${item.title}`}
-                                                        value={selectedTechByRequest[item.id] || item.assignedTechnicianId || ""}
-                                                        onChange={(e) => setSelectedTechByRequest((prev) => ({ ...prev, [item.id]: e.target.value }))}
-                                                    >
-                                                        <option value="">Select technician</option>
-                                                        {techs
-                                                            .filter((tech) => {
-                                                                const query = (technicianSearchByRequest[item.id] || "").trim().toLowerCase();
-                                                                if (!query) return true;
-                                                                return `${tech.fullName} ${tech.email || ""}`.toLowerCase().includes(query);
-                                                            })
-                                                            .map((tech) => (
-                                                                <option key={tech.id} value={tech.id}>{tech.fullName}</option>
-                                                            ))}
-                                                    </select>
-                                                </div>
-                                            </td>
-                                            <td className="p-3">
-                                                <div className="flex flex-col gap-2">
                                                     <button
-                                                        className="rounded-xl bg-primary px-3 py-2 font-semibold text-white"
-                                                        aria-label={`Assign technician for ${item.title}`}
-                                                        onClick={() => assign(item.id)}
+                                                        className="rounded-lg bg-slate-900 dark:bg-white px-3 py-1.5 text-xs font-semibold text-white dark:text-slate-900 hover:opacity-90 transition-opacity"
+                                                        onClick={() => closeRequest(item.id)}
                                                     >
-                                                        Assign
+                                                        Close
                                                     </button>
-                                                    {item.status === "RESOLVED" ? (
-                                                        <>
-                                                            <input
-                                                                className="rounded-xl border border-slate-300 bg-white px-2 py-1 text-xs"
-                                                                placeholder="Closure note"
-                                                                maxLength={1000}
-                                                                value={closeNotes[item.id] || ""}
-                                                                onChange={(e) => setCloseNotes((prev) => ({ ...prev, [item.id]: e.target.value }))}
-                                                            />
-                                                            <button
-                                                                className="rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700"
-                                                                aria-label={`Close ${item.title}`}
-                                                                onClick={() => closeRequest(item.id)}
-                                                            >
-                                                                Close
-                                                            </button>
-                                                        </>
-                                                    ) : null}
                                                 </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    {!loading && filteredQueue.length === 0 ? <tr><td className="p-6 text-center text-slate-500 dark:text-slate-400" colSpan={5}>{loadError ? "Unable to load queue." : normalizedSearch ? "No matching requests." : "No requests in queue."}</td></tr> : null}
-                                </tbody>
-                            </table>
-                        </div>
+                                            )}
+                                        </div>
+                                    )
+                                }
+                            ]}
+                        />
                     </MaintenanceSectionCard>
 
                     <MaintenanceSectionCard eyebrow="Technicians" title="Available technicians" description="Current staff available for assignment.">
