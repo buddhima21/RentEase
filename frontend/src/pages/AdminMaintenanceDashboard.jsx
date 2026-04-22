@@ -35,7 +35,13 @@ export default function AdminMaintenanceDashboard() {
                 const parsed = JSON.parse(stored);
                 if (parsed.role === "ADMIN") {
                     setAdminUser(parsed);
+                } else {
+                    localStorage.removeItem("adminToken");
+                    localStorage.removeItem("adminUser");
                 }
+            } else {
+                localStorage.removeItem("adminToken");
+                localStorage.removeItem("adminUser");
             }
         } catch {
             localStorage.removeItem("adminToken");
@@ -65,8 +71,11 @@ export default function AdminMaintenanceDashboard() {
     };
 
     useEffect(() => {
+        if (authLoading || !adminUser) {
+            return;
+        }
         load();
-    }, [filters.status, filters.priority, filters.technicianId]);
+    }, [authLoading, adminUser, filters.status, filters.priority, filters.technicianId]);
 
     const assign = async (requestId) => {
         const technicianId = selectedTechByRequest[requestId];
