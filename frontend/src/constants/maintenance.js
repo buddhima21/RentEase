@@ -50,15 +50,19 @@ export const MAINTENANCE_SERVICES = [
 ];
 
 export const MAINTENANCE_PRIORITIES = ["LOW", "MEDIUM", "HIGH", "EMERGENCY"];
+export const MAX_MAINTENANCE_IMAGES = 5;
 
-export const MAINTENANCE_STATUSES = ["REPORTED", "IN_PROGRESS", "RESOLVED", "CLOSED"];
+export const MAINTENANCE_STATUSES = ["REPORTED", "ASSIGNED", "SCHEDULED", "DECLINED", "IN_PROGRESS", "PAUSED", "RESOLVED", "CANCELLED", "CLOSED"];
 
 export const MAINTENANCE_TIMELINE = [
     { key: "REPORTED", label: "Submitted" },
     { key: "ASSIGNED", label: "Assigned" },
+    { key: "SCHEDULED", label: "Scheduled" },
+    { key: "DECLINED", label: "Declined" },
     { key: "IN_PROGRESS", label: "In Progress" },
     { key: "PAUSED", label: "Paused" },
     { key: "RESOLVED", label: "Resolved" },
+    { key: "CANCELLED", label: "Cancelled" },
     { key: "CLOSED", label: "Closed" },
 ];
 
@@ -72,9 +76,12 @@ export const MAINTENANCE_PRIORITY_META = {
 export const MAINTENANCE_STATUS_META = {
     REPORTED: { label: "Reported", tone: "slate" },
     ASSIGNED: { label: "Assigned", tone: "blue" },
+    SCHEDULED: { label: "Scheduled", tone: "blue" },
+    DECLINED: { label: "Declined", tone: "slate" },
     IN_PROGRESS: { label: "In Progress", tone: "amber" },
     PAUSED: { label: "Paused", tone: "slate" },
     RESOLVED: { label: "Resolved", tone: "emerald" },
+    CANCELLED: { label: "Cancelled", tone: "slate" },
     CLOSED: { label: "Closed", tone: "emerald" },
 };
 
@@ -96,6 +103,28 @@ export function formatMaintenanceDate(value) {
         dateStyle: "medium",
         timeStyle: "short",
     }).format(date);
+}
+
+function pad2(value) {
+    return String(value).padStart(2, "0");
+}
+
+export function toLocalDateInputValue(value = new Date()) {
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+
+    return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+}
+
+export function toLocalDateKey(value) {
+    return toLocalDateInputValue(value);
+}
+
+export function toLocalDateTimeInputValue(value = new Date()) {
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+
+    return `${toLocalDateInputValue(date)}T${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
 }
 
 export function isEmergencyPriority(priority) {

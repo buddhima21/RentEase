@@ -3,6 +3,7 @@ package com.rentease.modules.maintenance.service;
 import com.rentease.modules.maintenance.model.MaintenanceRequest;
 import com.rentease.modules.property.model.Property;
 import com.rentease.modules.user.model.User;
+import com.rentease.common.enums.MaintenanceStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,6 +57,7 @@ class MaintenanceNotificationServiceTest {
                 .id("req-1")
                 .title("AC Not Working")
                 .priority("HIGH")
+            .status(MaintenanceStatus.REPORTED)
                 .scheduledAt(LocalDateTime.now().plusDays(1))
                 .build();
     }
@@ -118,14 +120,14 @@ class MaintenanceNotificationServiceTest {
     void notifyTechnicianAssigned_WithValidTechnician_ShouldSendEmail() {
         when(mailSenderProvider.getIfAvailable()).thenReturn(mailSender);
 
-        maintenanceNotificationService.notifyTechnicianAssigned(technician, request);
+        maintenanceNotificationService.notifyTechnicianAssigned(technician, request, tenant, property);
 
         verify(mailSender).send(any(SimpleMailMessage.class));
     }
 
     @Test
     void notifyTechnicianAssigned_WithNullTechnician_ShouldNotSendEmail() {
-        maintenanceNotificationService.notifyTechnicianAssigned(null, request);
+        maintenanceNotificationService.notifyTechnicianAssigned(null, request, tenant, property);
 
         verify(mailSenderProvider, never()).getIfAvailable();
         verify(mailSender, never()).send(any(SimpleMailMessage.class));
@@ -135,7 +137,7 @@ class MaintenanceNotificationServiceTest {
     void notifyTechnicianAssigned_WithBlankEmail_ShouldNotSendEmail() {
         User techWithoutEmail = User.builder().id("tech-2").fullName("No Email Tech").email(" ").build();
 
-        maintenanceNotificationService.notifyTechnicianAssigned(techWithoutEmail, request);
+        maintenanceNotificationService.notifyTechnicianAssigned(techWithoutEmail, request, tenant, property);
 
         verify(mailSenderProvider, never()).getIfAvailable();
         verify(mailSender, never()).send(any(SimpleMailMessage.class));
@@ -144,10 +146,22 @@ class MaintenanceNotificationServiceTest {
     @Test
     void notifyTenantStatusChanged_WithValidTenant_ShouldSendEmail() {
         when(mailSenderProvider.getIfAvailable()).thenReturn(mailSender);
+        request.setStatus(com.rentease.common.enums.MaintenanceStatus.IN_PROGRESS);
 
         maintenanceNotificationService.notifyTenantStatusChanged(tenant, request);
 
         verify(mailSender).send(any(SimpleMailMessage.class));
+    }
+
+    @Test
+    void notifyTenantStatusChanged_WithRapidDuplicateStatus_ShouldSendOnlyOnce() {
+        when(mailSenderProvider.getIfAvailable()).thenReturn(mailSender);
+        request.setStatus(com.rentease.common.enums.MaintenanceStatus.IN_PROGRESS);
+
+        maintenanceNotificationService.notifyTenantStatusChanged(tenant, request);
+        maintenanceNotificationService.notifyTenantStatusChanged(tenant, request);
+
+        verify(mailSender, times(1)).send(any(SimpleMailMessage.class));
     }
 
     @Test

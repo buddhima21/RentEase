@@ -1,6 +1,7 @@
 package com.rentease.modules.maintenance.dto;
 
 import com.rentease.common.enums.MaintenanceStatus;
+import com.rentease.modules.maintenance.model.MaintenanceWorkflowEvent;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -31,13 +32,19 @@ public class MaintenanceResponse {
     private LocalDateTime scheduledAt;
     private LocalDateTime acceptedAt;
     private LocalDateTime startedAt;
+    private MaintenanceStatus pausedFromStatus;
     private LocalDateTime resolvedAt;
+    private LocalDateTime slaDueAt;
+    private LocalDateTime closureDueAt;
     private LocalDateTime closedAt;
 
     private String adminNotes;
     private String technicianNotes;
+    private List<String> partsUsed;
     private String completionSummary;
     private List<String> completionImageUrls;
+    private LocalDateTime mediaArchivedAt;
+    private List<MaintenanceWorkflowEvent> workflowEvents;
 
     private String tenantName;
     private String tenantEmail;
@@ -47,6 +54,7 @@ public class MaintenanceResponse {
     private String technicianPhone;
 
     private MaintenanceStatus status;
+    private Boolean overdue;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

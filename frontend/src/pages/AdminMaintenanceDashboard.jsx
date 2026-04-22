@@ -8,6 +8,7 @@ import MaintenanceSectionCard from "../components/maintenance/MaintenanceSection
 import MaintenanceStatCard from "../components/maintenance/MaintenanceStatCard";
 import {
     assignMaintenanceTechnician,
+    closeMaintenance,
     getAdminMaintenanceQueue,
     getMaintenanceTechnicians,
     updateMaintenancePriority,
@@ -22,6 +23,9 @@ export default function AdminMaintenanceDashboard() {
     const [filters, setFilters] = useState({ status: "", priority: "", technicianId: "" });
     const [loading, setLoading] = useState(false);
     const [priorityDrafts, setPriorityDrafts] = useState({});
+    const [closeNotes, setCloseNotes] = useState({});
+    const [loadError, setLoadError] = useState("");
+    const [actionError, setActionError] = useState("");
 
     useEffect(() => {
         try {
@@ -44,15 +48,17 @@ export default function AdminMaintenanceDashboard() {
     const load = async () => {
         try {
             setLoading(true);
+            setLoadError("");
             const [queueRes, techRes] = await Promise.all([
                 getAdminMaintenanceQueue(Object.fromEntries(Object.entries(filters).filter(([, value]) => value))),
                 getMaintenanceTechnicians(),
             ]);
             setQueue(queueRes.data?.data || []);
             setTechs(techRes.data?.data || []);
-        } catch {
+        } catch (err) {
             setQueue([]);
             setTechs([]);
+            setLoadError(err?.response?.data?.message || "Unable to load maintenance queue right now.");
         } finally {
             setLoading(false);
         }
@@ -65,15 +71,36 @@ export default function AdminMaintenanceDashboard() {
     const assign = async (requestId) => {
         const technicianId = selectedTechByRequest[requestId];
         if (!technicianId) return;
-        await assignMaintenanceTechnician(requestId, { technicianId });
-        load();
+        try {
+            setActionError("");
+            await assignMaintenanceTechnician(requestId, { technicianId });
+            load();
+        } catch (err) {
+            setActionError(err?.response?.data?.message || "Unable to assign technician.");
+        }
     };
 
     const savePriority = async (requestId) => {
         const priority = priorityDrafts[requestId];
         if (!priority) return;
-        await updateMaintenancePriority(requestId, priority);
-        load();
+        try {
+            setActionError("");
+            await updateMaintenancePriority(requestId, priority);
+            load();
+        } catch (err) {
+            setActionError(err?.response?.data?.message || "Unable to update priority.");
+        }
+    };
+
+    const closeRequest = async (requestId) => {
+        try {
+            setActionError("");
+            await closeMaintenance(requestId, closeNotes[requestId] || undefined);
+            setCloseNotes((prev) => ({ ...prev, [requestId]: "" }));
+            load();
+        } catch (err) {
+            setActionError(err?.response?.data?.message || "Unable to close request.");
+        }
     };
 
     if (authLoading) {
@@ -151,8 +178,12 @@ export default function AdminMaintenanceDashboard() {
                             <select className="rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 p-3" value={filters.status} onChange={(e) => setFilters((prev) => ({ ...prev, status: e.target.value }))}>
                                 <option value="">All statuses</option>
                                 <option value="REPORTED">Reported</option>
+                                <option value="ASSIGNED">Assigned</option>
+                                <option value="SCHEDULED">Scheduled</option>
+                                <option value="DECLINED">Declined</option>
                                 <option value="IN_PROGRESS">In Progress</option>
                                 <option value="RESOLVED">Resolved</option>
+                                <option value="CANCELLED">Cancelled</option>
                                 <option value="CLOSED">Closed</option>
                             </select>
                             <select className="rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 p-3" value={filters.priority} onChange={(e) => setFilters((prev) => ({ ...prev, priority: e.target.value }))}>
@@ -172,6 +203,8 @@ export default function AdminMaintenanceDashboard() {
                     </MaintenanceSectionCard>
 
                     <MaintenanceSectionCard eyebrow="Queue" title="Maintenance requests" description="Assign technicians directly from the request list.">
+                        {loadError ? <p className="mb-4 text-sm font-medium text-red-600">{loadError}</p> : null}
+                        {actionError ? <p className="mb-4 text-sm font-medium text-red-600">{actionError}</p> : null}
                         <div className="overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-700">
                             <table className="w-full text-sm">
                                 <thead className="bg-slate-100 dark:bg-slate-800">
@@ -223,13 +256,29 @@ export default function AdminMaintenanceDashboard() {
                                                 </select>
                                             </td>
                                             <td className="p-3">
-                                                <button className="rounded-xl bg-primary px-3 py-2 font-semibold text-white" onClick={() => assign(item.id)}>
-                                                    Assign
-                                                </button>
+                                                <div className="flex flex-col gap-2">
+                                                    <button className="rounded-xl bg-primary px-3 py-2 font-semibold text-white" onClick={() => assign(item.id)}>
+                                                        Assign
+                                                    </button>
+                                                    {item.status === "RESOLVED" ? (
+                                                        <>
+                                                            <input
+                                                                className="rounded-xl border border-slate-300 bg-white px-2 py-1 text-xs"
+                                                                placeholder="Closure note"
+                                                                maxLength={1000}
+                                                                value={closeNotes[item.id] || ""}
+                                                                onChange={(e) => setCloseNotes((prev) => ({ ...prev, [item.id]: e.target.value }))}
+                                                            />
+                                                            <button className="rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700" onClick={() => closeRequest(item.id)}>
+                                                                Close
+                                                            </button>
+                                                        </>
+                                                    ) : null}
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
-                                    {!loading && queue.length === 0 ? <tr><td className="p-6 text-center text-slate-500 dark:text-slate-400" colSpan={5}>No requests in queue.</td></tr> : null}
+                                    {!loading && queue.length === 0 ? <tr><td className="p-6 text-center text-slate-500 dark:text-slate-400" colSpan={5}>{loadError ? "Unable to load queue." : "No requests in queue."}</td></tr> : null}
                                 </tbody>
                             </table>
                         </div>

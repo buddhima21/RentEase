@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import MaintenanceBadge from "../components/maintenance/MaintenanceBadge";
 import MaintenanceSectionCard from "../components/maintenance/MaintenanceSectionCard";
+import { formatMaintenanceDate, toLocalDateInputValue } from "../constants/maintenance";
 import { getTenantMaintenance } from "../services/api";
 
 export default function MaintenanceHistory() {
@@ -25,8 +26,9 @@ export default function MaintenanceHistory() {
             const matchesStatus = status === "ALL" || x.status === status;
             const matchesService = service === "ALL" || x.serviceType === service;
             const createdAt = x.createdAt ? new Date(x.createdAt) : null;
-            const matchesFrom = !fromDate || !createdAt || createdAt >= new Date(`${fromDate}T00:00:00`);
-            const matchesTo = !toDate || !createdAt || createdAt <= new Date(`${toDate}T23:59:59`);
+            const createdKey = createdAt ? toLocalDateInputValue(createdAt) : "";
+            const matchesFrom = !fromDate || !createdKey || createdKey >= fromDate;
+            const matchesTo = !toDate || !createdKey || createdKey <= toDate;
             return matchesStatus && matchesService && matchesFrom && matchesTo;
         });
     }, [items, status, service, fromDate, toDate]);
@@ -82,7 +84,7 @@ export default function MaintenanceHistory() {
                                     <tr key={item.id} className="border-t border-slate-200 dark:border-slate-700">
                                         <td className="p-3 font-medium text-slate-900 dark:text-white">{item.id}</td>
                                         <td className="p-3 text-slate-600 dark:text-slate-300">{item.serviceType}</td>
-                                        <td className="p-3 text-slate-600 dark:text-slate-300">{item.updatedAt || item.createdAt}</td>
+                                        <td className="p-3 text-slate-600 dark:text-slate-300">{formatMaintenanceDate(item.updatedAt || item.createdAt)}</td>
                                         <td className="p-3"><MaintenanceBadge value={item.status} /></td>
                                     </tr>
                                 ))}

@@ -52,11 +52,6 @@ export default function Login() {
 
             const userData = res.data.data;
 
-            if (userData.role === "TECHNICIAN") {
-                setApiError("Please use the Technician Portal from the maintenance page.");
-                return;
-            }
-
             // Store user in localStorage via Context
             login(userData);
 
@@ -64,6 +59,8 @@ export default function Login() {
             const returnedRole = userData.role;
             if (returnedRole === "ADMIN") {
                 navigate("/admin/dashboard");
+            } else if (returnedRole === "TECHNICIAN") {
+                navigate("/technician/dashboard");
             } else {
                 // Both OWNER and TENANT go to landing page first
                 navigate("/");

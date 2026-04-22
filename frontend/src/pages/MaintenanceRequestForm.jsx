@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { createMaintenanceRequest, getTenantAgreements } from "../services/api";
 import MaintenanceBadge from "../components/maintenance/MaintenanceBadge";
 import MaintenanceSectionCard from "../components/maintenance/MaintenanceSectionCard";
-import { MAINTENANCE_PRIORITIES, MAINTENANCE_SERVICES, isEmergencyPriority } from "../constants/maintenance";
+import { MAINTENANCE_PRIORITIES, MAINTENANCE_SERVICES, MAX_MAINTENANCE_IMAGES, isEmergencyPriority, toLocalDateInputValue } from "../constants/maintenance";
 
 export default function MaintenanceRequestForm() {
     const { user } = useAuth();
@@ -12,6 +12,7 @@ export default function MaintenanceRequestForm() {
     const navigate = useNavigate();
     const isEmergency = location.pathname.includes("/emergency");
     const fileInputRef = useRef(null);
+    const today = useMemo(() => toLocalDateInputValue(), []);
 
     const [submitting, setSubmitting] = useState(false);
     const [loadingProperties, setLoadingProperties] = useState(false);
@@ -65,7 +66,7 @@ export default function MaintenanceRequestForm() {
 
     const handleFileChange = (e) => {
         const files = Array.from(e.target.files || []);
-        const remaining = 5 - form.imageUrls.length;
+        const remaining = MAX_MAINTENANCE_IMAGES - form.imageUrls.length;
         const selected = files.slice(0, remaining);
         selected.forEach((file) => {
             const reader = new FileReader();
@@ -98,6 +99,15 @@ export default function MaintenanceRequestForm() {
         if (!form.propertyId) {
             setError("Select an active property before submitting the request.");
             return;
+        }
+
+        if (form.preferredDate) {
+            const preferredDate = new Date(`${form.preferredDate}T00:00:00`);
+            const currentDate = new Date(`${today}T00:00:00`);
+            if (preferredDate < currentDate) {
+                setError("Preferred date cannot be in the past.");
+                return;
+            }
         }
 
         try {
@@ -170,14 +180,14 @@ export default function MaintenanceRequestForm() {
 
                         {!isEmergencyPriority(form.priority) ? (
                             <div className="grid gap-4 md:grid-cols-2">
-                                <input className="w-full rounded-xl border border-slate-300 dark:border-slate-600 p-3" type="date" aria-label="Preferred date" value={form.preferredDate} onChange={(e) => setForm({ ...form, preferredDate: e.target.value })} />
+                                <input className="w-full rounded-xl border border-slate-300 dark:border-slate-600 p-3" type="date" min={today} aria-label="Preferred date" value={form.preferredDate} onChange={(e) => setForm({ ...form, preferredDate: e.target.value })} />
                                 <input className="w-full rounded-xl border border-slate-300 dark:border-slate-600 p-3" type="time" aria-label="Preferred time" value={form.preferredTime} onChange={(e) => setForm({ ...form, preferredTime: e.target.value })} />
                             </div>
                         ) : null}
 
                         <div className="rounded-2xl border border-dashed border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/50 p-4">
                             <div className="flex items-center justify-between gap-4">
-                                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Photos ({form.imageUrls.length}/5)</p>
+                                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Photos ({form.imageUrls.length}/{MAX_MAINTENANCE_IMAGES})</p>
                                 <button type="button" className="text-sm font-semibold text-emerald-700" onClick={() => fileInputRef.current?.click()}>
                                     Add photos
                                 </button>

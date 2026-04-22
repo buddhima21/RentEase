@@ -20,8 +20,8 @@ export default function TechnicianDashboard() {
 
     const filteredJobs = jobs.filter((job) => {
         if (tab === "TODAY") return true;
-        if (tab === "SCHEDULED") return Boolean(job.scheduledAt) && job.status !== "IN_PROGRESS";
-        if (tab === "PENDING") return job.status === "REPORTED" || job.status === "PAUSED";
+        if (tab === "SCHEDULED") return job.status === "SCHEDULED" || (Boolean(job.scheduledAt) && job.status === "ASSIGNED");
+        if (tab === "PENDING") return job.status === "REPORTED" || job.status === "ASSIGNED" || job.status === "SCHEDULED" || job.status === "PAUSED";
         return true;
     });
 
@@ -35,7 +35,7 @@ export default function TechnicianDashboard() {
 
                 <div className="grid gap-4 md:grid-cols-4">
                     <MaintenanceStatCard label="Jobs" value={jobs.length} accent="blue" />
-                    <MaintenanceStatCard label="Pending" value={jobs.filter((job) => job.status === "REPORTED").length} accent="amber" />
+                    <MaintenanceStatCard label="Pending" value={jobs.filter((job) => ["REPORTED", "ASSIGNED", "SCHEDULED"].includes(job.status)).length} accent="amber" />
                     <MaintenanceStatCard label="In progress" value={jobs.filter((job) => job.status === "IN_PROGRESS").length} accent="emerald" />
                     <MaintenanceStatCard label="Emergency" value={jobs.filter((job) => job.priority === "EMERGENCY").length} accent="red" />
                 </div>

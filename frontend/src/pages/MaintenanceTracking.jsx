@@ -53,13 +53,31 @@ export default function MaintenanceTracking() {
                                             );
                                         })}
                                     </div>
+
+                                    {Array.isArray(request.workflowEvents) && request.workflowEvents.length > 0 ? (
+                                        <div className="mt-5 border-t border-slate-200 pt-4">
+                                            <p className="text-xs font-bold uppercase tracking-[0.22em] text-slate-500">Event history</p>
+                                            <div className="mt-3 space-y-2">
+                                                {request.workflowEvents
+                                                    .slice()
+                                                    .sort((a, b) => new Date(b.occurredAt || 0).getTime() - new Date(a.occurredAt || 0).getTime())
+                                                    .map((event, idx) => (
+                                                        <div key={`${event.action || "event"}-${idx}`} className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                                                            <p className="text-xs font-semibold text-slate-700">{event.action || "Workflow update"}</p>
+                                                            <p className="mt-1 text-xs text-slate-500">{formatMaintenanceDate(event.occurredAt)}</p>
+                                                            {event.note ? <p className="mt-1 text-xs text-slate-600">{event.note}</p> : null}
+                                                        </div>
+                                                    ))}
+                                            </div>
+                                        </div>
+                                    ) : null}
                                 </div>
                             </div>
 
                             <div className="space-y-4">
                                 <div className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
                                     <p className="text-sm font-bold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Assignment</p>
-                                    <p className="mt-3 text-slate-700 dark:text-slate-200"><span className="font-semibold text-slate-900 dark:text-white">Technician:</span> {request.assignedTechnicianId || "Not assigned"}</p>
+                                    <p className="mt-3 text-slate-700 dark:text-slate-200"><span className="font-semibold text-slate-900 dark:text-white">Technician:</span> {request.technicianName || request.assignedTechnicianId || "Not assigned"}</p>
                                     <p className="mt-2 text-slate-700 dark:text-slate-200"><span className="font-semibold text-slate-900 dark:text-white">Scheduled:</span> {formatMaintenanceDate(request.scheduledAt)}</p>
                                     <p className="mt-2 text-slate-700 dark:text-slate-200"><span className="font-semibold text-slate-900 dark:text-white">Preferred:</span> {formatMaintenanceDate(request.preferredAt)}</p>
                                 </div>
