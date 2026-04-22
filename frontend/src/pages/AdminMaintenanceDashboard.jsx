@@ -13,6 +13,7 @@ import {
     getAdminMaintenanceQueue,
     getMaintenanceTechnicians,
     updateMaintenancePriority,
+    createTechnicianAccount,
 } from "../services/api";
 
 const STATUS_OPTIONS = [
@@ -49,6 +50,12 @@ export default function AdminMaintenanceDashboard() {
     const [closeNotes, setCloseNotes] = useState({});
     const [loadError, setLoadError] = useState("");
     const [actionError, setActionError] = useState("");
+
+    // Technician Creation Modal State
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [createForm, setCreateForm] = useState({ fullName: "", email: "", phone: "", password: "" });
+    const [createLoading, setCreateLoading] = useState(false);
+    const [createError, setCreateError] = useState("");
 
     const filterParams = useMemo(
         () => Object.fromEntries(Object.entries(filters).filter(([, value]) => value)),
@@ -190,6 +197,27 @@ export default function AdminMaintenanceDashboard() {
             await closeMaintenance(requestId, closeNotes[requestId] || undefined);
             setCloseNotes((prev) => ({ ...prev, [requestId]: "" }));
         }, "Unable to close request.");
+    };
+
+    const handleCreateTechnician = async (e) => {
+        e.preventDefault();
+        setCreateError("");
+        setCreateLoading(true);
+        try {
+            await createTechnicianAccount({
+                fullName: createForm.fullName.trim(),
+                email: createForm.email.trim(),
+                password: createForm.password,
+                phone: createForm.phone.trim() || undefined,
+            });
+            setShowCreateModal(false);
+            setCreateForm({ fullName: "", email: "", phone: "", password: "" });
+            load(filterParams);
+        } catch (err) {
+            setCreateError(err?.response?.data?.message || "Failed to create technician account.");
+        } finally {
+            setCreateLoading(false);
+        }
     };
 
     if (authLoading) {
@@ -409,7 +437,20 @@ export default function AdminMaintenanceDashboard() {
                         />
                     </MaintenanceSectionCard>
 
-                    <MaintenanceSectionCard eyebrow="Technicians" title="Available technicians" description="Current staff available for assignment.">
+                    <MaintenanceSectionCard 
+                        eyebrow="Technicians" 
+                        title="Available technicians" 
+                        description="Current staff available for assignment."
+                        action={
+                            <button
+                                onClick={() => setShowCreateModal(true)}
+                                className="flex items-center gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold px-4 py-2 rounded-xl hover:opacity-90 transition-opacity"
+                            >
+                                <span className="material-symbols-outlined text-[18px]">add</span>
+                                Add Technician
+                            </button>
+                        }
+                    >
                         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                             {techs.map((tech) => (
                                 <div key={tech.id} className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-5">
@@ -423,6 +464,103 @@ export default function AdminMaintenanceDashboard() {
                     </MaintenanceSectionCard>
                 </div>
             </main>
+
+            {/* Create Technician Modal */}
+            {showCreateModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+                    <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in duration-200">
+                        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/20">
+                            <div>
+                                <h3 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">New Technician</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Provision a new staff account.</p>
+                            </div>
+                            <button 
+                                onClick={() => setShowCreateModal(false)}
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                            >
+                                <span className="material-symbols-outlined text-[18px]">close</span>
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleCreateTechnician} className="p-6 space-y-5">
+                            {createError && (
+                                <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm font-medium">
+                                    {createError}
+                                </div>
+                            )}
+
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Full Name</label>
+                                <input
+                                    required
+                                    type="text"
+                                    placeholder="John Doe"
+                                    value={createForm.fullName}
+                                    onChange={(e) => setCreateForm({ ...createForm, fullName: e.target.value })}
+                                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Email Address</label>
+                                <input
+                                    required
+                                    type="email"
+                                    placeholder="john@rentease.com"
+                                    value={createForm.email}
+                                    onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
+                                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Phone Number</label>
+                                <input
+                                    type="tel"
+                                    placeholder="+1 234 567 8900"
+                                    value={createForm.phone}
+                                    onChange={(e) => setCreateForm({ ...createForm, phone: e.target.value })}
+                                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Password</label>
+                                <input
+                                    required
+                                    minLength={8}
+                                    type="password"
+                                    placeholder="Minimum 8 characters"
+                                    value={createForm.password}
+                                    onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
+                                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                                />
+                            </div>
+
+                            <div className="pt-2 flex gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCreateModal(false)}
+                                    className="flex-1 px-4 py-3 font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={createLoading}
+                                    className="flex-1 px-4 py-3 font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-lg shadow-emerald-500/20 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center"
+                                >
+                                    {createLoading ? (
+                                        <span className="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
+                                    ) : (
+                                        "Create Account"
+                                    )}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
