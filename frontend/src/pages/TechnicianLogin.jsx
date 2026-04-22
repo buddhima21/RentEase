@@ -75,7 +75,7 @@ export default function TechnicianLogin() {
 
     return (
         <div className="bg-[#f6f8f7] min-h-screen flex items-center justify-center p-4 font-['Inter']">
-            <div className="max-w-5xl w-full bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[700px]">
+            <div className="max-w-5xl w-full bg-white dark:bg-slate-900 rounded-xl shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[700px]">
                 <div className="hidden md:block md:w-1/2 relative">
                     <div
                         className="absolute inset-0 bg-cover bg-center bg-gradient-to-br from-[#13ec6d]/30 to-emerald-900/60"
@@ -91,8 +91,8 @@ export default function TechnicianLogin() {
 
                 <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
                     <div className="mb-8">
-                        <h2 className="text-2xl font-bold text-slate-900 mb-2">Technician Login</h2>
-                        <p className="text-slate-500">Sign in with your technician account to continue.</p>
+                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Technician Login</h2>
+                        <p className="text-slate-500 dark:text-slate-400">Sign in with your technician account to continue.</p>
                     </div>
 
                     {apiError && (
@@ -104,7 +104,7 @@ export default function TechnicianLogin() {
 
                     <form className="space-y-5" onSubmit={handleSubmit} noValidate>
                         <div>
-                            <label htmlFor="tech-login-email" className="block text-sm font-semibold text-slate-700 mb-2">
+                            <label htmlFor="tech-login-email" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
                                 Email Address
                             </label>
                             <div className="relative">
@@ -118,14 +118,14 @@ export default function TechnicianLogin() {
                                     placeholder="technician@rentease.com"
                                     value={formData.email}
                                     onChange={handleChange}
-                                    className={`block w-full pl-11 pr-4 py-3 border rounded-xl bg-slate-50 text-slate-900 placeholder-slate-400 outline-none transition-all focus:ring-2 focus:ring-[#13ec6d]/50 focus:border-[#13ec6d] ${submitted && errors.email ? "border-red-400" : "border-slate-200"}`}
+                                    className={`block w-full pl-11 pr-4 py-3 border rounded-xl bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white placeholder-slate-400 outline-none transition-all focus:ring-2 focus:ring-[#13ec6d]/50 focus:border-[#13ec6d] ${submitted && errors.email ? "border-red-400" : "border-slate-200 dark:border-slate-700"}`}
                                 />
                             </div>
                             {submitted && errors.email && <p className="text-red-500 text-xs mt-1 ml-1">{errors.email}</p>}
                         </div>
 
                         <div>
-                            <label htmlFor="tech-login-password" className="block text-sm font-semibold text-slate-700 mb-2">
+                            <label htmlFor="tech-login-password" className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
                                 Password
                             </label>
                             <div className="relative">
@@ -139,12 +139,12 @@ export default function TechnicianLogin() {
                                     placeholder="••••••••"
                                     value={formData.password}
                                     onChange={handleChange}
-                                    className={`block w-full pl-11 pr-12 py-3 border rounded-xl bg-slate-50 text-slate-900 placeholder-slate-400 outline-none transition-all focus:ring-2 focus:ring-[#13ec6d]/50 focus:border-[#13ec6d] ${submitted && errors.password ? "border-red-400" : "border-slate-200"}`}
+                                    className={`block w-full pl-11 pr-12 py-3 border rounded-xl bg-slate-50 dark:bg-slate-800/50 text-slate-900 dark:text-white placeholder-slate-400 outline-none transition-all focus:ring-2 focus:ring-[#13ec6d]/50 focus:border-[#13ec6d] ${submitted && errors.password ? "border-red-400" : "border-slate-200 dark:border-slate-700"}`}
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword((prev) => !prev)}
-                                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 dark:text-slate-300 cursor-pointer"
                                     aria-label={showPassword ? "Hide password" : "Show password"}
                                 >
                                     <span className="material-symbols-outlined text-xl">{showPassword ? "visibility_off" : "visibility"}</span>
@@ -156,7 +156,7 @@ export default function TechnicianLogin() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-[#13ec6d] hover:bg-[#13ec6d]/90 text-slate-900 font-bold py-3.5 rounded-xl shadow-lg shadow-[#13ec6d]/20 transition-all transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
+                            className="w-full bg-[#13ec6d] hover:bg-[#13ec6d]/90 text-slate-900 dark:text-white font-bold py-3.5 rounded-xl shadow-lg shadow-[#13ec6d]/20 transition-all transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
                         >
                             {loading ? (
                                 <>
@@ -172,7 +172,7 @@ export default function TechnicianLogin() {
                         </button>
                     </form>
 
-                    <p className="mt-8 text-center text-sm text-slate-500">
+                    <p className="mt-8 text-center text-sm text-slate-500 dark:text-slate-400">
                         Looking for tenant or owner access?{" "}
                         <Link to="/login" className="font-bold text-[#13ec6d] hover:underline">
                             Go to main login

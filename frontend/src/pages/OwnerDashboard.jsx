@@ -45,7 +45,7 @@ export default function OwnerDashboard() {
 
     return (
         <div
-            className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-emerald-50/30"
+            className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-emerald-950/20"
             style={{ "--color-primary": "#26C289" }}
         >
             {/* ── Sidebar ─────────────────────────────────────── */}
@@ -58,9 +58,9 @@ export default function OwnerDashboard() {
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4 }}
-                    className="sticky top-0 z-30 h-[72px] border-b border-slate-100/80 bg-white/70 backdrop-blur-2xl px-6 lg:px-8 flex items-center justify-between gap-4 shrink-0"
+                    className="sticky top-0 z-30 h-[72px] border-b border-slate-100/80 dark:border-slate-700/80 bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl px-6 lg:px-8 flex items-center justify-between gap-4 shrink-0"
                 >
-                    <h2 className="text-xl lg:text-2xl font-bold tracking-tight whitespace-nowrap pl-12 lg:pl-0 text-slate-800">
+                    <h2 className="text-xl lg:text-2xl font-bold tracking-tight whitespace-nowrap pl-12 lg:pl-0 text-slate-800 dark:text-slate-100">
                         Dashboard
                     </h2>
 
@@ -73,7 +73,7 @@ export default function OwnerDashboard() {
                             <input
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2.5 bg-slate-50/80 border border-slate-200/80 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 text-sm placeholder-slate-400 transition-all duration-200 hover:border-slate-300"
+                                className="w-full pl-10 pr-4 py-2.5 bg-slate-50/80 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 rounded-xl focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 dark:focus:border-emerald-500 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 transition-all duration-200 hover:border-slate-300 dark:hover:border-slate-600"
                                 placeholder="Search properties..."
                                 type="text"
                             />
@@ -85,7 +85,7 @@ export default function OwnerDashboard() {
                         </div>
 
                         {/* Divider */}
-                        <div className="h-8 w-px bg-slate-200 hidden sm:block" />
+                        <div className="h-8 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block" />
 
                         {/* Avatar / Dropdown */}
                         {user ? (
@@ -131,9 +131,9 @@ export default function OwnerDashboard() {
                             {/* Pending Actions */}
                             <motion.div
                                 variants={itemVariants}
-                                className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 shadow-lg p-6 hover:shadow-xl transition-shadow duration-500"
+                                className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-slate-700/60 shadow-lg dark:shadow-slate-900/20 p-6 hover:shadow-xl transition-shadow duration-500"
                             >
-                                <h3 className="font-bold text-lg mb-5 flex items-center gap-2.5 text-slate-800">
+                                <h3 className="font-bold text-lg mb-5 flex items-center gap-2.5 text-slate-800 dark:text-slate-100">
                                     <div className="p-2 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl text-white">
                                         <span className="material-symbols-outlined text-lg">assignment_late</span>
                                     </div>

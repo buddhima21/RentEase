@@ -64,7 +64,7 @@ export default function WriteReviewModal({ onClose, onSubmit, initialData = null
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-          className="bg-white rounded-[2rem] w-full max-w-4xl shadow-2xl relative overflow-hidden flex flex-col md:flex-row"
+          className="bg-white dark:bg-slate-900 rounded-[2rem] w-full max-w-4xl shadow-2xl relative overflow-hidden flex flex-col md:flex-row"
         >
           {/* Left Panel - Emerald Info Area */}
           <div className="bg-gradient-to-br from-[#10b981] to-[#0d9488] text-white p-10 md:w-[40%] flex flex-col relative overflow-hidden">
@@ -89,7 +89,7 @@ export default function WriteReviewModal({ onClose, onSubmit, initialData = null
 
                 <div className="mt-auto pt-10">
                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-1.5 h-1.5 rounded-full bg-white"></div>
+                      <div className="w-1.5 h-1.5 rounded-full bg-white dark:bg-slate-900"></div>
                       <span className="text-[12px] font-bold tracking-widest uppercase text-emerald-50">100% Verified Feedback</span>
                    </div>
                    <div className="flex items-center gap-2">
@@ -101,9 +101,9 @@ export default function WriteReviewModal({ onClose, onSubmit, initialData = null
           </div>
 
           {/* Right Panel - Form Area */}
-          <div className="p-8 md:p-10 md:w-[60%] flex flex-col bg-white">
+          <div className="p-8 md:p-10 md:w-[60%] flex flex-col bg-white dark:bg-slate-900">
             <button
-              className="absolute top-6 right-6 w-10 h-10 bg-slate-50 hover:bg-slate-100 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 transition-colors z-20"
+              className="absolute top-6 right-6 w-10 h-10 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:text-slate-200 transition-colors z-20"
               onClick={onClose}
               aria-label="Close"
             >
@@ -115,7 +115,7 @@ export default function WriteReviewModal({ onClose, onSubmit, initialData = null
               {/* Overall Rating */}
               <div>
                 <label className="block text-[11px] text-slate-400 font-extrabold tracking-widest uppercase mb-4">How was your stay?</label>
-                <div className="flex justify-between items-center bg-slate-50 p-6 rounded-[1.5rem] border border-slate-100/50">
+                <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 p-6 rounded-[1.5rem] border border-slate-100/50">
                    <div className="w-full flex justify-center">
                     <StarRating rating={rating} onChange={setRating} />
                    </div>
@@ -134,7 +134,7 @@ export default function WriteReviewModal({ onClose, onSubmit, initialData = null
                               size="text-[18px]"
                               gap="gap-0.5"
                            />
-                           <span className="text-[13px] text-slate-400 font-black ml-auto border-l border-slate-100 pl-3 leading-none">{detailedRatings.cleanliness}.0</span>
+                           <span className="text-[13px] text-slate-400 font-black ml-auto border-l border-slate-100 dark:border-slate-700/50 pl-3 leading-none">{detailedRatings.cleanliness}.0</span>
                        </div>
                     </div>
                     <div className="flex flex-col gap-2">
@@ -146,7 +146,7 @@ export default function WriteReviewModal({ onClose, onSubmit, initialData = null
                               size="text-[18px]"
                               gap="gap-0.5"
                            />
-                           <span className="text-[13px] text-slate-400 font-black ml-auto border-l border-slate-100 pl-3 leading-none">{detailedRatings.safety}.0</span>
+                           <span className="text-[13px] text-slate-400 font-black ml-auto border-l border-slate-100 dark:border-slate-700/50 pl-3 leading-none">{detailedRatings.safety}.0</span>
                        </div>
                     </div>
                     <div className="flex flex-col gap-2">
@@ -158,7 +158,7 @@ export default function WriteReviewModal({ onClose, onSubmit, initialData = null
                               size="text-[18px]"
                               gap="gap-0.5"
                            />
-                           <span className="text-[13px] text-slate-400 font-black ml-auto border-l border-slate-100 pl-3 leading-none">{detailedRatings.wifi}.0</span>
+                           <span className="text-[13px] text-slate-400 font-black ml-auto border-l border-slate-100 dark:border-slate-700/50 pl-3 leading-none">{detailedRatings.wifi}.0</span>
                        </div>
                     </div>
                     <div className="flex flex-col gap-2">
@@ -170,7 +170,7 @@ export default function WriteReviewModal({ onClose, onSubmit, initialData = null
                               size="text-[18px]"
                               gap="gap-0.5"
                            />
-                           <span className="text-[13px] text-slate-400 font-black ml-auto border-l border-slate-100 pl-3 leading-none">{detailedRatings.water}.0</span>
+                           <span className="text-[13px] text-slate-400 font-black ml-auto border-l border-slate-100 dark:border-slate-700/50 pl-3 leading-none">{detailedRatings.water}.0</span>
                        </div>
                     </div>
                  </div>
@@ -180,7 +180,7 @@ export default function WriteReviewModal({ onClose, onSubmit, initialData = null
               <div className="flex flex-col flex-grow">
                 <label className="block text-[11px] text-slate-400 font-extrabold tracking-widest uppercase mb-3">Share the details</label>
                 <textarea
-                  className="w-full border border-slate-200 bg-transparent rounded-2xl p-5 min-h-[140px] resize-y focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-slate-700 placeholder:text-slate-300 transition-all"
+                  className="w-full border border-slate-200 dark:border-slate-700 bg-transparent rounded-2xl p-5 min-h-[140px] resize-y focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 font-medium text-slate-700 dark:text-slate-200 placeholder:text-slate-300 transition-all"
                   placeholder="What was the neighborhood like? How was the water pressure?..."
                   value={review}
                   onChange={e => setReview(e.target.value)}
@@ -194,7 +194,7 @@ export default function WriteReviewModal({ onClose, onSubmit, initialData = null
                     <label className="block text-[11px] text-slate-400 font-extrabold tracking-widest uppercase mb-2">Include Photos</label>
                     <div className="flex items-center gap-3">
                         {!photoPreview ? (
-                            <label className="w-14 h-14 rounded-2xl border-2 border-dashed border-slate-200 hover:border-emerald-400 hover:bg-emerald-50 transition-colors flex items-center justify-center cursor-pointer">
+                            <label className="w-14 h-14 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-emerald-400 hover:bg-emerald-50 transition-colors flex items-center justify-center cursor-pointer">
                                 <span className="material-symbols-outlined text-slate-400 text-[20px]">add_photo_alternate</span>
                                 <input
                                     type="file"
@@ -206,7 +206,7 @@ export default function WriteReviewModal({ onClose, onSubmit, initialData = null
                             </label>
                         ) : (
                             <div className="relative group">
-                                <img src={photoPreview} alt="Preview" className="w-16 h-16 rounded-2xl object-cover border border-slate-200" />
+                                <img src={photoPreview} alt="Preview" className="w-16 h-16 rounded-2xl object-cover border border-slate-200 dark:border-slate-700" />
                                 <button
                                     type="button"
                                     className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow hover:bg-red-600 transition-colors"

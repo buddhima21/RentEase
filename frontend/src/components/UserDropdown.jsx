@@ -41,10 +41,10 @@ export default function UserDropdown({ user, onLogout }) {
     };
 
     const dashboardPath =
-        user.role === "ADMIN" 
-            ? "/admin/dashboard" 
-            : user.role === "OWNER" 
-                ? "/owner/dashboard" 
+        user.role === "ADMIN"
+            ? "/admin/dashboard"
+            : user.role === "OWNER"
+                ? "/owner/dashboard"
                 : "/tenant/dashboard";
 
     const handleLogout = () => {
@@ -58,13 +58,13 @@ export default function UserDropdown({ user, onLogout }) {
             {/* ─── Trigger Button ─── */}
             <button
                 onClick={() => setOpen((v) => !v)}
-                className="flex items-center gap-2.5 rounded-full border border-slate-200 bg-white p-1.5 pl-3 hover:shadow-md transition-all duration-200 cursor-pointer focus:outline-none"
+                className="flex items-center gap-2.5 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-1.5 pl-3 hover:shadow-md transition-all duration-200 cursor-pointer focus:outline-none"
                 aria-haspopup="true"
                 aria-expanded={open}
                 id="user-menu-button"
             >
                 {/* Menu Icon */}
-                <span className="material-symbols-outlined text-slate-500 text-[20px] font-medium leading-none">
+                <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-[20px] font-medium leading-none">
                     menu
                 </span>
 
@@ -84,14 +84,13 @@ export default function UserDropdown({ user, onLogout }) {
 
             {/* ─── Dropdown Menu ─── */}
             <div
-                className={`absolute right-0 top-full mt-3 w-64 bg-white rounded-2xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.12)] z-50 overflow-hidden transition-all duration-200 origin-top-right ${
-                    open ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
-                }`}
+                className={`absolute right-0 top-full mt-3 w-64 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-700/50 shadow-[0_8px_30px_rgb(0,0,0,0.12)] z-50 overflow-hidden transition-all duration-200 origin-top-right ${open ? "opacity-100 scale-100 translate-y-0" : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
+                    }`}
                 role="menu"
                 aria-labelledby="user-menu-button"
             >
                 {/* User Info Header */}
-                <div className="px-5 py-4 flex items-center gap-3 border-b border-slate-100">
+                <div className="px-5 py-4 flex items-center gap-3 border-b border-slate-100 dark:border-slate-700/50">
                     {(user.profileImageUrl || user.avatar) ? (
                         <img
                             src={user.profileImageUrl || user.avatar}
@@ -104,15 +103,15 @@ export default function UserDropdown({ user, onLogout }) {
                         </div>
                     )}
                     <div className="min-w-0 flex-1">
-                        <p className="text-sm font-bold text-slate-900 truncate">
+                        <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
                             {user.fullName}
                         </p>
                         {user.email && (
-                            <p className="text-xs text-slate-500 truncate mt-0.5">
+                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
                                 {user.email}
                             </p>
                         )}
-                        <span className="inline-block mt-1.5 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded border border-slate-200 text-slate-600 bg-slate-50">
+                        <span className="inline-block mt-1.5 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50">
                             {user.role}
                         </span>
                     </div>
@@ -123,7 +122,7 @@ export default function UserDropdown({ user, onLogout }) {
                     <Link
                         to={dashboardPath}
                         onClick={() => setOpen(false)}
-                        className="flex items-center gap-4 px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors group"
+                        className="flex items-center gap-4 px-5 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:bg-slate-800/50 transition-colors group"
                         role="menuitem"
                     >
                         <span className="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-primary transition-colors">
@@ -137,7 +136,7 @@ export default function UserDropdown({ user, onLogout }) {
                             <Link
                                 to="/tenant/dashboard?tab=bills"
                                 onClick={() => setOpen(false)}
-                                className="flex items-center gap-4 px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors group"
+                                className="flex items-center gap-4 px-5 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:bg-slate-800/50 transition-colors group"
                                 role="menuitem"
                             >
                                 <span className="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-primary transition-colors">
@@ -148,7 +147,7 @@ export default function UserDropdown({ user, onLogout }) {
                             <Link
                                 to="/tenant/dashboard?tab=wallet"
                                 onClick={() => setOpen(false)}
-                                className="flex items-center gap-4 px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors group"
+                                className="flex items-center gap-4 px-5 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:bg-slate-800/50 transition-colors group"
                                 role="menuitem"
                             >
                                 <span className="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-primary transition-colors">
@@ -159,7 +158,7 @@ export default function UserDropdown({ user, onLogout }) {
                             <Link
                                 to="/tenant/agreements"
                                 onClick={() => setOpen(false)}
-                                className="flex items-center gap-4 px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors group"
+                                className="flex items-center gap-4 px-5 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:bg-slate-800/50 transition-colors group"
                                 role="menuitem"
                             >
                                 <span className="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-primary transition-colors">
@@ -170,7 +169,7 @@ export default function UserDropdown({ user, onLogout }) {
                             <Link
                                 to="/tenant/maintenance/dashboard"
                                 onClick={() => setOpen(false)}
-                                className="flex items-center gap-4 px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors group"
+                                className="flex items-center gap-4 px-5 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:bg-slate-800/50 transition-colors group"
                                 role="menuitem"
                             >
                                 <span className="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-primary transition-colors">
@@ -184,7 +183,7 @@ export default function UserDropdown({ user, onLogout }) {
                     <Link
                         to="/profile"
                         onClick={() => setOpen(false)}
-                        className="flex items-center gap-4 px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors group"
+                        className="flex items-center gap-4 px-5 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:bg-slate-800/50 transition-colors group"
                         role="menuitem"
                     >
                         <span className="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-primary transition-colors">
@@ -194,9 +193,9 @@ export default function UserDropdown({ user, onLogout }) {
                     </Link>
 
                     <Link
-                        to="/profile"
+                        to="/account-settings"
                         onClick={() => setOpen(false)}
-                        className="flex items-center gap-4 px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors group"
+                        className="flex items-center gap-4 px-5 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:bg-slate-800/50 transition-colors group"
                         role="menuitem"
                     >
                         <span className="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-primary transition-colors">
@@ -204,11 +203,23 @@ export default function UserDropdown({ user, onLogout }) {
                         </span>
                         Account Settings
                     </Link>
-                    
+
                     <Link
-                        to="#"
+                        to="/favorites"
                         onClick={() => setOpen(false)}
-                        className="flex items-center gap-4 px-5 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors group"
+                        className="flex items-center gap-4 px-5 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:bg-slate-800/50 transition-colors group"
+                        role="menuitem"
+                    >
+                        <span className="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-primary transition-colors">
+                            favorite
+                        </span>
+                        Favorites
+                    </Link>
+
+                    <Link
+                        to="/help-center"
+                        onClick={() => setOpen(false)}
+                        className="flex items-center gap-4 px-5 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:bg-slate-800/50 transition-colors group"
                         role="menuitem"
                     >
                         <span className="material-symbols-outlined text-[20px] text-slate-400 group-hover:text-primary transition-colors">
@@ -219,7 +230,7 @@ export default function UserDropdown({ user, onLogout }) {
                 </div>
 
                 {/* Separator + Logout */}
-                <div className="border-t border-slate-100 py-2">
+                <div className="border-t border-slate-100 dark:border-slate-700/50 py-2">
                     <button
                         onClick={handleLogout}
                         className="w-full flex items-center gap-4 px-5 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50 transition-colors cursor-pointer"

@@ -155,11 +155,11 @@ export default function TechnicianJobDetails() {
     };
 
     if (!job) {
-        return <div className="min-h-screen bg-slate-50 p-8 text-slate-600">{error || "Unable to load job."}</div>;
+        return <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 p-8 text-slate-600 dark:text-slate-300">{error || "Unable to load job."}</div>;
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 p-6 md:p-10">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 p-6 md:p-10">
             <div className="mx-auto max-w-5xl space-y-6">
                 <MaintenanceSectionCard
                     eyebrow="Technician Job"
@@ -173,18 +173,18 @@ export default function TechnicianJobDetails() {
 
                     <div className="mt-6 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
                         <div className="space-y-4">
-                            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-                                <p className="text-sm font-bold uppercase tracking-[0.22em] text-slate-500">Issue details</p>
-                                <p className="mt-3 text-slate-700"><span className="font-semibold text-slate-900">Service:</span> {job.serviceType}</p>
-                                <p className="mt-2 text-slate-700"><span className="font-semibold text-slate-900">Description:</span> {job.description || "-"}</p>
-                                <p className="mt-2 text-slate-700"><span className="font-semibold text-slate-900">Tenant:</span> {job.tenantName || job.tenantId || "-"}</p>
+                            <div className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-5">
+                                <p className="text-sm font-bold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Issue details</p>
+                                <p className="mt-3 text-slate-700 dark:text-slate-200"><span className="font-semibold text-slate-900 dark:text-white">Service:</span> {job.serviceType}</p>
+                                <p className="mt-2 text-slate-700 dark:text-slate-200"><span className="font-semibold text-slate-900 dark:text-white">Description:</span> {job.description || "-"}</p>
+                                <p className="mt-2 text-slate-700 dark:text-slate-200"><span className="font-semibold text-slate-900 dark:text-white">Tenant:</span> {job.tenantName || job.tenantId || "-"}</p>
                             </div>
 
-                            <div className="rounded-3xl border border-slate-200 bg-white p-5">
-                                <p className="text-sm font-bold uppercase tracking-[0.22em] text-slate-500">Repair checklist</p>
+                            <div className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
+                                <p className="text-sm font-bold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Repair checklist</p>
                                 <div className="mt-4 space-y-2">
                                     {CHECKLIST_ITEMS.map((item, index) => (
-                                        <label key={`${item}-${index}`} className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700">
+                                        <label key={`${item}-${index}`} className="flex items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 px-4 py-3 text-sm font-medium text-slate-700 dark:text-slate-200">
                                             <input type="checkbox" checked={checklist[index]} onChange={() => handleChecklistToggle(index)} />
                                             <span className={checklist[index] ? "line-through text-slate-400" : ""}>{item}</span>
                                         </label>
@@ -192,16 +192,16 @@ export default function TechnicianJobDetails() {
                                 </div>
                             </div>
 
-                            <div className="rounded-3xl border border-slate-200 bg-white p-5">
-                                <p className="text-sm font-bold uppercase tracking-[0.22em] text-slate-500">Completion notes</p>
+                            <div className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
+                                <p className="text-sm font-bold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Completion notes</p>
                                 <div className="mt-4 space-y-3">
-                                    <textarea className="w-full rounded-xl border border-slate-300 p-3 min-h-24" placeholder="Completion summary" value={summary} onChange={(e) => setSummary(e.target.value)} />
-                                    <textarea className="w-full rounded-xl border border-slate-300 p-3 min-h-24" placeholder="Technician notes" value={notes} maxLength={2000} onChange={(e) => setNotes(e.target.value)} />
-                                    <input className="w-full rounded-xl border border-slate-300 p-3" placeholder="Parts used (optional)" maxLength={250} value={partsUsed} onChange={(e) => setPartsUsed(e.target.value)} />
+                                    <textarea className="w-full rounded-xl border border-slate-300 dark:border-slate-600 p-3 min-h-24" placeholder="Completion summary" value={summary} onChange={(e) => setSummary(e.target.value)} />
+                                    <textarea className="w-full rounded-xl border border-slate-300 dark:border-slate-600 p-3 min-h-24" placeholder="Technician notes" value={notes} maxLength={2000} onChange={(e) => setNotes(e.target.value)} />
+                                    <input className="w-full rounded-xl border border-slate-300 dark:border-slate-600 p-3" placeholder="Parts used (optional)" maxLength={250} value={partsUsed} onChange={(e) => setPartsUsed(e.target.value)} />
                                 </div>
-                                <div className="mt-4 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4">
+                                <div className="mt-4 rounded-2xl border border-dashed border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/50 p-4">
                                     <div className="flex items-center justify-between gap-4">
-                                        <p className="text-sm font-semibold text-slate-700">Completion photos ({completionImages.length}/{MAX_MAINTENANCE_IMAGES})</p>
+                                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Completion photos ({completionImages.length}/{MAX_MAINTENANCE_IMAGES})</p>
                                         <button type="button" className="text-sm font-semibold text-emerald-700" onClick={() => fileInputRef.current?.click()}>
                                             Add photos
                                         </button>
@@ -209,7 +209,7 @@ export default function TechnicianJobDetails() {
                                     <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFileChange} />
                                     <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3">
                                         {completionImages.map((image, index) => (
-                                            <div key={index} className="relative overflow-hidden rounded-xl border border-slate-200 bg-white">
+                                            <div key={index} className="relative overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
                                                 <img src={image} alt="completion" className="h-24 w-full object-cover" />
                                                 <button type="button" onClick={() => removeCompletionImage(index)} className="absolute right-2 top-2 rounded-full bg-red-600 px-2 py-1 text-xs font-bold text-white">
                                                     Remove
@@ -221,12 +221,12 @@ export default function TechnicianJobDetails() {
                                 {error ? <p className="mt-4 text-sm font-medium text-red-600">{error}</p> : null}
                                 <div className="mt-4 flex flex-wrap gap-2">
                                     {["REPORTED", "ASSIGNED", "SCHEDULED"].includes(job.status) ? (
-                                        <button disabled={busy} className="rounded-xl border border-slate-300 px-4 py-2 font-semibold disabled:opacity-60" onClick={accept}>Accept</button>
+                                        <button disabled={busy} className="rounded-xl border border-slate-300 dark:border-slate-600 px-4 py-2 font-semibold disabled:opacity-60" onClick={accept}>Accept</button>
                                     ) : null}
                                     {job.status === "PAUSED" ? (
-                                        <button disabled={busy} className="rounded-xl border border-slate-300 px-4 py-2 font-semibold disabled:opacity-60" onClick={resume}>Resume</button>
+                                        <button disabled={busy} className="rounded-xl border border-slate-300 dark:border-slate-600 px-4 py-2 font-semibold disabled:opacity-60" onClick={resume}>Resume</button>
                                     ) : job.status === "IN_PROGRESS" ? (
-                                        <button disabled={busy} className="rounded-xl border border-slate-300 px-4 py-2 font-semibold disabled:opacity-60" onClick={pause}>Pause</button>
+                                        <button disabled={busy} className="rounded-xl border border-slate-300 dark:border-slate-600 px-4 py-2 font-semibold disabled:opacity-60" onClick={pause}>Pause</button>
                                     ) : null}
                                     <button disabled={busy || (job.status !== "IN_PROGRESS" && job.status !== "PAUSED")} className="rounded-xl bg-primary px-5 py-3 font-semibold text-white disabled:opacity-60" onClick={resolve}>Resolve Request</button>
                                 </div>
@@ -234,20 +234,20 @@ export default function TechnicianJobDetails() {
                         </div>
 
                         <div className="space-y-4">
-                            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-                                <p className="text-sm font-bold uppercase tracking-[0.22em] text-slate-500">Record</p>
-                                <p className="mt-3 text-sm text-slate-700"><span className="font-semibold text-slate-900">Request ID:</span> {job.id}</p>
-                                <p className="mt-2 text-sm text-slate-700"><span className="font-semibold text-slate-900">Property:</span> {job.propertyId || "-"}</p>
-                                <p className="mt-2 text-sm text-slate-700"><span className="font-semibold text-slate-900">Tenant:</span> {job.tenantId || "-"}</p>
+                            <div className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-5">
+                                <p className="text-sm font-bold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Record</p>
+                                <p className="mt-3 text-sm text-slate-700 dark:text-slate-200"><span className="font-semibold text-slate-900 dark:text-white">Request ID:</span> {job.id}</p>
+                                <p className="mt-2 text-sm text-slate-700 dark:text-slate-200"><span className="font-semibold text-slate-900 dark:text-white">Property:</span> {job.propertyId || "-"}</p>
+                                <p className="mt-2 text-sm text-slate-700 dark:text-slate-200"><span className="font-semibold text-slate-900 dark:text-white">Tenant:</span> {job.tenantId || "-"}</p>
                             </div>
 
-                            <div className="rounded-3xl border border-slate-200 bg-white p-5">
-                                <p className="text-sm font-bold uppercase tracking-[0.22em] text-slate-500">Contact tenant</p>
+                            <div className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-5">
+                                <p className="text-sm font-bold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Contact tenant</p>
                                 <div className="mt-3 flex flex-wrap gap-2">
-                                    <a className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700" href={`mailto:${job.tenantEmail || "support@rentease.com"}`}>
+                                    <a className="rounded-full border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200" href={`mailto:${job.tenantEmail || "support@rentease.com"}`}>
                                         Email tenant
                                     </a>
-                                    <a className="rounded-full border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700" href={`tel:${job.tenantPhone || "+94110000000"}`}>
+                                    <a className="rounded-full border border-slate-300 dark:border-slate-600 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200" href={`tel:${job.tenantPhone || "+94110000000"}`}>
                                         Call tenant
                                     </a>
                                 </div>

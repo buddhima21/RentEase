@@ -13,19 +13,19 @@ export default function SearchBar() {
     };
 
     return (
-        <div className="bg-white p-2 rounded-2xl shadow-xl border border-slate-100">
+        <div className="bg-white dark:bg-slate-900 p-2 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-700/50">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                 {/* Location Dropdown */}
                 <div className="p-3">
                     <label
                         htmlFor="location-select"
-                        className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1"
+                        className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1"
                     >
                         Location
                     </label>
                     <select
                         id="location-select"
-                        className="w-full border-none bg-transparent focus:ring-0 text-slate-900 font-medium p-0"
+                        className="w-full border-none bg-transparent focus:ring-0 text-slate-900 dark:text-white font-medium p-0"
                     >
                         <option>Colombo / Malabe</option>
                         <option>Near SLIIT</option>
@@ -34,16 +34,16 @@ export default function SearchBar() {
                 </div>
 
                 {/* Type Dropdown */}
-                <div className="p-3 border-t md:border-t-0 md:border-l border-slate-100">
+                <div className="p-3 border-t md:border-t-0 md:border-l border-slate-100 dark:border-slate-700/50">
                     <label
                         htmlFor="type-select"
-                        className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1"
+                        className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1"
                     >
                         Type
                     </label>
                     <select
                         id="type-select"
-                        className="w-full border-none bg-transparent focus:ring-0 text-slate-900 font-medium p-0"
+                        className="w-full border-none bg-transparent focus:ring-0 text-slate-900 dark:text-white font-medium p-0"
                     >
                         <option>Room / Annex</option>
                         <option>Apartment</option>
