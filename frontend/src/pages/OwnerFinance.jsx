@@ -16,7 +16,7 @@ const fmt = (n) => `LKR ${Number(n || 0).toLocaleString("en-LK", { minimumFracti
 function Field({ label, icon, children }) {
     return (
         <div>
-            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-2 block ml-1">{label}</label>
+            <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 mb-2 block ml-1">{label}</label>
             <div className={`relative ${icon ? "group" : ""}`}>
                 {icon && (
                     <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl group-focus-within:text-emerald-600 transition-colors pointer-events-none">
@@ -30,7 +30,7 @@ function Field({ label, icon, children }) {
 }
 
 const inputCls = (hasIcon) =>
-    `w-full bg-[#f6f8f7] border border-emerald-100 rounded-xl ${hasIcon ? "pl-11" : "px-4"} pr-4 py-3 text-sm font-bold focus:border-emerald-500 focus:bg-white outline-none transition-all`;
+    `w-full bg-[#f6f8f7] border border-emerald-100 rounded-xl ${hasIcon ? "pl-11" : "px-4"} pr-4 py-3 text-sm font-bold focus:border-emerald-500 focus:bg-white dark:bg-slate-900 outline-none transition-all`;
 
 export default function OwnerFinance() {
     const { user, logout } = useAuth();
@@ -367,16 +367,16 @@ export default function OwnerFinance() {
             case "SENT": return "bg-blue-100 text-blue-700 border-blue-200";
             case "PENDING": return "bg-amber-100 text-amber-700 border-amber-200";
             case "OVERDUE": return "bg-red-100 text-red-700 border-red-200";
-            default: return "bg-slate-100 text-slate-700 border-slate-200";
+            default: return "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700";
         }
     };
 
     return (
-        <div className="flex min-h-screen bg-[#f6f8f7]" style={{ "--color-primary": "#13ec6d" }}>
+        <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-emerald-950/20" style={{ "--color-primary": "#13ec6d" }}>
             <Sidebar />
             <main className="flex-1 flex flex-col min-w-0">
-                <header className="sticky top-0 z-30 h-20 border-b border-emerald-100 bg-white/90 backdrop-blur-md px-6 lg:px-8 flex items-center justify-between gap-4 shrink-0 print:hidden">
-                    <h2 className="text-xl lg:text-2xl font-bold tracking-tight whitespace-nowrap pl-12 lg:pl-0">
+                <header className="sticky top-0 z-30 h-20 border-b border-emerald-100 dark:border-slate-700/80 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-6 lg:px-8 flex items-center justify-between gap-4 shrink-0 print:hidden">
+                    <h2 className="text-xl lg:text-2xl font-bold tracking-tight whitespace-nowrap pl-12 lg:pl-0 text-slate-900 dark:text-white">
                         Finance & Payments
                     </h2>
                     <div className="flex items-center gap-3 ml-auto">
@@ -389,22 +389,22 @@ export default function OwnerFinance() {
                 <div className="flex-1 overflow-y-auto p-5 lg:p-8">
                     {/* Tabs */}
                     <div className="flex flex-wrap gap-4 mb-8 border-b border-emerald-100 pb-4 print:hidden">
-                        <button onClick={() => setActiveTab("tracking")} className={`px-4 py-2 font-bold rounded-lg transition-all ${activeTab === "tracking" ? "bg-primary text-slate-900" : "text-slate-500 hover:bg-emerald-50"}`}>
+                        <button onClick={() => setActiveTab("tracking")} className={`px-4 py-2 font-bold rounded-lg transition-all ${activeTab === "tracking" ? "bg-primary text-slate-900 dark:text-white" : "text-slate-500 dark:text-slate-400 hover:bg-emerald-50"}`}>
                             Tracking (Bills)
                         </button>
-                         <button onClick={() => setActiveTab("generate")} className={`px-4 py-2 font-bold rounded-lg transition-all ${activeTab === "generate" ? "bg-primary text-slate-900" : "text-slate-500 hover:bg-emerald-50"}`}>
+                         <button onClick={() => setActiveTab("generate")} className={`px-4 py-2 font-bold rounded-lg transition-all ${activeTab === "generate" ? "bg-primary text-slate-900 dark:text-white" : "text-slate-500 dark:text-slate-400 hover:bg-emerald-50"}`}>
                             Generate Bill
                         </button>
-                        <button onClick={() => setActiveTab("wallet")} className={`px-4 py-2 font-bold rounded-lg transition-all ${activeTab === "wallet" ? "bg-primary text-slate-900" : "text-slate-500 hover:bg-emerald-50"}`}>
+                        <button onClick={() => setActiveTab("wallet")} className={`px-4 py-2 font-bold rounded-lg transition-all ${activeTab === "wallet" ? "bg-primary text-slate-900 dark:text-white" : "text-slate-500 dark:text-slate-400 hover:bg-emerald-50"}`}>
                             My Wallet
                         </button>
                     </div>
 
                     {activeTab === "tracking" && (
                         <div className="space-y-6 print:hidden">
-                            <div className="bg-white rounded-2xl border border-emerald-100 shadow-sm overflow-hidden text-sm">
+                            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-emerald-100 shadow-sm overflow-hidden text-sm">
                                 <div className="p-6 border-b border-emerald-100 flex justify-between items-center">
-                                    <h3 className="font-bold text-lg text-slate-900">Generated Bills</h3>
+                                    <h3 className="font-bold text-lg text-slate-900 dark:text-white">Generated Bills</h3>
                                     <span className="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full font-black uppercase tracking-widest animate-pulse">Live Updates Active</span>
                                 </div>
                                 <div className="overflow-x-auto">
@@ -422,17 +422,17 @@ export default function OwnerFinance() {
                                         </thead>
                                         <tbody>
                                             {loadingInvoices ? (
-                                                <tr><td colSpan="7" className="p-8 text-center text-slate-500 font-medium">Loading invoices...</td></tr>
+                                                <tr><td colSpan="7" className="p-8 text-center text-slate-500 dark:text-slate-400 font-medium">Loading invoices...</td></tr>
                                             ) : invoices.length === 0 ? (
-                                                <tr><td colSpan="7" className="p-8 text-center text-slate-500 font-medium">No invoices found.</td></tr>
+                                                <tr><td colSpan="7" className="p-8 text-center text-slate-500 dark:text-slate-400 font-medium">No invoices found.</td></tr>
                                             ) : (
                                                 invoices.map((inv) => (
                                                     <tr key={inv.id || inv.invoiceNo} className="border-b border-emerald-50 hover:bg-emerald-50/50 transition-colors">
-                                                        <td className="p-4 font-bold text-slate-900">{inv.invoiceNo}</td>
-                                                        <td className="p-4 text-slate-600 font-semibold">{inv.tenantName}</td>
-                                                        <td className="p-4 text-slate-600 font-semibold">{fmt(inv.total)}</td>
+                                                        <td className="p-4 font-bold text-slate-900 dark:text-white">{inv.invoiceNo}</td>
+                                                        <td className="p-4 text-slate-600 dark:text-slate-300 font-semibold">{inv.tenantName}</td>
+                                                        <td className="p-4 text-slate-600 dark:text-slate-300 font-semibold">{fmt(inv.total)}</td>
                                                         <td className="p-4 text-red-600 font-semibold">{inv.overdueFee > 0 ? fmt(inv.overdueFee) : "-"}</td>
-                                                        <td className="p-4 text-slate-600 font-semibold">{inv.dueDate}</td>
+                                                        <td className="p-4 text-slate-600 dark:text-slate-300 font-semibold">{inv.dueDate}</td>
                                                         <td className="p-4">
                                                             <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getStatusStyle(inv.status)}`}>
                                                                 {inv.status}
@@ -473,7 +473,7 @@ export default function OwnerFinance() {
                                         <h3 className="text-5xl font-black mb-10">{wallet ? fmt(wallet.balance) : "LKR 0.00"}</h3>
                                         
                                         <div className="flex gap-4">
-                                            <button onClick={() => setShowWithdrawModal(true)} className="bg-white text-emerald-900 px-6 py-3 rounded-xl font-bold text-sm hover:bg-emerald-50 active:scale-95 transition-all flex items-center gap-2">
+                                            <button onClick={() => setShowWithdrawModal(true)} className="bg-white dark:bg-slate-900 text-emerald-900 px-6 py-3 rounded-xl font-bold text-sm hover:bg-emerald-50 active:scale-95 transition-all flex items-center gap-2">
                                                 <span className="material-symbols-outlined text-lg">payments</span>
                                                 Withdraw Money
                                             </button>
@@ -492,7 +492,7 @@ export default function OwnerFinance() {
                                 </div>
 
                                 {/* Linked Cards Display */}
-                                <div className="bg-white rounded-3xl border border-emerald-100 p-8 shadow-sm flex flex-col justify-between max-h-[350px] overflow-y-auto">
+                                <div className="bg-white dark:bg-slate-900 rounded-3xl border border-emerald-100 p-8 shadow-sm flex flex-col justify-between max-h-[350px] overflow-y-auto">
                                     <div>
                                         <div className="flex justify-between items-start mb-6">
                                             <span className="text-xs font-black uppercase tracking-widest text-slate-400">Linked Cards</span>
@@ -501,22 +501,22 @@ export default function OwnerFinance() {
                                         {wallet?.cards && wallet.cards.length > 0 ? (
                                             <div className="space-y-4">
                                                 {wallet.cards.map(card => (
-                                                    <div key={card.id} className="border border-slate-100 rounded-xl p-4 flex flex-col justify-between bg-slate-50 relative group">
-                                                        <p className="text-lg font-mono font-bold tracking-[0.1em] text-slate-800 mb-2">
+                                                    <div key={card.id} className="border border-slate-100 dark:border-slate-700/50 rounded-xl p-4 flex flex-col justify-between bg-slate-50 dark:bg-slate-800/50 relative group">
+                                                        <p className="text-lg font-mono font-bold tracking-[0.1em] text-slate-800 dark:text-slate-100 mb-2">
                                                             **** **** **** {card.cardNumber.slice(-4)}
                                                         </p>
                                                         <div className="flex justify-between items-end">
                                                             <div>
                                                                 <p className="text-[10px] font-bold uppercase text-slate-400">Card Holder</p>
-                                                                <p className="font-bold text-slate-700 text-sm">{card.cardHolderName}</p>
+                                                                <p className="font-bold text-slate-700 dark:text-slate-200 text-sm">{card.cardHolderName}</p>
                                                             </div>
                                                             <div className="text-right">
                                                                 <p className="text-[10px] font-bold uppercase text-slate-400">Expires</p>
-                                                                <p className="font-bold text-slate-700 text-sm">{card.expiryDate}</p>
+                                                                <p className="font-bold text-slate-700 dark:text-slate-200 text-sm">{card.expiryDate}</p>
                                                             </div>
                                                         </div>
                                                         {/* Action Buttons */}
-                                                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 bg-white shadow-sm p-1 rounded-lg border border-slate-200">
+                                                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 bg-white dark:bg-slate-900 shadow-sm p-1 rounded-lg border border-slate-200 dark:border-slate-700">
                                                             <button onClick={() => { setCardForm(card); setShowCardModal(true); }} className="w-8 h-8 rounded-md text-emerald-600 hover:bg-emerald-50 flex items-center justify-center transition-colors">
                                                                 <span className="material-symbols-outlined text-sm">edit</span>
                                                             </button>
@@ -537,9 +537,9 @@ export default function OwnerFinance() {
                             </div>
 
                             {/* Transaction History */}
-                            <div className="bg-white rounded-3xl border border-emerald-100 shadow-sm overflow-hidden">
+                            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-emerald-100 shadow-sm overflow-hidden">
                                 <div className="p-6 border-b border-emerald-50">
-                                    <h3 className="font-bold text-slate-900">Recent Transactions</h3>
+                                    <h3 className="font-bold text-slate-900 dark:text-white">Recent Transactions</h3>
                                 </div>
                                 <div className="divide-y divide-emerald-50">
                                     {transactions.length === 0 ? (
@@ -553,11 +553,11 @@ export default function OwnerFinance() {
                                                     </span>
                                                 </div>
                                                 <div>
-                                                    <p className="font-bold text-slate-800">{t.description}</p>
-                                                    <p className="text-xs text-slate-500 font-medium">{new Date(t.timestamp).toLocaleDateString()} · {new Date(t.timestamp).toLocaleTimeString()}</p>
+                                                    <p className="font-bold text-slate-800 dark:text-slate-100">{t.description}</p>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">{new Date(t.timestamp).toLocaleDateString()} · {new Date(t.timestamp).toLocaleTimeString()}</p>
                                                 </div>
                                             </div>
-                                            <div className={`text-sm font-black ${t.type === 'DEPOSIT' ? 'text-emerald-600' : 'text-slate-800'}`}>
+                                            <div className={`text-sm font-black ${t.type === 'DEPOSIT' ? 'text-emerald-600' : 'text-slate-800 dark:text-slate-100'}`}>
                                                 {t.type === 'DEPOSIT' ? '+' : '-'} {fmt(t.amount)}
                                             </div>
                                         </div>
@@ -568,13 +568,13 @@ export default function OwnerFinance() {
                             {/* Modals */}
                             {showCardModal && (
                                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-                                    <div className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
+                                    <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
                                         <h3 className="text-xl font-bold mb-6">{cardForm.id ? "Edit Bank Card" : "Link Bank Card"}</h3>
                                         <form onSubmit={handleSaveCard} noValidate className="space-y-4">
                                             <div className="space-y-1">
-                                                <label className="text-[10px] font-black uppercase text-slate-500 ml-1">Card Holder Name</label>
+                                                <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 ml-1">Card Holder Name</label>
                                                 <input
-                                                    className={`w-full bg-[#f6f8f7] border rounded-xl px-4 py-3 text-sm font-bold outline-none transition-all ${cardErrors.cardHolderName ? "border-red-400 focus:border-red-400" : "border-emerald-100 focus:border-emerald-500 focus:bg-white"}`}
+                                                    className={`w-full bg-[#f6f8f7] border rounded-xl px-4 py-3 text-sm font-bold outline-none transition-all ${cardErrors.cardHolderName ? "border-red-400 focus:border-red-400" : "border-emerald-100 focus:border-emerald-500 focus:bg-white dark:bg-slate-900"}`}
                                                     value={cardForm.cardHolderName}
                                                     onChange={e => { setCardForm({...cardForm, cardHolderName: e.target.value}); setCardErrors(prev => ({...prev, cardHolderName: ""})); }}
                                                     placeholder="JOHN DOE"
@@ -582,9 +582,9 @@ export default function OwnerFinance() {
                                                 {cardErrors.cardHolderName && <p className="text-xs text-red-500 ml-1 mt-0.5">{cardErrors.cardHolderName}</p>}
                                             </div>
                                             <div className="space-y-1">
-                                                <label className="text-[10px] font-black uppercase text-slate-500 ml-1">Card Number</label>
+                                                <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 ml-1">Card Number</label>
                                                 <input
-                                                    className={`w-full bg-[#f6f8f7] border rounded-xl px-4 py-3 text-sm font-bold outline-none transition-all ${cardErrors.cardNumber ? "border-red-400 focus:border-red-400" : "border-emerald-100 focus:border-emerald-500 focus:bg-white"}`}
+                                                    className={`w-full bg-[#f6f8f7] border rounded-xl px-4 py-3 text-sm font-bold outline-none transition-all ${cardErrors.cardNumber ? "border-red-400 focus:border-red-400" : "border-emerald-100 focus:border-emerald-500 focus:bg-white dark:bg-slate-900"}`}
                                                     value={cardForm.cardNumber}
                                                     onChange={e => { handleCardInput(e, 'cardNumber'); setCardErrors(prev => ({...prev, cardNumber: ""})); }}
                                                     placeholder="xxxx xxxx xxxx xxxx"
@@ -594,9 +594,9 @@ export default function OwnerFinance() {
                                             </div>
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="space-y-1">
-                                                    <label className="text-[10px] font-black uppercase text-slate-500 ml-1">Expiry Date</label>
+                                                    <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 ml-1">Expiry Date</label>
                                                     <input
-                                                        className={`w-full bg-[#f6f8f7] border rounded-xl px-4 py-3 text-sm font-bold outline-none transition-all ${cardErrors.expiryDate ? "border-red-400 focus:border-red-400" : "border-emerald-100 focus:border-emerald-500 focus:bg-white"}`}
+                                                        className={`w-full bg-[#f6f8f7] border rounded-xl px-4 py-3 text-sm font-bold outline-none transition-all ${cardErrors.expiryDate ? "border-red-400 focus:border-red-400" : "border-emerald-100 focus:border-emerald-500 focus:bg-white dark:bg-slate-900"}`}
                                                         value={cardForm.expiryDate}
                                                         onChange={e => { handleCardInput(e, 'expiryDate'); setCardErrors(prev => ({...prev, expiryDate: ""})); }}
                                                         placeholder="MM/YY"
@@ -605,9 +605,9 @@ export default function OwnerFinance() {
                                                     {cardErrors.expiryDate && <p className="text-xs text-red-500 ml-1 mt-0.5">{cardErrors.expiryDate}</p>}
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <label className="text-[10px] font-black uppercase text-slate-500 ml-1">CVV</label>
+                                                    <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 ml-1">CVV</label>
                                                     <input
-                                                        className={`w-full bg-[#f6f8f7] border rounded-xl px-4 py-3 text-sm font-bold outline-none transition-all ${cardErrors.cvv ? "border-red-400 focus:border-red-400" : "border-emerald-100 focus:border-emerald-500 focus:bg-white"}`}
+                                                        className={`w-full bg-[#f6f8f7] border rounded-xl px-4 py-3 text-sm font-bold outline-none transition-all ${cardErrors.cvv ? "border-red-400 focus:border-red-400" : "border-emerald-100 focus:border-emerald-500 focus:bg-white dark:bg-slate-900"}`}
                                                         placeholder="***"
                                                         type="password"
                                                         maxLength="3"
@@ -618,7 +618,7 @@ export default function OwnerFinance() {
                                                 </div>
                                             </div>
                                             <div className="flex gap-3 pt-4">
-                                                <button type="button" onClick={() => { setShowCardModal(false); setCardErrors({}); setCardForm({ id: "", cardHolderName: "", cardNumber: "", expiryDate: "", cvv: "" }); }} className="flex-1 px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50">Cancel</button>
+                                                <button type="button" onClick={() => { setShowCardModal(false); setCardErrors({}); setCardForm({ id: "", cardHolderName: "", cardNumber: "", expiryDate: "", cvv: "" }); }} className="flex-1 px-6 py-3 rounded-xl font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:bg-slate-800/50">Cancel</button>
                                                 <button type="submit" className="flex-1 bg-emerald-900 text-white px-6 py-3 rounded-xl font-bold">Save Card</button>
                                             </div>
                                         </form>
@@ -628,12 +628,12 @@ export default function OwnerFinance() {
 
                             {showWithdrawModal && (
                                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-                                    <div className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
+                                    <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
                                         <h3 className="text-xl font-bold mb-2">Withdraw Money</h3>
-                                        <p className="text-sm text-slate-500 mb-6">Available Money: {fmt(wallet?.balance)}</p>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Available Money: {fmt(wallet?.balance)}</p>
                                         <form onSubmit={handleWithdraw} className="space-y-6">
                                             <div className="space-y-1">
-                                                <label className="text-[10px] font-black uppercase text-slate-500 ml-1">Select Bank Card</label>
+                                                <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 ml-1">Select Bank Card</label>
                                                 <select
                                                     className={inputCls(false)}
                                                     value={selectedCardForWithdrawal || ""}
@@ -651,14 +651,14 @@ export default function OwnerFinance() {
                                                 </select>
                                             </div>
                                             <div className="space-y-1">
-                                                <label className="text-[10px] font-black uppercase text-slate-500 ml-1">Amount to Withdraw</label>
+                                                <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 ml-1">Amount to Withdraw</label>
                                                 <div className="relative">
                                                     <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-slate-400">LKR</span>
                                                     <input required type="number" min="0" step="0.01" onKeyDown={handleNumericInput} className={inputCls(false) + " pl-14 text-2xl"} value={withdrawAmount} onChange={e => setWithdrawAmount(e.target.value)} placeholder="0.00" />
                                                 </div>
                                             </div>
                                             <div className="flex gap-3">
-                                                <button type="button" onClick={() => setShowWithdrawModal(false)} className="flex-1 px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50">Cancel</button>
+                                                <button type="button" onClick={() => setShowWithdrawModal(false)} className="flex-1 px-6 py-3 rounded-xl font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:bg-slate-800/50">Cancel</button>
                                                 <button type="submit" className="flex-1 bg-emerald-900 text-white px-6 py-3 rounded-xl font-bold">Withdraw Now</button>
                                             </div>
                                         </form>
@@ -671,14 +671,14 @@ export default function OwnerFinance() {
                     {activeTab === "generate" && (
                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-start">
                             {/* Left: Form */}
-                            <div className="bg-white rounded-2xl border border-emerald-100 shadow-sm p-6 space-y-6 print:hidden">
+                            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-emerald-100 shadow-sm p-6 space-y-6 print:hidden">
                                 <div className="flex items-center gap-3 pb-4 border-b border-emerald-50">
                                     <div className="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center text-emerald-800">
                                         <span className="material-symbols-outlined text-xl">receipt_long</span>
                                     </div>
                                     <div>
-                                        <h1 className="text-lg font-bold text-slate-900">New Bill</h1>
-                                        <p className="text-xs text-slate-500 font-medium">{BILL_NO}</p>
+                                        <h1 className="text-lg font-bold text-slate-900 dark:text-white">New Bill</h1>
+                                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">{BILL_NO}</p>
                                     </div>
                                 </div>
 
@@ -709,7 +709,7 @@ export default function OwnerFinance() {
 
                                 <div>
                                     <div className="flex items-center justify-between mb-2">
-                                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 ml-1">Extra Fees</label>
+                                        <label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 ml-1">Extra Fees</label>
                                         <button onClick={addExtra} className="flex items-center gap-1 text-xs font-bold text-emerald-600 hover:text-emerald-700 transition-colors">
                                             <span className="material-symbols-outlined text-base">add_circle</span>
                                             Add Fee
@@ -737,7 +737,7 @@ export default function OwnerFinance() {
 
                                 <div className="flex flex-col gap-3">
                                     <div className="flex gap-3">
-                                        <button disabled={!canGenerate} onClick={() => setGenerated(true)} className="flex-1 bg-primary text-slate-900 py-3 rounded-xl font-bold text-sm hover:brightness-105 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                                        <button disabled={!canGenerate} onClick={() => setGenerated(true)} className="flex-1 bg-primary text-slate-900 dark:text-white py-3 rounded-xl font-bold text-sm hover:brightness-105 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                                             <span className="material-symbols-outlined text-base">preview</span>
                                             Preview Bill
                                         </button>
@@ -756,69 +756,69 @@ export default function OwnerFinance() {
                             {/* Right: Preview */}
                             <div ref={printRef}>
                                 {generated && tenant ? (
-                                    <div className="bg-white rounded-2xl border border-emerald-100 shadow-sm overflow-hidden print:shadow-none print:border-none print:mb-0">
-                                        <div className="bg-emerald-900 px-8 py-6 flex items-start justify-between print:bg-white print:text-black">
+                                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-emerald-100 shadow-sm overflow-hidden print:shadow-none print:border-none print:mb-0">
+                                        <div className="bg-emerald-900 px-8 py-6 flex items-start justify-between print:bg-white dark:bg-slate-900 print:text-black">
                                             <div>
                                                 <div className="flex items-center gap-2 mb-3">
                                                     <span className="material-symbols-outlined text-primary text-2xl print:hidden">home_work</span>
-                                                    <span className="text-white font-black text-lg tracking-tight print:text-slate-900">RentEase</span>
+                                                    <span className="text-white font-black text-lg tracking-tight print:text-slate-900 dark:text-white">RentEase</span>
                                                 </div>
-                                                <p className="text-emerald-200 text-xs font-medium print:text-slate-500">Property Management Portal</p>
+                                                <p className="text-emerald-200 text-xs font-medium print:text-slate-500 dark:text-slate-400">Property Management Portal</p>
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-2xl font-black text-white print:text-slate-900">BILL</p>
-                                                <p className="text-emerald-200 text-xs mt-1 print:text-slate-500">{BILL_NO}</p>
+                                                <p className="text-2xl font-black text-white print:text-slate-900 dark:text-white">BILL</p>
+                                                <p className="text-emerald-200 text-xs mt-1 print:text-slate-500 dark:text-slate-400">{BILL_NO}</p>
                                             </div>
                                         </div>
                                         <div className="px-8 py-6 space-y-6">
                                             <div className="grid grid-cols-2 gap-6">
                                                 <div>
                                                     <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Bill To</p>
-                                                    <p className="font-bold text-slate-900">{tenant.name}</p>
-                                                    <p className="text-sm text-slate-500">{tenant.unit}</p>
-                                                    <p className="text-sm text-slate-500">RentEase Properties</p>
+                                                    <p className="font-bold text-slate-900 dark:text-white">{tenant.name}</p>
+                                                    <p className="text-sm text-slate-500 dark:text-slate-400">{tenant.unit}</p>
+                                                    <p className="text-sm text-slate-500 dark:text-slate-400">RentEase Properties</p>
                                                 </div>
                                                 <div className="text-right">
                                                     <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-2">Bill Date</p>
-                                                    <p className="font-bold text-slate-700 text-sm">{today.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                                                    <p className="font-bold text-slate-700 dark:text-slate-200 text-sm">{today.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
                                                     <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mt-3 mb-1">Due Date</p>
-                                                    <p className="font-bold text-emerald-600 text-sm print:text-slate-900">{dueDate}</p>
+                                                    <p className="font-bold text-emerald-600 text-sm print:text-slate-900 dark:text-white">{dueDate}</p>
                                                 </div>
                                             </div>
-                                            <div className="bg-[#f6f8f7] rounded-xl overflow-hidden print:bg-white print:border print:border-slate-200">
-                                                <div className="grid grid-cols-[1fr_auto] px-5 py-3 border-b border-emerald-100 print:border-slate-200">
-                                                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Description</span>
-                                                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 text-right">Amount</span>
+                                            <div className="bg-[#f6f8f7] rounded-xl overflow-hidden print:bg-white dark:bg-slate-900 print:border print:border-slate-200 dark:border-slate-700">
+                                                <div className="grid grid-cols-[1fr_auto] px-5 py-3 border-b border-emerald-100 print:border-slate-200 dark:border-slate-700">
+                                                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">Description</span>
+                                                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 text-right">Amount</span>
                                                 </div>
-                                                <div className="grid grid-cols-[1fr_auto] px-5 py-3.5 border-b border-emerald-50 print:border-slate-100">
-                                                    <span className="text-sm font-bold text-slate-700">Monthly Rental Fee</span>
-                                                    <span className="text-sm font-bold text-slate-900 text-right">{fmt(rental)}</span>
+                                                <div className="grid grid-cols-[1fr_auto] px-5 py-3.5 border-b border-emerald-50 print:border-slate-100 dark:border-slate-700/50">
+                                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200">Monthly Rental Fee</span>
+                                                    <span className="text-sm font-bold text-slate-900 dark:text-white text-right">{fmt(rental)}</span>
                                                 </div>
                                                 {elec > 0 && (
-                                                    <div className="grid grid-cols-[1fr_auto] px-5 py-3.5 border-b border-emerald-50 print:border-slate-100">
-                                                        <span className="text-sm font-bold text-slate-700">Electricity Bill</span>
-                                                        <span className="text-sm font-bold text-slate-900 text-right">{fmt(elec)}</span>
+                                                    <div className="grid grid-cols-[1fr_auto] px-5 py-3.5 border-b border-emerald-50 print:border-slate-100 dark:border-slate-700/50">
+                                                        <span className="text-sm font-bold text-slate-700 dark:text-slate-200">Electricity Bill</span>
+                                                        <span className="text-sm font-bold text-slate-900 dark:text-white text-right">{fmt(elec)}</span>
                                                     </div>
                                                 )}
                                                 {wat > 0 && (
-                                                    <div className="grid grid-cols-[1fr_auto] px-5 py-3.5 border-b border-emerald-50 print:border-slate-100">
-                                                        <span className="text-sm font-bold text-slate-700">Water Bill</span>
-                                                        <span className="text-sm font-bold text-slate-900 text-right">{fmt(wat)}</span>
+                                                    <div className="grid grid-cols-[1fr_auto] px-5 py-3.5 border-b border-emerald-50 print:border-slate-100 dark:border-slate-700/50">
+                                                        <span className="text-sm font-bold text-slate-700 dark:text-slate-200">Water Bill</span>
+                                                        <span className="text-sm font-bold text-slate-900 dark:text-white text-right">{fmt(wat)}</span>
                                                     </div>
                                                 )}
                                                 {extras.filter((e) => e.label && parseFloat(e.amount) > 0).map((e, i) => (
-                                                    <div key={i} className="grid grid-cols-[1fr_auto] px-5 py-3.5 border-b border-emerald-50 print:border-slate-100">
-                                                        <span className="text-sm font-bold text-slate-700">{e.label}</span>
-                                                        <span className="text-sm font-bold text-slate-900 text-right">{fmt(parseFloat(e.amount))}</span>
+                                                    <div key={i} className="grid grid-cols-[1fr_auto] px-5 py-3.5 border-b border-emerald-50 print:border-slate-100 dark:border-slate-700/50">
+                                                        <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{e.label}</span>
+                                                        <span className="text-sm font-bold text-slate-900 dark:text-white text-right">{fmt(parseFloat(e.amount))}</span>
                                                     </div>
                                                 ))}
-                                                <div className="grid grid-cols-[1fr_auto] px-5 py-4 bg-emerald-900 print:bg-slate-100 rounded-b-xl">
-                                                    <span className="text-sm font-bold text-white print:text-slate-900 uppercase tracking-wider">Total Due</span>
-                                                    <span className="text-base font-black text-primary print:text-slate-900 text-right">{fmt(grandTotal)}</span>
+                                                <div className="grid grid-cols-[1fr_auto] px-5 py-4 bg-emerald-900 print:bg-slate-100 dark:bg-slate-800 rounded-b-xl">
+                                                    <span className="text-sm font-bold text-white print:text-slate-900 dark:text-white uppercase tracking-wider">Total Due</span>
+                                                    <span className="text-base font-black text-primary print:text-slate-900 dark:text-white text-right">{fmt(grandTotal)}</span>
                                                 </div>
                                             </div>
-                                            <div className="bg-emerald-50 text-emerald-800 rounded-xl px-5 py-4 print:border outline-none print:bg-white print:text-slate-600">
-                                                <p className="text-[10px] font-bold uppercase tracking-widest mb-1 print:text-slate-800">Payment Instructions</p>
+                                            <div className="bg-emerald-50 text-emerald-800 rounded-xl px-5 py-4 print:border outline-none print:bg-white dark:bg-slate-900 print:text-slate-600 dark:text-slate-300">
+                                                <p className="text-[10px] font-bold uppercase tracking-widest mb-1 print:text-slate-800 dark:text-slate-100">Payment Instructions</p>
                                                 <p className="text-xs font-medium leading-relaxed">Please make payment by the due date via bank transfer or through the RentEase portal. Contact manager for queries.</p>
                                             </div>
                                             <div className="pt-2 text-center">
@@ -827,9 +827,9 @@ export default function OwnerFinance() {
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="bg-white rounded-2xl border border-dashed border-emerald-200 flex flex-col items-center justify-center py-24 text-center print:hidden">
+                                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-emerald-200 flex flex-col items-center justify-center py-24 text-center print:hidden">
                                         <span className="material-symbols-outlined text-5xl text-emerald-100 mb-4">receipt_long</span>
-                                        <p className="text-sm font-bold text-slate-500 mb-1">Bill Preview</p>
+                                        <p className="text-sm font-bold text-slate-500 dark:text-slate-400 mb-1">Bill Preview</p>
                                         <p className="text-xs text-slate-400 max-w-xs">Select a tenant and click <strong>Preview Bill</strong> to see the generated bill here.</p>
                                     </div>
                                 )}

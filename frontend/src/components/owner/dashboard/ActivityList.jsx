@@ -23,15 +23,15 @@ export default function ActivityList() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.4 }}
-            className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 shadow-lg p-6 hover:shadow-xl transition-shadow duration-500"
+            className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-slate-700/60 shadow-lg dark:shadow-slate-900/20 p-6 hover:shadow-xl transition-shadow duration-500"
         >
             {/* Header */}
-            <h3 className="font-bold text-lg mb-5 flex items-center gap-2.5 text-slate-800">
+            <h3 className="font-bold text-lg mb-5 flex items-center gap-2.5 text-slate-800 dark:text-slate-100">
                 <div className="p-2 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl text-white">
                     <span className="material-symbols-outlined text-lg">history</span>
                 </div>
                 Recent Activity
-                <span className="ml-auto text-[10px] uppercase tracking-wider font-bold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full">Live</span>
+                <span className="ml-auto text-[10px] uppercase tracking-wider font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-full">Live</span>
             </h3>
 
             {/* Timeline */}
@@ -45,7 +45,7 @@ export default function ActivityList() {
                     <motion.div
                         key={item.id}
                         variants={itemVariants}
-                        className="flex gap-3.5 group hover:bg-slate-50/50 rounded-xl px-2 py-3 -mx-2 transition-colors duration-200 cursor-default"
+                        className="flex gap-3.5 group hover:bg-slate-50/50 dark:hover:bg-slate-700/50 rounded-xl px-2 py-3 -mx-2 transition-colors duration-200 cursor-default"
                     >
                         {/* Dot + Vertical line */}
                         <div className="flex flex-col items-center pt-1.5">
@@ -55,13 +55,13 @@ export default function ActivityList() {
                                 transition={{ type: "spring", stiffness: 300 }}
                             />
                             {index < recentActivity.length - 1 && (
-                                <div className="w-px flex-1 bg-gradient-to-b from-slate-200 to-transparent mt-2" />
+                                <div className="w-px flex-1 bg-gradient-to-b from-slate-200 dark:from-slate-700 to-transparent mt-2" />
                             )}
                         </div>
 
                         {/* Content */}
                         <div className="pb-2 min-w-0 flex-1">
-                            <p className="text-sm text-slate-700 leading-relaxed group-hover:text-slate-900 transition-colors">
+                            <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed group-hover:text-slate-900 dark:text-white transition-colors">
                                 {item.text.split(item.highlight).map((part, i, arr) =>
                                     i < arr.length - 1 ? (
                                         <span key={i}>
@@ -86,7 +86,7 @@ export default function ActivityList() {
             <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full mt-3 py-3 text-[11px] font-bold text-slate-400 border border-slate-100 rounded-xl hover:text-emerald-600 hover:border-emerald-200 hover:bg-emerald-50/50 transition-all duration-300 uppercase tracking-widest"
+                className="w-full mt-3 py-3 text-[11px] font-bold text-slate-400 border border-slate-100 dark:border-slate-700/50 rounded-xl hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-200 dark:hover:border-emerald-700 hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20 transition-all duration-300 uppercase tracking-widest"
             >
                 Load More Activity
             </motion.button>

@@ -9,7 +9,7 @@ const STATUS_CONFIG = {
     PENDING: { label: "Pending", bg: "bg-amber-100", text: "text-amber-700", dot: "bg-amber-500" },
     ALLOCATED: { label: "Allocated", bg: "bg-emerald-100", text: "text-emerald-700", dot: "bg-emerald-500" },
     REJECTED: { label: "Rejected", bg: "bg-red-100", text: "text-red-600", dot: "bg-red-500" },
-    CANCELLED: { label: "Removed/Cancelled", bg: "bg-slate-100", text: "text-slate-500", dot: "bg-slate-400" },
+    CANCELLED: { label: "Removed/Cancelled", bg: "bg-slate-100 dark:bg-slate-800", text: "text-slate-500 dark:text-slate-400", dot: "bg-slate-400" },
     APPROVED: { label: "Approved", bg: "bg-blue-100", text: "text-blue-700", dot: "bg-blue-500" },
     EXPIRED: { label: "Expired", bg: "bg-stone-100", text: "text-stone-600", dot: "bg-stone-400" },
 };
@@ -26,30 +26,30 @@ function StatusBadge({ status }) {
 
 function TenantDetails({ booking }) {
     return (
-        <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 space-y-2.5">
-            <h4 className="text-sm font-bold text-slate-700 flex items-center gap-2">
+        <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 border border-slate-200 dark:border-slate-700 space-y-2.5">
+            <h4 className="text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
                 <span className="material-symbols-outlined text-[18px] text-primary">person</span>
                 Tenant Information
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
                 <div>
                     <p className="text-xs text-slate-400 uppercase font-bold tracking-wide mb-0.5">Name</p>
-                    <p className="font-semibold text-slate-800">{booking.tenantName || "N/A"}</p>
+                    <p className="font-semibold text-slate-800 dark:text-slate-100">{booking.tenantName || "N/A"}</p>
                 </div>
                 <div>
                     <p className="text-xs text-slate-400 uppercase font-bold tracking-wide mb-0.5">Email</p>
-                    <p className="font-semibold text-slate-800 break-all">{booking.tenantEmail || "N/A"}</p>
+                    <p className="font-semibold text-slate-800 dark:text-slate-100 break-all">{booking.tenantEmail || "N/A"}</p>
                 </div>
                 <div>
                     <p className="text-xs text-slate-400 uppercase font-bold tracking-wide mb-0.5">Phone</p>
-                    <p className="font-semibold text-slate-800">{booking.tenantPhone || "N/A"}</p>
+                    <p className="font-semibold text-slate-800 dark:text-slate-100">{booking.tenantPhone || "N/A"}</p>
                 </div>
             </div>
             {booking.startDate && (
-                <div className="pt-1 border-t border-slate-200">
+                <div className="pt-1 border-t border-slate-200 dark:border-slate-700">
                     <p className="text-xs text-slate-400">
                         Requested move-in:{" "}
-                        <span className="font-semibold text-slate-700">
+                        <span className="font-semibold text-slate-700 dark:text-slate-200">
                             {new Date(booking.startDate).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}
                         </span>
                     </p>
@@ -58,7 +58,7 @@ function TenantDetails({ booking }) {
             {booking.cancellationReason && (
                 <div className="pt-3 mt-1 border-t border-red-100">
                     <p className="text-xs text-red-400 uppercase font-bold tracking-wide mb-1">Reason Provided</p>
-                    <p className="text-sm font-medium text-slate-700 italic border-l-2 border-red-200 pl-3">
+                    <p className="text-sm font-medium text-slate-700 dark:text-slate-200 italic border-l-2 border-red-200 pl-3">
                         "{booking.cancellationReason}"
                     </p>
                 </div>
@@ -78,7 +78,7 @@ function BookingRow({ booking, onApprove, onReject, onRemove, onDelete, onViewAg
     const isLoading = actionLoading === booking.id;
 
     return (
-        <div className="bg-white rounded-2xl border border-emerald-100 shadow-sm overflow-hidden hover:shadow-md transition-all duration-200">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-emerald-100 shadow-sm overflow-hidden hover:shadow-md transition-all duration-200">
             <div
                 className="flex flex-col sm:flex-row gap-4 p-5 cursor-pointer"
                 onClick={() => setExpanded(!expanded)}
@@ -100,15 +100,15 @@ function BookingRow({ booking, onApprove, onReject, onRemove, onDelete, onViewAg
                 <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-start justify-between gap-2 mb-1.5">
                         <div>
-                            <h3 className="text-sm font-bold text-slate-900 line-clamp-1">{booking.propertyTitle || "Property"}</h3>
-                            <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
+                            <h3 className="text-sm font-bold text-slate-900 dark:text-white line-clamp-1">{booking.propertyTitle || "Property"}</h3>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1 mt-0.5">
                                 <span className="material-symbols-outlined text-[12px]">location_on</span>
                                 {booking.propertyCity || "N/A"}
                             </p>
                         </div>
                         <StatusBadge status={booking.status} />
                     </div>
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500 dark:text-slate-400">
                         <span className="flex items-center gap-1">
                             <span className="material-symbols-outlined text-[13px]">person</span>
                             {booking.tenantName || "Unknown tenant"}
@@ -196,7 +196,7 @@ function BookingRow({ booking, onApprove, onReject, onRemove, onDelete, onViewAg
                             <button
                                 onClick={() => onDelete(booking.id)}
                                 disabled={isLoading}
-                                className="inline-flex items-center justify-center gap-2 bg-slate-50 text-red-600 border border-slate-200 font-bold px-4 py-2.5 rounded-xl hover:bg-red-50 hover:border-red-200 disabled:opacity-60 transition-all text-sm ml-auto"
+                                className="inline-flex items-center justify-center gap-2 bg-slate-50 dark:bg-slate-800/50 text-red-600 border border-slate-200 dark:border-slate-700 font-bold px-4 py-2.5 rounded-xl hover:bg-red-50 hover:border-red-200 disabled:opacity-60 transition-all text-sm ml-auto"
                                 title="Delete from history"
                             >
                                 {isLoading ? (
@@ -328,15 +328,15 @@ export default function OwnerBookings() {
     const displayed = activeTab === "pending" ? pendingBookings : historyBookings;
 
     return (
-        <div className="flex min-h-screen bg-[#f6f8f7]" style={{ "--color-primary": "#13ec6d" }}>
+        <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-emerald-950/20" style={{ "--color-primary": "#13ec6d" }}>
             <Sidebar />
 
             <main className="flex-1 flex flex-col min-w-0">
                 {/* Header */}
-                <header className="sticky top-0 z-30 h-20 border-b border-emerald-100 bg-white/90 backdrop-blur-md px-6 lg:px-8 flex items-center justify-between gap-4 shrink-0">
-                    <h2 className="text-xl lg:text-2xl font-bold tracking-tight pl-12 lg:pl-0">Bookings</h2>
+                <header className="sticky top-0 z-30 h-20 border-b border-emerald-100 dark:border-slate-700/80 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-6 lg:px-8 flex items-center justify-between gap-4 shrink-0">
+                    <h2 className="text-xl lg:text-2xl font-bold tracking-tight pl-12 lg:pl-0 text-slate-900 dark:text-white">Bookings</h2>
                     <div className="flex items-center gap-3 ml-auto">
-                        <button className="relative p-2 rounded-full hover:bg-emerald-50 transition-colors text-slate-500">
+                        <button className="relative p-2 rounded-full hover:bg-emerald-50 transition-colors text-slate-500 dark:text-slate-400">
                             <span className="material-symbols-outlined text-[22px]">notifications</span>
                             {pendingBookings.length > 0 && (
                                 <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full" />
@@ -361,7 +361,7 @@ export default function OwnerBookings() {
                     {/* Stat summary */}
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
                         {[
-                            { label: "Total Requests", value: bookings.length, icon: "calendar_month", bg: "bg-white", color: "text-slate-700" },
+                            { label: "Total Requests", value: bookings.length, icon: "calendar_month", bg: "bg-white dark:bg-slate-900", color: "text-slate-700 dark:text-slate-200" },
                             { label: "Pending", value: pendingBookings.length, icon: "hourglass_top", bg: "bg-amber-50", color: "text-amber-600" },
                             { label: "Allocated", value: bookings.filter((b) => b.status === "ALLOCATED").length, icon: "check_circle", bg: "bg-emerald-50", color: "text-emerald-600" },
                             { label: "Rejected", value: bookings.filter((b) => b.status === "REJECTED").length, icon: "cancel", bg: "bg-red-50", color: "text-red-500" },
@@ -369,17 +369,17 @@ export default function OwnerBookings() {
                             <div key={s.label} className={`${s.bg} rounded-2xl p-4 border border-emerald-100 shadow-sm`}>
                                 <span className={`material-symbols-outlined text-xl ${s.color} mb-2 block`}>{s.icon}</span>
                                 <p className={`text-2xl font-black ${s.color}`}>{s.value}</p>
-                                <p className="text-xs text-slate-500 font-medium mt-0.5">{s.label}</p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">{s.label}</p>
                             </div>
                         ))}
                     </div>
 
                     {/* Tabs */}
-                    <div className="flex items-center gap-1 bg-white rounded-xl border border-emerald-100 p-1 mb-6 w-fit">
+                    <div className="flex items-center gap-1 bg-white dark:bg-slate-900 rounded-xl border border-emerald-100 p-1 mb-6 w-fit">
                         <button
                             onClick={() => setActiveTab("pending")}
                             className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold transition-all
-                                ${activeTab === "pending" ? "bg-primary text-slate-900 shadow-sm" : "text-slate-500 hover:text-emerald-700 hover:bg-emerald-50"}`}
+                                ${activeTab === "pending" ? "bg-primary text-slate-900 dark:text-white shadow-sm" : "text-slate-500 dark:text-slate-400 hover:text-emerald-700 hover:bg-emerald-50"}`}
                         >
                             <span className="material-symbols-outlined text-[16px]">hourglass_top</span>
                             Pending Requests
@@ -392,12 +392,12 @@ export default function OwnerBookings() {
                         <button
                             onClick={() => setActiveTab("history")}
                             className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold transition-all
-                                ${activeTab === "history" ? "bg-primary text-slate-900 shadow-sm" : "text-slate-500 hover:text-emerald-700 hover:bg-emerald-50"}`}
+                                ${activeTab === "history" ? "bg-primary text-slate-900 dark:text-white shadow-sm" : "text-slate-500 dark:text-slate-400 hover:text-emerald-700 hover:bg-emerald-50"}`}
                         >
                             <span className="material-symbols-outlined text-[16px]">history</span>
                             Allocation History
                             {historyBookings.length > 0 && (
-                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${activeTab === "history" ? "bg-black/15" : "bg-slate-100 text-slate-600"}`}>
+                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${activeTab === "history" ? "bg-black/15" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"}`}>
                                     {historyBookings.length}
                                 </span>
                             )}
@@ -408,13 +408,13 @@ export default function OwnerBookings() {
                     {loading ? (
                         <div className="flex flex-col items-center justify-center py-24">
                             <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-                            <p className="text-slate-500">Loading bookings...</p>
+                            <p className="text-slate-500 dark:text-slate-400">Loading bookings...</p>
                         </div>
                     ) : error ? (
                         <div className="flex flex-col items-center justify-center py-24 text-center">
                             <span className="material-symbols-outlined text-5xl text-red-300 mb-3">error</span>
-                            <p className="text-slate-600 font-medium mb-4">{error}</p>
-                            <button onClick={fetchBookings} className="bg-primary text-slate-900 font-bold px-6 py-2.5 rounded-xl hover:brightness-105 transition-all text-sm">
+                            <p className="text-slate-600 dark:text-slate-300 font-medium mb-4">{error}</p>
+                            <button onClick={fetchBookings} className="bg-primary text-slate-900 dark:text-white font-bold px-6 py-2.5 rounded-xl hover:brightness-105 transition-all text-sm">
                                 Retry
                             </button>
                         </div>
@@ -423,7 +423,7 @@ export default function OwnerBookings() {
                             <span className="material-symbols-outlined text-6xl text-slate-200 mb-4">
                                 {activeTab === "pending" ? "hourglass_empty" : "history"}
                             </span>
-                            <h3 className="text-lg font-bold text-slate-500 mb-2">
+                            <h3 className="text-lg font-bold text-slate-500 dark:text-slate-400 mb-2">
                                 {activeTab === "pending" ? "No pending requests" : "No booking history yet"}
                             </h3>
                             <p className="text-sm text-slate-400 max-w-sm">

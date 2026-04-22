@@ -14,12 +14,12 @@ import {
 
 // Status badge config — covers all possible states
 const STATUS_CONFIG = {
-    PENDING:               { cls: "bg-amber-100 text-amber-800",   icon: "hourglass_top",  label: "Pending — Awaiting Your Response" },
-    ACTIVE:                { cls: "bg-emerald-100 text-emerald-800", icon: "check_circle", label: "Active"     },
-    CANCELLED:             { cls: "bg-red-100 text-red-700",       icon: "cancel",         label: "Cancelled"  },
-    EXPIRED:               { cls: "bg-slate-100 text-slate-600",   icon: "schedule",       label: "Expired"    },
-    TERMINATION_REQUESTED: { cls: "bg-orange-100 text-orange-800", icon: "assignment_late", label: "Termination Requested" },
-    TERMINATED:            { cls: "bg-amber-50 text-amber-800",    icon: "highlight_off",  label: "Terminated" },
+    PENDING:               { cls: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",   icon: "hourglass_top",  label: "Pending — Awaiting Your Response" },
+    ACTIVE:                { cls: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300", icon: "check_circle", label: "Active"     },
+    CANCELLED:             { cls: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300",       icon: "cancel",         label: "Cancelled"  },
+    EXPIRED:               { cls: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300",   icon: "schedule",       label: "Expired"    },
+    TERMINATION_REQUESTED: { cls: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300", icon: "assignment_late", label: "Termination Requested" },
+    TERMINATED:            { cls: "bg-amber-50 text-amber-800 dark:bg-amber-900/20 dark:text-amber-400",    icon: "highlight_off",  label: "Terminated" },
 };
 
 export default function AgreementDetail() {
@@ -166,14 +166,14 @@ export default function AgreementDetail() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+            <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 flex items-center justify-center">
                 <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
             </div>
         );
     }
     if (error || !agreement) {
         return (
-            <div className="min-h-screen bg-slate-50">
+            <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50">
                 <Navbar />
                 <div className="max-w-lg mx-auto px-4 py-16 text-center">
                     <p className="text-red-600 font-medium">{error || "Not found"}</p>
@@ -194,7 +194,7 @@ export default function AgreementDetail() {
     const statusCfg = STATUS_CONFIG[agreement.status] || STATUS_CONFIG["PENDING"];
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50">
             <Navbar />
             <div className="max-w-2xl mx-auto px-4 py-8">
                 {/* Back link — context-aware for owner vs tenant */}
@@ -209,9 +209,9 @@ export default function AgreementDetail() {
                 {/* Toast message */}
                 {actionMsg && (
                     <div className={`mb-4 flex items-center gap-3 px-5 py-3 rounded-xl text-sm font-semibold
-                        ${actionMsg.type === "error" ? "bg-red-100 text-red-800" :
-                          actionMsg.type === "info"  ? "bg-slate-100 text-slate-800" :
-                          "bg-emerald-100 text-emerald-800"}`}>
+                        ${actionMsg.type === "error" ? "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-200" :
+                          actionMsg.type === "info"  ? "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200" :
+                          "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-200"}`}>
                         <span className="material-symbols-outlined text-lg">
                             {actionMsg.type === "error" ? "error" : actionMsg.type === "info" ? "info" : "check_circle"}
                         </span>
@@ -219,12 +219,12 @@ export default function AgreementDetail() {
                     </div>
                 )}
 
-                <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
                     {/* Header */}
-                    <div className="p-6 border-b border-slate-100 flex flex-wrap items-start justify-between gap-4">
+                    <div className="p-6 border-b border-slate-100 dark:border-slate-700/50 flex flex-wrap items-start justify-between gap-4">
                         <div>
-                            <h1 className="text-xl font-black text-slate-900">{agreement.agreementNumber}</h1>
-                            <p className="text-slate-500 text-sm mt-1">{agreement.propertyTitle}</p>
+                            <h1 className="text-xl font-black text-slate-900 dark:text-white">{agreement.agreementNumber}</h1>
+                            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">{agreement.propertyTitle}</p>
                         </div>
                         {/* Status badge */}
                         <span className={`inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full ${statusCfg.cls}`}>
@@ -235,12 +235,12 @@ export default function AgreementDetail() {
 
                     {/* PENDING banner — shown only to tenant */}
                     {showTenantActions && (
-                        <div className="mx-6 mt-5 p-4 rounded-xl border border-amber-200 bg-amber-50">
-                            <p className="text-sm font-bold text-amber-800 flex items-center gap-2">
+                        <div className="mx-6 mt-5 p-4 rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-900/50">
+                            <p className="text-sm font-bold text-amber-800 dark:text-amber-400 flex items-center gap-2">
                                 <span className="material-symbols-outlined text-[18px]">info</span>
                                 Action required: Review and respond to this agreement
                             </p>
-                            <p className="text-xs text-amber-700 mt-1">
+                            <p className="text-xs text-amber-700 dark:text-amber-500 mt-1">
                                 The owner has approved your booking and generated this rental agreement.
                                 Please review the details below and choose to Accept or Reject.
                             </p>
@@ -249,16 +249,16 @@ export default function AgreementDetail() {
 
                     {/* TERMINATION_REQUESTED banner */}
                     {agreement.status === "TERMINATION_REQUESTED" && (
-                        <div className="mx-6 mt-5 p-4 rounded-xl border border-orange-200 bg-orange-50">
-                            <p className="text-sm font-bold text-orange-800 flex items-center gap-2">
+                        <div className="mx-6 mt-5 p-4 rounded-xl border border-orange-200 bg-orange-50 dark:bg-orange-900/20 dark:border-orange-900/50">
+                            <p className="text-sm font-bold text-orange-800 dark:text-orange-400 flex items-center gap-2">
                                 <span className="material-symbols-outlined text-[18px]">assignment_late</span>
                                 Early Termination Requested
                             </p>
-                            <p className="text-xs text-orange-700 mt-1 mb-2">
+                            <p className="text-xs text-orange-700 dark:text-orange-500 mt-1 mb-2">
                                 {isTenant ? "You have requested to terminate this agreement early. Awaiting owner approval." : "The tenant has requested to terminate this agreement early."}
                             </p>
                             {agreement.terminationReason && (
-                                <div className="bg-white/60 p-3 rounded-lg text-xs text-orange-900 border border-orange-100">
+                                <div className="bg-white/60 dark:bg-slate-900/50 p-3 rounded-lg text-xs text-orange-900 dark:text-orange-300 border border-orange-100 dark:border-orange-800/50">
                                     <span className="font-bold">Reason provided: </span>{agreement.terminationReason}
                                 </div>
                             )}
@@ -270,56 +270,56 @@ export default function AgreementDetail() {
                         {/* Dates & rent */}
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <p className="text-xs font-bold text-slateate-400 uppercase text-slate-400">Start date</p>
-                                <p className="font-semibold text-slate-800">{agreement.startDate}</p>
+                                <p className="text-xs font-bold text-slate-400 uppercase">Start date</p>
+                                <p className="font-semibold text-slate-800 dark:text-slate-100">{agreement.startDate}</p>
                             </div>
                             <div>
                                 <p className="text-xs font-bold text-slate-400 uppercase">End date</p>
-                                <p className="font-semibold text-slate-800">{agreement.endDate}</p>
+                                <p className="font-semibold text-slate-800 dark:text-slate-100">{agreement.endDate}</p>
                             </div>
                             <div>
                                 <p className="text-xs font-bold text-slate-400 uppercase">Duration</p>
-                                <p className="font-semibold text-slate-800">{agreement.durationMonths} months</p>
+                                <p className="font-semibold text-slate-800 dark:text-slate-100">{agreement.durationMonths} months</p>
                             </div>
                             <div>
                                 <p className="text-xs font-bold text-slate-400 uppercase">Monthly rent</p>
-                                <p className="font-semibold text-slate-800">LKR {Number(agreement.rentAmount).toLocaleString()}</p>
+                                <p className="font-semibold text-slate-800 dark:text-slate-100">LKR {Number(agreement.rentAmount).toLocaleString()}</p>
                             </div>
                             {agreement.deposit > 0 && (
                                 <div>
                                     <p className="text-xs font-bold text-slate-400 uppercase">Security deposit</p>
-                                    <p className="font-semibold text-slate-800">LKR {Number(agreement.deposit).toLocaleString()}</p>
+                                    <p className="font-semibold text-slate-800 dark:text-slate-100">LKR {Number(agreement.deposit).toLocaleString()}</p>
                                 </div>
                             )}
                             {agreement.paymentDueDate > 0 && (
                                 <div>
                                     <p className="text-xs font-bold text-slate-400 uppercase">Payment due</p>
-                                    <p className="font-semibold text-slate-800">Day {agreement.paymentDueDate} of each month</p>
+                                    <p className="font-semibold text-slate-800 dark:text-slate-100">Day {agreement.paymentDueDate} of each month</p>
                                 </div>
                             )}
                         </div>
 
                         {/* Approval status indicators */}
-                        <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 space-y-2">
+                        <div className="rounded-xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 p-4 space-y-2">
                             <p className="text-xs font-bold text-slate-500 uppercase mb-2">Approval status</p>
                             <div className="flex items-center gap-2 text-sm">
-                                <span className={`material-symbols-outlined text-[18px] ${agreement.ownerApproved ? "text-emerald-600" : "text-slate-300"}`}>
+                                <span className={`material-symbols-outlined text-[18px] ${agreement.ownerApproved ? "text-emerald-600 dark:text-emerald-500" : "text-slate-300 dark:text-slate-600"}`}>
                                     {agreement.ownerApproved ? "check_circle" : "radio_button_unchecked"}
                                 </span>
-                                <span className={agreement.ownerApproved ? "text-emerald-700 font-semibold" : "text-slate-400"}>
+                                <span className={agreement.ownerApproved ? "text-emerald-700 dark:text-emerald-400 font-semibold" : "text-slate-400 dark:text-slate-500"}>
                                     Owner approved
                                 </span>
                             </div>
                             <div className="flex items-center gap-2 text-sm">
                                 <span className={`material-symbols-outlined text-[18px] ${
-                                    agreement.tenantApproved ? "text-emerald-600" :
-                                    agreement.status === "CANCELLED" ? "text-red-500" : "text-slate-300"}`}>
+                                    agreement.tenantApproved ? "text-emerald-600 dark:text-emerald-500" :
+                                    agreement.status === "CANCELLED" ? "text-red-500" : "text-slate-300 dark:text-slate-600"}`}>
                                     {agreement.tenantApproved ? "check_circle" :
                                      agreement.status === "CANCELLED" ? "cancel" : "radio_button_unchecked"}
                                 </span>
                                 <span className={
-                                    agreement.tenantApproved ? "text-emerald-700 font-semibold" :
-                                    agreement.status === "CANCELLED" ? "text-red-600 font-semibold" : "text-slate-400"}>
+                                    agreement.tenantApproved ? "text-emerald-700 dark:text-emerald-400 font-semibold" :
+                                    agreement.status === "CANCELLED" ? "text-red-600 dark:text-red-400 font-semibold" : "text-slate-400 dark:text-slate-500"}>
                                     {agreement.tenantApproved ? "Tenant accepted" :
                                      agreement.status === "CANCELLED" ? "Tenant rejected" : "Tenant — pending decision"}
                                 </span>
@@ -330,7 +330,7 @@ export default function AgreementDetail() {
                         {agreement.rulesNotes && (
                             <div>
                                 <p className="text-xs font-bold text-slate-400 uppercase mb-1">Notes</p>
-                                <p className="text-slate-600 whitespace-pre-wrap">{agreement.rulesNotes}</p>
+                                <p className="text-slate-600 dark:text-slate-300 whitespace-pre-wrap">{agreement.rulesNotes}</p>
                             </div>
                         )}
 
@@ -338,7 +338,7 @@ export default function AgreementDetail() {
                         {agreement.propertyTermsSnapshot && (
                             <div>
                                 <p className="text-xs font-bold text-slate-400 uppercase mb-1">Property terms &amp; conditions</p>
-                                <p className="text-slate-600 whitespace-pre-wrap text-xs leading-relaxed border border-slate-100 rounded-xl p-3 bg-slate-50">
+                                <p className="text-slate-600 dark:text-slate-300 whitespace-pre-wrap text-xs leading-relaxed border border-slate-100 dark:border-slate-700/50 rounded-xl p-3 bg-slate-50 dark:bg-slate-800/50">
                                     {agreement.propertyTermsSnapshot}
                                 </p>
                             </div>
@@ -346,18 +346,18 @@ export default function AgreementDetail() {
 
                         {/* Early termination penalty */}
                         {agreement.status === "TERMINATED" && agreement.earlyTerminationPenalty != null && (
-                            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
-                                <p className="text-xs font-bold text-amber-800 uppercase">Early termination penalty</p>
-                                <p className="text-lg font-black text-amber-900">LKR {Number(agreement.earlyTerminationPenalty).toLocaleString()}</p>
+                            <div className="rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-900/20 p-4">
+                                <p className="text-xs font-bold text-amber-800 dark:text-amber-500 uppercase">Early termination penalty</p>
+                                <p className="text-lg font-black text-amber-900 dark:text-amber-400">LKR {Number(agreement.earlyTerminationPenalty).toLocaleString()}</p>
                                 {agreement.terminationReason && (
-                                    <p className="text-xs text-amber-800 mt-2">Reason: {agreement.terminationReason}</p>
+                                    <p className="text-xs text-amber-800 dark:text-amber-500 mt-2">Reason: {agreement.terminationReason}</p>
                                 )}
                             </div>
                         )}
                     </div>
 
                     {/* Action footer */}
-                    <div className="p-6 bg-slate-50 border-t border-slate-100 flex flex-wrap gap-3">
+                    <div className="p-6 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-100 dark:border-slate-700/50 flex flex-wrap gap-3">
                         {/* ── TENANT: Accept / Reject (only when PENDING) ── */}
                         {showTenantActions && (
                             <>
@@ -380,7 +380,7 @@ export default function AgreementDetail() {
                                     type="button"
                                     onClick={handleReject}
                                     disabled={!!actionLoading}
-                                    className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-red-50 text-red-700 border border-red-200 font-bold px-6 py-2.5 rounded-xl hover:bg-red-100 disabled:opacity-60 transition-all text-sm"
+                                    className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800/50 font-bold px-6 py-2.5 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/40 disabled:opacity-60 transition-all text-sm"
                                 >
                                     {actionLoading === "reject" ? (
                                         <span className="w-4 h-4 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
@@ -397,7 +397,7 @@ export default function AgreementDetail() {
                             id="btn-download-agreement-pdf"
                             type="button"
                             onClick={handlePdf}
-                            className="inline-flex items-center gap-2 bg-slate-900 text-white font-bold px-5 py-2.5 rounded-xl text-sm hover:bg-slate-800"
+                            className="inline-flex items-center gap-2 bg-slate-900 dark:bg-slate-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm hover:bg-slate-800 dark:hover:bg-slate-600"
                         >
                             <span className="material-symbols-outlined text-[18px]">download</span>
                             Download PDF
@@ -409,7 +409,7 @@ export default function AgreementDetail() {
                                 id="btn-terminate-agreement"
                                 type="button"
                                 onClick={() => setShowTerminate(true)}
-                                className="inline-flex items-center gap-2 border border-red-200 text-red-700 font-bold px-5 py-2.5 rounded-xl text-sm hover:bg-red-50"
+                                className="inline-flex items-center gap-2 border border-red-200 dark:border-red-800/50 text-red-700 dark:text-red-400 font-bold px-5 py-2.5 rounded-xl text-sm hover:bg-red-50 dark:hover:bg-red-900/20"
                             >
                                 End agreement early
                             </button>
@@ -435,7 +435,7 @@ export default function AgreementDetail() {
                                     type="button"
                                     onClick={handleRejectTermination}
                                     disabled={!!actionLoading}
-                                    className="inline-flex items-center gap-2 border border-slate-300 text-slate-700 font-bold px-5 py-2.5 rounded-xl text-sm hover:bg-slate-50 disabled:opacity-60"
+                                    className="inline-flex items-center gap-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-bold px-5 py-2.5 rounded-xl text-sm hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-60"
                                 >
                                     {actionLoading === "reject-term" ? (
                                         <span className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
@@ -453,9 +453,9 @@ export default function AgreementDetail() {
             {/* ── Early terminate modal ── */}
             {showTerminate && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60">
-                    <form onSubmit={handleTerminate} className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
-                        <h3 className="font-black text-slate-900">Terminate early?</h3>
-                        <p className="text-sm text-slate-600">
+                    <form onSubmit={handleTerminate} className="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4">
+                        <h3 className="font-black text-slate-900 dark:text-white">Terminate early?</h3>
+                        <p className="text-sm text-slate-600 dark:text-slate-300">
                             {isTenant 
                                 ? "This will send an early termination request to the owner. A penalty of remaining months × monthly rent × 50% may apply upon approval." 
                                 : "As the owner, you must provide a reason. The agreement will be terminated immediately and a penalty enforced."}
@@ -464,16 +464,16 @@ export default function AgreementDetail() {
                             value={termReason}
                             onChange={(e) => setTermReason(e.target.value)}
                             placeholder={isOwner ? "Reason (Required)" : "Optional reason for termination"}
-                            className="w-full border border-slate-200 rounded-xl p-3 text-sm min-h-[80px]"
+                            className="w-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white rounded-xl p-3 text-sm min-h-[80px]"
                         />
                         <div className="flex gap-3">
-                            <button type="button" onClick={() => setShowTerminate(false)} className="flex-1 py-2.5 rounded-xl border font-bold text-slate-600">
+                            <button type="button" onClick={() => setShowTerminate(false)} className="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800">
                                 Cancel
                             </button>
                             <button
                                 type="submit"
                                 disabled={terminating}
-                                className="flex-1 py-2.5 rounded-xl bg-red-600 text-white font-bold disabled:opacity-60"
+                                className="flex-1 py-2.5 rounded-xl bg-red-600 text-white font-bold disabled:opacity-60 hover:bg-red-700"
                             >
                                 {terminating ? "…" : "Confirm"}
                             </button>

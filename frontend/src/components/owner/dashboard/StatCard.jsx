@@ -74,7 +74,7 @@ export default function StatCard({
 
     return (
         <motion.div
-            className="relative bg-white/80 backdrop-blur-xl p-6 rounded-2xl border border-white/60 shadow-lg hover:shadow-2xl transition-all duration-500 flex flex-col justify-between min-h-[170px] overflow-hidden group cursor-default"
+            className="relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl p-6 rounded-2xl border border-white/60 dark:border-slate-700/60 shadow-lg dark:shadow-slate-900/20 hover:shadow-2xl dark:hover:shadow-slate-900/40 transition-all duration-500 flex flex-col justify-between min-h-[170px] overflow-hidden group cursor-default"
             whileHover={{ y: -6, scale: 1.02 }}
             initial={{ opacity: 0, y: 30, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -107,8 +107,8 @@ export default function StatCard({
 
             {/* Label + Animated Value */}
             <div className="z-10">
-                <p className="text-slate-500 text-[11px] font-semibold tracking-wider uppercase mb-1.5">{label}</p>
-                <h3 className="text-3xl font-extrabold text-slate-800 tracking-tight leading-none">
+                <p className="text-slate-500 dark:text-slate-400 text-[11px] font-semibold tracking-wider uppercase mb-1.5">{label}</p>
+                <h3 className="text-3xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight leading-none">
                     <AnimatedCounter value={value} duration={1.2 + index * 0.2} />
                 </h3>
             </div>

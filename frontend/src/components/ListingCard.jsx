@@ -1,5 +1,6 @@
 import { useState, useRef, useLayoutEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import gsap from "gsap";
 
 /**
@@ -9,8 +10,10 @@ import gsap from "gsap";
  * @param {{ listing: object }} props
  */
 export default function ListingCard({ listing }) {
-    const [liked, setLiked] = useState(false);
+    const { user, toggleFavorite } = useAuth();
+    const navigate = useNavigate();
     const cardRef = useRef(null);
+    const isFavorite = user?.favoritePropertyIds?.includes(listing.id);
 
     useLayoutEffect(() => {
         const el = cardRef.current;
@@ -45,7 +48,7 @@ export default function ListingCard({ listing }) {
     return (
         <div 
             ref={cardRef} 
-            className="group relative bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm transition-colors duration-300"
+            className="group relative bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-slate-100 dark:border-slate-700/50 shadow-sm transition-colors duration-300"
         >
             {/* Image Container */}
             <Link to={`/property/${listing.id}`} className="block relative h-64 overflow-hidden">
@@ -67,14 +70,21 @@ export default function ListingCard({ listing }) {
             <button
                 onClick={(e) => {
                     e.preventDefault();
-                    setLiked(!liked);
+                    if (!user) {
+                        navigate("/login");
+                        return;
+                    }
+                    toggleFavorite(listing.id);
                 }}
-                aria-label={liked ? "Remove from favorites" : "Add to favorites"}
-                className={`absolute top-4 right-4 bg-white/90 p-2 rounded-full transition-colors ${liked ? "text-red-500" : "text-slate-900 hover:text-red-500"
-                    }`}
+                aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+                className={`absolute top-4 right-4 p-2 rounded-full backdrop-blur-md transition-colors ${
+                    isFavorite 
+                        ? "bg-white text-rose-500 hover:bg-rose-50" 
+                        : "bg-black/20 text-white hover:bg-black/40"
+                }`}
                 style={{ zIndex: 10 }}
             >
-                <span className="material-symbols-outlined">favorite</span>
+                <span className="material-symbols-outlined" style={{ fontVariationSettings: isFavorite ? "'FILL' 1" : "'FILL' 0" }}>favorite</span>
             </button>
 
             {/* Card Body */}
@@ -91,13 +101,13 @@ export default function ListingCard({ listing }) {
                 </div>
 
                 {/* Location */}
-                <p className="flex items-center gap-1 text-slate-500 text-sm mb-4">
+                <p className="flex items-center gap-1 text-slate-500 dark:text-slate-400 text-sm mb-4">
                     <span className="material-symbols-outlined text-base">location_on</span>
                     {listing.location}
                 </p>
 
                 {/* Amenities */}
-                <div className="flex items-center gap-4 text-xs font-medium text-slate-500 mb-6">
+                <div className="flex items-center gap-4 text-xs font-medium text-slate-500 dark:text-slate-400 mb-6">
                     <span className="flex items-center gap-1">
                         <span className="material-symbols-outlined text-sm">bed</span>
                         {listing.beds} Bed
@@ -113,12 +123,12 @@ export default function ListingCard({ listing }) {
                 </div>
 
                 {/* Price & CTA */}
-                <div className="flex items-center justify-between pt-4 border-t border-slate-100">
+                <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-700/50">
                     <div>
-                        <span className="text-2xl font-black text-slate-900">
+                        <span className="text-2xl font-black text-slate-900 dark:text-white">
                             {listing.price}
                         </span>
-                        <span className="text-xs text-slate-500 font-medium">/month</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">/month</span>
                     </div>
                     <button
                         role="link"

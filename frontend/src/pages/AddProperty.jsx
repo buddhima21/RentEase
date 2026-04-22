@@ -34,6 +34,8 @@ const AddProperty = () => {
       laundry: false,
     },
     images: [],
+    latitude: null,
+    longitude: null,
   });
 
   const updateFormData = (field, value) => {
@@ -84,6 +86,10 @@ const AddProperty = () => {
         amenities: selectedAmenities,
         imageUrls,
         termsAndConditions: formData.termsAndConditions?.trim() || undefined,
+        ...(formData.latitude && formData.longitude ? {
+          latitude: formData.latitude,
+          longitude: formData.longitude,
+        } : {}),
       };
 
       const response = await createProperty(payload);
@@ -153,7 +159,7 @@ const AddProperty = () => {
 
   return (
     <div
-      className="bg-[#f6f8f7] text-slate-900 min-h-screen flex flex-col"
+      className="bg-[#f6f8f7] text-slate-900 dark:text-white min-h-screen flex flex-col"
       style={{ "--color-primary": "#26C289" }}
     >
       <header className="sticky top-0 z-50 w-full border-b border-emerald-100 bg-white/90 backdrop-blur-md">
@@ -166,10 +172,10 @@ const AddProperty = () => {
               <div className="bg-primary text-white p-1.5 rounded-lg flex items-center justify-center">
                 <span className="material-symbols-outlined text-2xl">home_work</span>
               </div>
-              <h2 className="text-xl font-bold tracking-tight text-slate-900">RentEase</h2>
+              <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">RentEase</h2>
             </div>
             <div className="flex items-center gap-3">
-              <span className="hidden md:block text-sm font-medium text-slate-500 mr-2">
+              <span className="hidden md:block text-sm font-medium text-slate-500 dark:text-slate-400 mr-2">
                 Owner Dashboard
               </span>
                 <OwnerNotificationsBell />
@@ -194,13 +200,13 @@ const AddProperty = () => {
                 <span className="text-primary font-bold text-xs uppercase tracking-widest bg-primary/10 px-3 py-1 rounded-full">
                   Step {step} of 3
                 </span>
-                <p className="text-slate-900 mt-2 font-extrabold text-2xl tracking-tight hidden sm:block">
+                <p className="text-slate-900 dark:text-white mt-2 font-extrabold text-2xl tracking-tight hidden sm:block">
                     {step === 1 && "Basic Information"}
                     {step === 2 && "Pricing & Amenities"}
                     {step === 3 && "Photos & Live Preview"}
                 </p>
               </div>
-              <span className="text-slate-500 text-sm font-bold bg-white px-3 py-1.5 rounded-full border border-slate-200 shadow-sm">
+              <span className="text-slate-500 dark:text-slate-400 text-sm font-bold bg-white dark:bg-slate-900 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm">
                 {calculateProgress()}% Complete
               </span>
             </div>
@@ -217,7 +223,7 @@ const AddProperty = () => {
         {renderStep()}
       </main>
 
-      <footer className="mt-auto py-8 text-center text-slate-400 text-sm border-t border-slate-100">
+      <footer className="mt-auto py-8 text-center text-slate-400 text-sm border-t border-slate-100 dark:border-slate-700/50">
         <p>© 2024 RentEase Sri Lanka. All rights reserved.</p>
       </footer>
     </div>

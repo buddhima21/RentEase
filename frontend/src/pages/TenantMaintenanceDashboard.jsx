@@ -19,18 +19,18 @@ export default function TenantMaintenanceDashboard() {
     }, [user?.id]);
 
     return (
-        <div className="min-h-screen bg-slate-50 p-6 md:p-10">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 p-6 md:p-10">
             <div className="mx-auto max-w-7xl space-y-6">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-black tracking-tight text-slate-900">Tenant Maintenance Dashboard</h1>
-                        <p className="mt-2 text-slate-600">Keep track of active requests, upcoming visits, and completed work.</p>
+                        <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">Tenant Maintenance Dashboard</h1>
+                        <p className="mt-2 text-slate-600 dark:text-slate-300">Keep track of active requests, upcoming visits, and completed work.</p>
                     </div>
                     <div className="flex gap-2">
                         <Link to="/tenant/maintenance/request" className="rounded-full bg-primary px-4 py-2 font-semibold text-white">
                             New Request
                         </Link>
-                        <Link to="/tenant/maintenance/history" className="rounded-full border border-slate-300 bg-white px-4 py-2 font-semibold text-slate-700">
+                        <Link to="/tenant/maintenance/history" className="rounded-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-4 py-2 font-semibold text-slate-700 dark:text-slate-200">
                             History
                         </Link>
                     </div>
@@ -44,9 +44,9 @@ export default function TenantMaintenanceDashboard() {
                 </div>
 
                 <MaintenanceSectionCard eyebrow="Requests" title="Maintenance requests" description="Open each request to follow the live status timeline.">
-                    <div className="overflow-hidden rounded-3xl border border-slate-200">
+                    <div className="overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-700">
                         <table className="w-full text-sm">
-                            <thead className="bg-slate-100 text-slate-700">
+                            <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">
                                 <tr>
                                     <th className="text-left p-3">Title</th>
                                     <th className="text-left p-3">Service</th>
@@ -56,14 +56,14 @@ export default function TenantMaintenanceDashboard() {
                                     <th className="text-left p-3">Action</th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white">
+                            <tbody className="bg-white dark:bg-slate-900">
                                 {items.map((item) => (
-                                    <tr key={item.id} className="border-t border-slate-200">
-                                        <td className="p-3 font-medium text-slate-900">{item.title}</td>
-                                        <td className="p-3 text-slate-600">{item.serviceType}</td>
+                                    <tr key={item.id} className="border-t border-slate-200 dark:border-slate-700">
+                                        <td className="p-3 font-medium text-slate-900 dark:text-white">{item.title}</td>
+                                        <td className="p-3 text-slate-600 dark:text-slate-300">{item.serviceType}</td>
                                         <td className="p-3"><MaintenanceBadge kind="priority" value={item.priority} /></td>
                                         <td className="p-3"><MaintenanceBadge value={item.status} /></td>
-                                        <td className="p-3 text-slate-600">{formatMaintenanceDate(item.scheduledAt)}</td>
+                                        <td className="p-3 text-slate-600 dark:text-slate-300">{formatMaintenanceDate(item.scheduledAt)}</td>
                                         <td className="p-3">
                                             <Link className="font-semibold text-emerald-700 hover:text-emerald-800" to={`/tenant/maintenance/track/${item.id}`}>
                                                 Track
@@ -72,7 +72,7 @@ export default function TenantMaintenanceDashboard() {
                                     </tr>
                                 ))}
                                 {items.length === 0 && (
-                                    <tr><td className="p-6 text-center text-slate-500" colSpan={6}>No maintenance requests yet.</td></tr>
+                                    <tr><td className="p-6 text-center text-slate-500 dark:text-slate-400" colSpan={6}>No maintenance requests yet.</td></tr>
                                 )}
                             </tbody>
                         </table>

@@ -8,9 +8,11 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.annotation.Version;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -38,13 +40,24 @@ public class MaintenanceRequest {
     private LocalDateTime scheduledAt;
     private LocalDateTime acceptedAt;
     private LocalDateTime startedAt;
+    private MaintenanceStatus pausedFromStatus;
     private LocalDateTime resolvedAt;
+    private LocalDateTime slaDueAt;
+    private LocalDateTime closureDueAt;
     private LocalDateTime closedAt;
 
     private String adminNotes;
     private String technicianNotes;
+    private List<String> partsUsed;
     private String completionSummary;
     private List<String> completionImageUrls;
+    private LocalDateTime mediaArchivedAt;
+
+    @Builder.Default
+    private List<MaintenanceWorkflowEvent> workflowEvents = new ArrayList<>();
+
+    @Version
+    private Long version;
 
     @Builder.Default
     private MaintenanceStatus status = MaintenanceStatus.REPORTED;

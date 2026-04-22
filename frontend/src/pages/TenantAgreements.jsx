@@ -4,14 +4,38 @@ import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
 import { getTenantAgreements } from "../services/api";
 
-// Status badge styles — updated to include PENDING and CANCELLED
+// Status badge styles — Merged icons and labels with Dark Mode support
 const STATUS_STYLE = {
-    PENDING:               { cls: "bg-amber-50 text-amber-800 border-amber-200",     icon: "hourglass_top",    label: "Pending"   },
-    ACTIVE:                { cls: "bg-emerald-50 text-emerald-800 border-emerald-200", icon: "check_circle",  label: "Active"    },
-    CANCELLED:             { cls: "bg-red-50 text-red-700 border-red-200",             icon: "cancel",           label: "Cancelled" },
-    EXPIRED:               { cls: "bg-slate-100 text-slate-600 border-slate-200",      icon: "schedule",         label: "Expired"   },
-    TERMINATION_REQUESTED: { cls: "bg-orange-50 text-orange-800 border-orange-200",    icon: "assignment_late",  label: "Term Request"},
-    TERMINATED:            { cls: "bg-amber-50 text-amber-800 border-amber-200",       icon: "highlight_off",    label: "Terminated"},
+    PENDING: { 
+        cls: "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800", 
+        icon: "hourglass_top", 
+        label: "Pending" 
+    },
+    ACTIVE: { 
+        cls: "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800", 
+        icon: "check_circle", 
+        label: "Active" 
+    },
+    CANCELLED: { 
+        cls: "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800", 
+        icon: "cancel", 
+        label: "Cancelled" 
+    },
+    EXPIRED: { 
+        cls: "bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700", 
+        icon: "schedule", 
+        label: "Expired" 
+    },
+    TERMINATION_REQUESTED: { 
+        cls: "bg-orange-50 text-orange-800 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800", 
+        icon: "assignment_late", 
+        label: "Term Request" 
+    },
+    TERMINATED: { 
+        cls: "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800", 
+        icon: "highlight_off", 
+        label: "Terminated" 
+    },
 };
 
 function StatusBadge({ status }) {
@@ -54,14 +78,13 @@ export default function TenantAgreements() {
     }, [user, navigate]);
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50">
             <Navbar />
             <div className="max-w-4xl mx-auto px-4 py-8">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                     <div>
-                        <h1 className="text-2xl font-black text-slate-900">Rental Agreements</h1>
-                        {/* Agreements are auto-created by the owner accepting a booking — no manual creation needed */}
-                        <p className="text-slate-500 text-sm mt-1">
+                        <h1 className="text-2xl font-black text-slate-900 dark:text-white">Rental Agreements</h1>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
                             Your agreements appear here after an owner approves your booking request.
                         </p>
                     </div>
@@ -73,12 +96,14 @@ export default function TenantAgreements() {
                     </div>
                 )}
                 {error && (
-                    <div className="rounded-2xl border border-red-200 bg-red-50 text-red-800 p-4 text-sm font-medium">{error}</div>
+                    <div className="rounded-2xl border border-red-200 bg-red-50 text-red-800 p-4 text-sm font-medium dark:bg-red-900/20 dark:text-red-400 dark:border-red-800">
+                        {error}
+                    </div>
                 )}
                 {!loading && !error && list.length === 0 && (
-                    <div className="text-center py-20 rounded-2xl border border-slate-200 bg-white">
+                    <div className="text-center py-20 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
                         <span className="material-symbols-outlined text-5xl text-slate-200">description</span>
-                        <p className="mt-4 text-slate-600 font-medium">No agreements yet</p>
+                        <p className="mt-4 text-slate-600 dark:text-slate-300 font-medium">No agreements yet</p>
                         <p className="text-sm text-slate-400 mt-2 max-w-sm mx-auto">
                             Once an owner approves your booking request, a rental agreement will appear here for you to review and accept.
                         </p>
@@ -93,21 +118,20 @@ export default function TenantAgreements() {
                             <li key={a.id}>
                                 <Link
                                     to={`/tenant/agreements/${a.id}`}
-                                    className="block bg-white rounded-2xl border border-slate-200 p-5 hover:border-primary/40 hover:shadow-md transition-all"
+                                    className="block bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 hover:border-primary/40 hover:shadow-md transition-all"
                                 >
                                     <div className="flex flex-wrap items-start justify-between gap-3">
                                         <div>
-                                            <p className="font-black text-slate-900">{a.agreementNumber}</p>
-                                            <p className="text-sm text-slate-500 mt-1">{a.propertyTitle || "Property"}</p>
+                                            <p className="font-black text-slate-900 dark:text-white">{a.agreementNumber}</p>
+                                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{a.propertyTitle || "Property"}</p>
                                             <p className="text-xs text-slate-400 mt-2">
                                                 {a.startDate} → {a.endDate} · LKR {Number(a.rentAmount).toLocaleString()} / mo
                                             </p>
                                         </div>
                                         <div className="flex flex-col items-end gap-2">
                                             <StatusBadge status={a.status} />
-                                            {/* Highlight pending agreements that need action */}
                                             {a.status === "PENDING" && (
-                                                <span className="text-xs font-semibold text-amber-700 animate-pulse">
+                                                <span className="text-xs font-semibold text-amber-700 dark:text-amber-500 animate-pulse">
                                                     Action required
                                                 </span>
                                             )}

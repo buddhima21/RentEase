@@ -76,6 +76,11 @@ export const loginUser = (data) => API.post("/api/v1/auth/login", data);
  */
 export const updateUser = (userId, userData) => API.put(`/api/v1/users/${userId}`, userData);
 
+// ── Favorites ─────────────────────────────────────────
+export const addFavorite = (userId, propertyId) => API.post(`/api/v1/users/${userId}/favorites/${propertyId}`);
+export const removeFavorite = (userId, propertyId) => API.delete(`/api/v1/users/${userId}/favorites/${propertyId}`);
+export const getFavorites = (userId) => API.get(`/api/v1/users/${userId}/favorites`);
+
 // ── Properties (Public) ───────────────────────────────
 /**
  * Public fetches all approved properties
@@ -201,6 +206,15 @@ export const hardDeleteBooking = (bookingId) => API.delete(`/api/v1/bookings/${b
 export const getPropertyAvailableSlots = (propertyId) =>
     API.get(`/api/v1/bookings/property/${propertyId}/available-slots`);
 
+/** Admin gets bookings with optional status filtering */
+export const getAllBookingsForAdmin = (statuses = []) => {
+    const params = new URLSearchParams();
+    if (statuses && statuses.length > 0) {
+        statuses.forEach(s => params.append("status", s));
+    }
+    return API.get("/api/v1/bookings/admin/all", { params });
+};
+
 // ── Reviews ───────────────────────────────────────────
 /**
  * Fetch approved reviews for a specific property.
@@ -258,7 +272,11 @@ export const updateMaintenancePriority = (requestId, priority) =>
 export const scheduleMaintenance = (requestId, data) =>
     API.patch(`/api/v1/maintenance/${requestId}/schedule`, data);
 export const acceptMaintenance = (requestId) => API.patch(`/api/v1/maintenance/${requestId}/accept`);
-export const startMaintenance = (requestId) => API.patch(`/api/v1/maintenance/${requestId}/start`);
+// Backward-compatible alias: start now follows the same transition path as accept.
+export const startMaintenance = (requestId) => API.patch(`/api/v1/maintenance/${requestId}/accept`);
+export const cancelMaintenance = (requestId) => API.patch(`/api/v1/maintenance/${requestId}/cancel`);
+export const declineMaintenance = (requestId, reason) =>
+    API.patch(`/api/v1/maintenance/${requestId}/decline`, null, { params: reason ? { reason } : undefined });
 export const pauseMaintenance = (requestId) => API.patch(`/api/v1/maintenance/${requestId}/pause`);
 export const resumeMaintenance = (requestId) => API.patch(`/api/v1/maintenance/${requestId}/resume`);
 export const resolveMaintenance = (requestId, data) => API.patch(`/api/v1/maintenance/${requestId}/resolve`, data);

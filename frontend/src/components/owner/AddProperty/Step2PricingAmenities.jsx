@@ -20,21 +20,21 @@ const Step2PricingAmenities = ({ formData, updateFormData, prevStep, nextStep })
   };
 
   const inputClasses = 
-    "w-full rounded-xl border border-slate-200 bg-slate-50 focus:bg-white text-slate-900 focus:ring-4 focus:ring-primary/10 focus:border-primary px-4 py-3.5 outline-none transition-all font-medium placeholder:text-slate-400";
-  const labelClasses = "block text-sm font-bold text-slate-700 mb-2";
+    "w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 focus:bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-4 focus:ring-primary/10 focus:border-primary px-4 py-3.5 outline-none transition-all font-medium placeholder:text-slate-400";
+  const labelClasses = "block text-sm font-bold text-slate-700 dark:text-slate-200 mb-2";
 
   return (
-    <div className="bg-white p-8 md:p-12 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/60 max-w-3xl mx-auto">
+    <div className="bg-white dark:bg-slate-900 p-8 md:p-12 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/60 max-w-3xl mx-auto">
       <div className="mb-8">
-        <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">
+        <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-2">
           Pricing & Amenities
         </h2>
-        <p className="text-slate-500 font-medium">Set your price and highlight what makes your place special.</p>
+        <p className="text-slate-500 dark:text-slate-400 font-medium">Set your price and highlight what makes your place special.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Pricing Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-2xl border border-slate-100/80">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 dark:bg-slate-800/50 p-6 rounded-2xl border border-slate-100/80">
           <div className="space-y-1">
             <label className={labelClasses}>
               Monthly Rent (LKR) <span className="text-red-500">*</span>
@@ -96,7 +96,7 @@ const Step2PricingAmenities = ({ formData, updateFormData, prevStep, nextStep })
 
         {/* Amenities Section */}
         <div className="space-y-3 pt-2">
-          <h3 className="text-slate-900 text-lg font-extrabold flex items-center gap-2 mb-4">
+          <h3 className="text-slate-900 dark:text-white text-lg font-extrabold flex items-center gap-2 mb-4">
             <div className="bg-primary/10 text-primary p-1.5 rounded-lg flex items-center justify-center">
               <span className="material-symbols-outlined text-xl">check_circle</span>
             </div>
@@ -109,7 +109,7 @@ const Step2PricingAmenities = ({ formData, updateFormData, prevStep, nextStep })
                 className={`flex items-center gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
                   formData.amenities[amenity]
                     ? 'border-primary bg-primary/5'
-                    : 'border-slate-100 bg-white hover:border-slate-200'
+                    : 'border-slate-100 dark:border-slate-700/50 bg-white dark:bg-slate-900 hover:border-slate-200 dark:border-slate-700'
                 }`}
               >
                 <input
@@ -117,9 +117,9 @@ const Step2PricingAmenities = ({ formData, updateFormData, prevStep, nextStep })
                   name={amenity}
                   checked={formData.amenities[amenity]}
                   onChange={handleAmenityChange}
-                  className="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary transition-all cursor-pointer"
+                  className="w-5 h-5 rounded border-slate-300 dark:border-slate-600 text-primary focus:ring-primary transition-all cursor-pointer"
                 />
-                <span className={`font-bold capitalize ${formData.amenities[amenity] ? 'text-primary' : 'text-slate-600'}`}>
+                <span className={`font-bold capitalize ${formData.amenities[amenity] ? 'text-primary' : 'text-slate-600 dark:text-slate-300'}`}>
                   {amenity === 'ac' ? 'AC' : amenity}
                 </span>
               </label>
@@ -142,11 +142,11 @@ const Step2PricingAmenities = ({ formData, updateFormData, prevStep, nextStep })
         </div>
 
         {/* Action Buttons */}
-        <div className="pt-8 border-t border-slate-100 flex flex-col sm:flex-row gap-4 justify-between items-center mt-10">
+        <div className="pt-8 border-t border-slate-100 dark:border-slate-700/50 flex flex-col sm:flex-row gap-4 justify-between items-center mt-10">
           <button
             type="button"
             onClick={prevStep}
-            className="flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl font-bold text-slate-600 border-2 border-slate-200 hover:bg-slate-50 hover:border-slate-300 transition-all w-full sm:w-auto"
+            className="flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl font-bold text-slate-600 dark:text-slate-300 border-2 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:bg-slate-800/50 hover:border-slate-300 dark:border-slate-600 transition-all w-full sm:w-auto"
           >
             <span className="material-symbols-outlined text-xl">arrow_back</span>
             Back

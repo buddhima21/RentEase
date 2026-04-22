@@ -8,12 +8,12 @@ import { ownerProfile } from "../data/ownerDashboardData";
 
 // Status badge config — covers all workflow states
 const STATUS_CONFIG = {
-    PENDING:               { cls: "bg-amber-50 text-amber-800 border-amber-200",     icon: "hourglass_top",  label: "Pending"    },
-    ACTIVE:                { cls: "bg-emerald-50 text-emerald-800 border-emerald-200", icon: "check_circle", label: "Active"     },
-    CANCELLED:             { cls: "bg-red-50 text-red-700 border-red-200",           icon: "cancel",         label: "Cancelled"  },
-    EXPIRED:               { cls: "bg-slate-100 text-slate-600 border-slate-200",    icon: "schedule",       label: "Expired"    },
-    TERMINATION_REQUESTED: { cls: "bg-orange-50 text-orange-800 border-orange-200",  icon: "assignment_late",label: "Term Request" },
-    TERMINATED:            { cls: "bg-amber-50 text-amber-800 border-amber-200",     icon: "highlight_off",  label: "Terminated" },
+    PENDING:               { cls: "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800",     icon: "hourglass_top",  label: "Pending"    },
+    ACTIVE:                { cls: "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800", icon: "check_circle", label: "Active"      },
+    CANCELLED:             { cls: "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800",           icon: "cancel",         label: "Cancelled"  },
+    EXPIRED:               { cls: "bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700",    icon: "schedule",       label: "Expired"    },
+    TERMINATION_REQUESTED: { cls: "bg-orange-50 text-orange-800 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800",  icon: "assignment_late",label: "Term Request" },
+    TERMINATED:            { cls: "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800",     icon: "highlight_off",  label: "Terminated" },
 };
 
 function StatusBadge({ status }) {
@@ -67,11 +67,11 @@ export default function OwnerAgreements() {
     };
 
     return (
-        <div className="flex min-h-screen bg-[#f6f8f7]">
+        <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-emerald-950/20">
             <Sidebar />
             <main className="flex-1 flex flex-col min-w-0">
-                <header className="h-20 bg-white border-b border-emerald-100 px-6 flex items-center justify-between shrink-0">
-                    <h1 className="text-xl font-bold text-slate-900 pl-12 lg:pl-0">Rental Agreements</h1>
+                <header className="h-20 bg-white dark:bg-slate-900/90 backdrop-blur-md border-b border-emerald-100 dark:border-slate-700/80 px-6 flex items-center justify-between shrink-0">
+                    <h1 className="text-xl font-bold text-slate-900 dark:text-white pl-12 lg:pl-0">Rental Agreements</h1>
                     {user ? (
                         <UserDropdown user={user} onLogout={logout} />
                     ) : (
@@ -81,57 +81,65 @@ export default function OwnerAgreements() {
                         />
                     )}
                 </header>
+                
                 <div className="flex-1 overflow-y-auto p-6 lg:p-8 pl-12 lg:pl-8 max-w-4xl">
-                    <p className="text-sm text-slate-500 mb-6">
-                        Agreements are auto-created when you approve a tenant booking.
-                        Tenants must Accept or Reject the agreement; once accepted it becomes{" "}
-                        <span className="font-semibold text-emerald-700">Active</span>.
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+                        Agreements are auto-created when you approve a tenant booking. Set property terms under{" "}
+                        <Link to="/owner/properties" className="text-primary font-bold hover:underline">
+                            My Properties → Edit
+                        </Link>
+                        . Tenants must Accept or Reject the agreement; once accepted it becomes{" "}
+                        <span className="font-semibold text-emerald-700 dark:text-emerald-500">Active</span>.
                     </p>
+
                     {loading ? (
                         <div className="flex justify-center py-20">
                             <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
                         </div>
                     ) : list.length === 0 ? (
-                        <div className="text-center py-20 rounded-2xl border border-slate-200 bg-white">
-                            <span className="material-symbols-outlined text-5xl text-slate-200">description</span>
-                            <p className="mt-4 text-slate-600 font-medium">No agreements yet</p>
-                            <p className="text-xs text-slate-400 mt-2">Agreements will appear here after you approve a tenant booking.</p>
+                        <div className="text-center py-20 rounded-2xl border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800/50">
+                            <span className="material-symbols-outlined text-5xl text-slate-200 dark:text-slate-600">description</span>
+                            <p className="mt-4 text-slate-600 dark:text-slate-300 font-medium">No agreements yet</p>
+                            <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">Agreements will appear here after you approve a tenant booking.</p>
                         </div>
                     ) : (
                         <ul className="space-y-3">
                             {list.map((a) => (
                                 <li
                                     key={a.id}
-                                    className="bg-white rounded-xl border border-emerald-100 p-5 flex flex-wrap items-center justify-between gap-4 hover:shadow-sm transition-shadow"
+                                    className="bg-white dark:bg-slate-900/80 rounded-xl border border-emerald-100 dark:border-slate-700/80 p-5 flex flex-wrap items-center justify-between gap-4 hover:shadow-sm transition-shadow"
                                 >
                                     <div className="flex-1 min-w-0">
                                         <div className="flex flex-wrap items-center gap-3 mb-1">
-                                            <p className="font-bold text-slate-900">{a.agreementNumber}</p>
+                                            <p className="font-bold text-slate-900 dark:text-white">{a.agreementNumber}</p>
+                                            
                                             {/* Status badge with full colour coding */}
                                             <StatusBadge status={a.status} />
+                                            
                                             {/* Highlight agreements awaiting tenant response */}
                                             {a.status === "PENDING" && (
-                                                <span className="text-xs text-amber-600 font-semibold animate-pulse">
+                                                <span className="text-xs text-amber-600 dark:text-amber-500 font-semibold animate-pulse">
                                                     Awaiting tenant
                                                 </span>
                                             )}
                                         </div>
-                                        <p className="text-sm text-slate-500">{a.propertyTitle || a.propertyId}</p>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400">{a.propertyTitle || a.propertyId}</p>
                                         <p className="text-xs text-slate-400 mt-1">
                                             Tenant: {a.tenantName || a.tenantId} ·{" "}
                                             {a.startDate} → {a.endDate} · LKR {Number(a.rentAmount).toLocaleString()}/mo
                                         </p>
+                                        
                                         {/* Approval status indicators */}
                                         <div className="flex gap-4 mt-2">
-                                            <span className={`text-xs flex items-center gap-1 ${a.ownerApproved ? "text-emerald-600" : "text-slate-400"}`}>
+                                            <span className={`text-xs flex items-center gap-1 ${a.ownerApproved ? "text-emerald-600 dark:text-emerald-500" : "text-slate-400"}`}>
                                                 <span className="material-symbols-outlined text-[13px]">
                                                     {a.ownerApproved ? "check_circle" : "radio_button_unchecked"}
                                                 </span>
                                                 Owner
                                             </span>
                                             <span className={`text-xs flex items-center gap-1 ${
-                                                a.tenantApproved ? "text-emerald-600" :
-                                                a.status === "CANCELLED" ? "text-red-500" : "text-slate-400"}`}>
+                                                a.tenantApproved ? "text-emerald-600 dark:text-emerald-500" :
+                                                a.status === "CANCELLED" ? "text-red-500 dark:text-red-400" : "text-slate-400"}`}>
                                                 <span className="material-symbols-outlined text-[13px]">
                                                     {a.tenantApproved ? "check_circle" :
                                                      a.status === "CANCELLED" ? "cancel" : "radio_button_unchecked"}
@@ -140,20 +148,22 @@ export default function OwnerAgreements() {
                                             </span>
                                         </div>
                                     </div>
+                                    
                                     <div className="flex gap-2">
                                         {/* View Agreement Detail */}
                                         <Link
                                             to={`/owner/agreements/${a.id}`}
-                                            className="text-sm font-bold text-slate-700 border border-slate-200 px-4 py-2 rounded-lg hover:bg-slate-50 inline-flex items-center gap-1"
+                                            className="text-sm font-bold text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 inline-flex items-center gap-1"
                                         >
                                             <span className="material-symbols-outlined text-[15px]">visibility</span>
                                             View
                                         </Link>
+                                        
                                         {/* Download PDF */}
                                         <button
                                             type="button"
                                             onClick={() => handlePdf(a.id, a.agreementNumber)}
-                                            className="text-sm font-bold text-primary border border-primary/30 px-4 py-2 rounded-lg hover:bg-primary/5 inline-flex items-center gap-1"
+                                            className="text-sm font-bold text-primary dark:text-primary border border-primary/30 px-4 py-2 rounded-lg hover:bg-primary/5 inline-flex items-center gap-1"
                                         >
                                             <span className="material-symbols-outlined text-[15px]">download</span>
                                             PDF
