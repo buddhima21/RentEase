@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import AdminNotificationsBell from "../components/admin/dashboard/AdminNotificationsBell";
 import AdminProfileDropdown from "../components/admin/dashboard/AdminProfileDropdown";
@@ -14,18 +14,103 @@ import {
     updateMaintenancePriority,
 } from "../services/api";
 
+const STATUS_OPTIONS = [
+    { value: "", label: "All statuses" },
+    { value: "REPORTED", label: "Reported" },
+    { value: "ASSIGNED", label: "Assigned" },
+    { value: "SCHEDULED", label: "Scheduled" },
+    { value: "DECLINED", label: "Declined" },
+    { value: "IN_PROGRESS", label: "In Progress" },
+    { value: "RESOLVED", label: "Resolved" },
+    { value: "CANCELLED", label: "Cancelled" },
+    { value: "CLOSED", label: "Closed" },
+];
+
+const PRIORITY_OPTIONS = [
+    { value: "", label: "All priorities" },
+    { value: "LOW", label: "Low" },
+    { value: "MEDIUM", label: "Medium" },
+    { value: "HIGH", label: "High" },
+    { value: "EMERGENCY", label: "Emergency" },
+];
+
 export default function AdminMaintenanceDashboard() {
     const [adminUser, setAdminUser] = useState(null);
     const [authLoading, setAuthLoading] = useState(true);
     const [queue, setQueue] = useState([]);
     const [techs, setTechs] = useState([]);
     const [selectedTechByRequest, setSelectedTechByRequest] = useState({});
+    const [technicianSearchByRequest, setTechnicianSearchByRequest] = useState({});
     const [filters, setFilters] = useState({ status: "", priority: "", technicianId: "" });
+    const [searchQuery, setSearchQuery] = useState("");
     const [loading, setLoading] = useState(false);
     const [priorityDrafts, setPriorityDrafts] = useState({});
     const [closeNotes, setCloseNotes] = useState({});
     const [loadError, setLoadError] = useState("");
     const [actionError, setActionError] = useState("");
+
+    const filterParams = useMemo(
+        () => Object.fromEntries(Object.entries(filters).filter(([, value]) => value)),
+        [filters]
+    );
+
+    const queueStats = useMemo(() => ({
+        requests: queue.length,
+        emergency: queue.filter((item) => item.priority === "EMERGENCY").length,
+        assigned: queue.filter((item) => item.assignedTechnicianId).length,
+        openTechs: techs.length,
+    }), [queue, techs]);
+
+    const techniciansById = useMemo(() => {
+        const map = new Map();
+        techs.forEach((tech) => map.set(tech.id, tech));
+        return map;
+    }, [techs]);
+
+    const normalizedSearch = searchQuery.trim().toLowerCase();
+
+    const filteredQueue = useMemo(() => {
+        if (!normalizedSearch) {
+            return queue;
+        }
+
+        return queue.filter((item) => {
+            const assignedTechnician = techniciansById.get(item.assignedTechnicianId);
+            const technicianText = [
+                item.technicianName,
+                item.technicianEmail,
+                assignedTechnician?.fullName,
+                assignedTechnician?.email,
+            ]
+                .filter(Boolean)
+                .join(" ")
+                .toLowerCase();
+
+            const queueText = [
+                item.id,
+                item.title,
+                item.status,
+                item.priority,
+                item.propertyId,
+                item.tenantId,
+                technicianText,
+            ]
+                .filter(Boolean)
+                .join(" ")
+                .toLowerCase();
+
+            return queueText.includes(normalizedSearch);
+        });
+    }, [normalizedSearch, queue, techniciansById]);
+
+    const technicianAssignments = useMemo(() => {
+        const counts = new Map();
+        queue.forEach((item) => {
+            if (!item.assignedTechnicianId) return;
+            counts.set(item.assignedTechnicianId, (counts.get(item.assignedTechnicianId) || 0) + 1);
+        });
+        return counts;
+    }, [queue]);
 
     useEffect(() => {
         try {
@@ -51,12 +136,12 @@ export default function AdminMaintenanceDashboard() {
         }
     }, []);
 
-    const load = async () => {
+    const load = async (params = filterParams) => {
         try {
             setLoading(true);
             setLoadError("");
             const [queueRes, techRes] = await Promise.all([
-                getAdminMaintenanceQueue(Object.fromEntries(Object.entries(filters).filter(([, value]) => value))),
+                getAdminMaintenanceQueue(params),
                 getMaintenanceTechnicians(),
             ]);
             setQueue(queueRes.data?.data || []);
@@ -74,42 +159,36 @@ export default function AdminMaintenanceDashboard() {
         if (authLoading || !adminUser) {
             return;
         }
-        load();
-    }, [authLoading, adminUser, filters.status, filters.priority, filters.technicianId]);
+        load(filterParams);
+    }, [authLoading, adminUser, filterParams]);
+
+    const runAction = async (handler, fallbackMessage) => {
+        try {
+            setActionError("");
+            await handler();
+            load(filterParams);
+        } catch (err) {
+            setActionError(err?.response?.data?.message || fallbackMessage);
+        }
+    };
 
     const assign = async (requestId) => {
         const technicianId = selectedTechByRequest[requestId];
         if (!technicianId) return;
-        try {
-            setActionError("");
-            await assignMaintenanceTechnician(requestId, { technicianId });
-            load();
-        } catch (err) {
-            setActionError(err?.response?.data?.message || "Unable to assign technician.");
-        }
+        await runAction(() => assignMaintenanceTechnician(requestId, { technicianId }), "Unable to assign technician.");
     };
 
     const savePriority = async (requestId) => {
         const priority = priorityDrafts[requestId];
         if (!priority) return;
-        try {
-            setActionError("");
-            await updateMaintenancePriority(requestId, priority);
-            load();
-        } catch (err) {
-            setActionError(err?.response?.data?.message || "Unable to update priority.");
-        }
+        await runAction(() => updateMaintenancePriority(requestId, priority), "Unable to update priority.");
     };
 
     const closeRequest = async (requestId) => {
-        try {
-            setActionError("");
+        await runAction(async () => {
             await closeMaintenance(requestId, closeNotes[requestId] || undefined);
             setCloseNotes((prev) => ({ ...prev, [requestId]: "" }));
-            load();
-        } catch (err) {
-            setActionError(err?.response?.data?.message || "Unable to close request.");
-        }
+        }, "Unable to close request.");
     };
 
     if (authLoading) {
@@ -160,58 +239,61 @@ export default function AdminMaintenanceDashboard() {
                             <p className="text-slate-500 dark:text-slate-400 font-medium mt-2 text-[15px]">Review requests, tune priorities, and dispatch technicians with one operational view.</p>
                         </div>
 
-                        <div className="flex flex-col items-end gap-3">
-                            <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-700/50 shadow-sm px-4 py-2.5 rounded-xl flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-200">
-                                <span className="material-symbols-outlined text-slate-400 text-[18px]">calendar_month</span>
-                                {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
-                            </div>
-                            <Link
-                                to="/admin/maintenance/calendar"
-                                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-semibold px-5 py-2.5 rounded-xl hover:border-emerald-300 hover:text-emerald-700 transition-all text-sm flex items-center gap-2"
-                            >
-                                <span className="material-symbols-outlined text-[18px]">event_available</span>
-                                Schedule Visits
-                            </Link>
+                        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-700/50 shadow-sm px-4 py-2.5 rounded-xl flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-200">
+                            <span className="material-symbols-outlined text-slate-400 text-[18px]">calendar_month</span>
+                            {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
                         </div>
                     </div>
 
                     <div className="grid gap-4 md:grid-cols-4">
-                        <MaintenanceStatCard label="Requests" value={queue.length} accent="blue" />
-                        <MaintenanceStatCard label="Emergency" value={queue.filter((item) => item.priority === "EMERGENCY").length} accent="red" />
-                        <MaintenanceStatCard label="Assigned" value={queue.filter((item) => item.assignedTechnicianId).length} accent="emerald" />
-                        <MaintenanceStatCard label="Open techs" value={techs.length} accent="slate" />
+                        <MaintenanceStatCard label="Requests" value={queueStats.requests} accent="blue" />
+                        <MaintenanceStatCard label="Emergency" value={queueStats.emergency} accent="red" />
+                        <MaintenanceStatCard label="Assigned" value={queueStats.assigned} accent="emerald" />
+                        <MaintenanceStatCard label="Open techs" value={queueStats.openTechs} accent="slate" />
                     </div>
 
-                    <MaintenanceSectionCard eyebrow="Filters" title="Queue filters" description="Filter the request queue by status, priority, or assigned technician.">
-                        <div className="grid gap-4 md:grid-cols-3">
-                            <select className="rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 p-3" value={filters.status} onChange={(e) => setFilters((prev) => ({ ...prev, status: e.target.value }))}>
-                                <option value="">All statuses</option>
-                                <option value="REPORTED">Reported</option>
-                                <option value="ASSIGNED">Assigned</option>
-                                <option value="SCHEDULED">Scheduled</option>
-                                <option value="DECLINED">Declined</option>
-                                <option value="IN_PROGRESS">In Progress</option>
-                                <option value="RESOLVED">Resolved</option>
-                                <option value="CANCELLED">Cancelled</option>
-                                <option value="CLOSED">Closed</option>
+                    <MaintenanceSectionCard eyebrow="Queue" title="Maintenance requests" description="Search and filter requests, then assign technicians and update priorities in one workspace.">
+                        <div className="mb-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                            <input
+                                className="rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 p-3"
+                                placeholder="Search request or technician"
+                                aria-label="Search maintenance requests"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                            <select
+                                className="rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 p-3"
+                                aria-label="Filter by status"
+                                value={filters.status}
+                                onChange={(e) => setFilters((prev) => ({ ...prev, status: e.target.value }))}
+                            >
+                                {STATUS_OPTIONS.map((option) => (
+                                    <option key={option.label} value={option.value}>{option.label}</option>
+                                ))}
                             </select>
-                            <select className="rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 p-3" value={filters.priority} onChange={(e) => setFilters((prev) => ({ ...prev, priority: e.target.value }))}>
-                                <option value="">All priorities</option>
-                                <option value="LOW">Low</option>
-                                <option value="MEDIUM">Medium</option>
-                                <option value="HIGH">High</option>
-                                <option value="EMERGENCY">Emergency</option>
+                            <select
+                                className="rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 p-3"
+                                aria-label="Filter by priority"
+                                value={filters.priority}
+                                onChange={(e) => setFilters((prev) => ({ ...prev, priority: e.target.value }))}
+                            >
+                                {PRIORITY_OPTIONS.map((option) => (
+                                    <option key={option.label} value={option.value}>{option.label}</option>
+                                ))}
                             </select>
-                            <select className="rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 p-3" value={filters.technicianId} onChange={(e) => setFilters((prev) => ({ ...prev, technicianId: e.target.value }))}>
+                            <select
+                                className="rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 p-3"
+                                aria-label="Filter by technician"
+                                value={filters.technicianId}
+                                onChange={(e) => setFilters((prev) => ({ ...prev, technicianId: e.target.value }))}
+                            >
                                 <option value="">All technicians</option>
                                 {techs.map((tech) => (
                                     <option key={tech.id} value={tech.id}>{tech.fullName}</option>
                                 ))}
                             </select>
                         </div>
-                    </MaintenanceSectionCard>
 
-                    <MaintenanceSectionCard eyebrow="Queue" title="Maintenance requests" description="Assign technicians directly from the request list.">
                         {loadError ? <p className="mb-4 text-sm font-medium text-red-600">{loadError}</p> : null}
                         {actionError ? <p className="mb-4 text-sm font-medium text-red-600">{actionError}</p> : null}
                         <div className="overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-700">
@@ -228,7 +310,7 @@ export default function AdminMaintenanceDashboard() {
                                 <tbody className="bg-white dark:bg-slate-900">
                                     {loading ? (
                                         <tr><td className="p-6 text-center text-slate-500 dark:text-slate-400" colSpan={5}>Loading queue...</td></tr>
-                                    ) : queue.map((item) => (
+                                    ) : filteredQueue.map((item) => (
                                         <tr key={item.id} className="border-t border-slate-200 dark:border-slate-700">
                                             <td className="p-3 font-medium text-slate-900 dark:text-white">{item.title}</td>
                                             <td className="p-3">
@@ -237,6 +319,7 @@ export default function AdminMaintenanceDashboard() {
                                                     <div className="flex gap-2">
                                                         <select
                                                             className="rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-1 text-xs"
+                                                            aria-label={`Priority for ${item.title}`}
                                                             value={priorityDrafts[item.id] || item.priority}
                                                             onChange={(e) => setPriorityDrafts((prev) => ({ ...prev, [item.id]: e.target.value }))}
                                                         >
@@ -245,7 +328,12 @@ export default function AdminMaintenanceDashboard() {
                                                             <option value="HIGH">High</option>
                                                             <option value="EMERGENCY">Emergency</option>
                                                         </select>
-                                                        <button type="button" className="rounded-xl border border-slate-300 dark:border-slate-600 px-2 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200" onClick={() => savePriority(item.id)}>
+                                                        <button
+                                                            type="button"
+                                                            aria-label={`Save priority for ${item.title}`}
+                                                            className="rounded-xl border border-slate-300 dark:border-slate-600 px-2 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200"
+                                                            onClick={() => savePriority(item.id)}
+                                                        >
                                                             Save
                                                         </button>
                                                     </div>
@@ -253,20 +341,40 @@ export default function AdminMaintenanceDashboard() {
                                             </td>
                                             <td className="p-3"><MaintenanceBadge value={item.status} /></td>
                                             <td className="p-3">
-                                                <select
-                                                    className="rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 p-2"
-                                                    value={selectedTechByRequest[item.id] || item.assignedTechnicianId || ""}
-                                                    onChange={(e) => setSelectedTechByRequest((prev) => ({ ...prev, [item.id]: e.target.value }))}
-                                                >
-                                                    <option value="">Select technician</option>
-                                                    {techs.map((tech) => (
-                                                        <option key={tech.id} value={tech.id}>{tech.fullName}</option>
-                                                    ))}
-                                                </select>
+                                                <div className="flex flex-col gap-2">
+                                                    <input
+                                                        className="rounded-xl border border-slate-300 bg-white px-2 py-1 text-xs"
+                                                        placeholder="Search technician"
+                                                        aria-label={`Search technician for ${item.title}`}
+                                                        value={technicianSearchByRequest[item.id] || ""}
+                                                        onChange={(e) => setTechnicianSearchByRequest((prev) => ({ ...prev, [item.id]: e.target.value }))}
+                                                    />
+                                                    <select
+                                                        className="rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 p-2"
+                                                        aria-label={`Technician for ${item.title}`}
+                                                        value={selectedTechByRequest[item.id] || item.assignedTechnicianId || ""}
+                                                        onChange={(e) => setSelectedTechByRequest((prev) => ({ ...prev, [item.id]: e.target.value }))}
+                                                    >
+                                                        <option value="">Select technician</option>
+                                                        {techs
+                                                            .filter((tech) => {
+                                                                const query = (technicianSearchByRequest[item.id] || "").trim().toLowerCase();
+                                                                if (!query) return true;
+                                                                return `${tech.fullName} ${tech.email || ""}`.toLowerCase().includes(query);
+                                                            })
+                                                            .map((tech) => (
+                                                                <option key={tech.id} value={tech.id}>{tech.fullName}</option>
+                                                            ))}
+                                                    </select>
+                                                </div>
                                             </td>
                                             <td className="p-3">
                                                 <div className="flex flex-col gap-2">
-                                                    <button className="rounded-xl bg-primary px-3 py-2 font-semibold text-white" onClick={() => assign(item.id)}>
+                                                    <button
+                                                        className="rounded-xl bg-primary px-3 py-2 font-semibold text-white"
+                                                        aria-label={`Assign technician for ${item.title}`}
+                                                        onClick={() => assign(item.id)}
+                                                    >
                                                         Assign
                                                     </button>
                                                     {item.status === "RESOLVED" ? (
@@ -278,7 +386,11 @@ export default function AdminMaintenanceDashboard() {
                                                                 value={closeNotes[item.id] || ""}
                                                                 onChange={(e) => setCloseNotes((prev) => ({ ...prev, [item.id]: e.target.value }))}
                                                             />
-                                                            <button className="rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700" onClick={() => closeRequest(item.id)}>
+                                                            <button
+                                                                className="rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700"
+                                                                aria-label={`Close ${item.title}`}
+                                                                onClick={() => closeRequest(item.id)}
+                                                            >
                                                                 Close
                                                             </button>
                                                         </>
@@ -287,7 +399,7 @@ export default function AdminMaintenanceDashboard() {
                                             </td>
                                         </tr>
                                     ))}
-                                    {!loading && queue.length === 0 ? <tr><td className="p-6 text-center text-slate-500 dark:text-slate-400" colSpan={5}>{loadError ? "Unable to load queue." : "No requests in queue."}</td></tr> : null}
+                                    {!loading && filteredQueue.length === 0 ? <tr><td className="p-6 text-center text-slate-500 dark:text-slate-400" colSpan={5}>{loadError ? "Unable to load queue." : normalizedSearch ? "No matching requests." : "No requests in queue."}</td></tr> : null}
                                 </tbody>
                             </table>
                         </div>
@@ -295,17 +407,14 @@ export default function AdminMaintenanceDashboard() {
 
                     <MaintenanceSectionCard eyebrow="Technicians" title="Available technicians" description="Current staff available for assignment.">
                         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                            {techs.map((tech) => {
-                                const assignedCount = queue.filter((item) => item.assignedTechnicianId === tech.id).length;
-                                return (
-                                    <div key={tech.id} className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-5">
-                                        <p className="text-sm font-bold text-slate-900 dark:text-white">{tech.fullName}</p>
-                                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{tech.email}</p>
-                                        <p className="mt-4 text-xs font-bold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Assigned requests</p>
-                                        <p className="mt-1 text-2xl font-black text-slate-900 dark:text-white">{assignedCount}</p>
-                                    </div>
-                                );
-                            })}
+                            {techs.map((tech) => (
+                                <div key={tech.id} className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-5">
+                                    <p className="text-sm font-bold text-slate-900 dark:text-white">{tech.fullName}</p>
+                                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{tech.email}</p>
+                                    <p className="mt-4 text-xs font-bold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Assigned requests</p>
+                                    <p className="mt-1 text-2xl font-black text-slate-900 dark:text-white">{technicianAssignments.get(tech.id) || 0}</p>
+                                </div>
+                            ))}
                         </div>
                     </MaintenanceSectionCard>
                 </div>

@@ -5,6 +5,13 @@ import ThemeToggle from "./ThemeToggle";
 
 export default function Navbar({ showSearch = false, searchQuery = "", onSearchChange = () => { } }) {
     const { user, logout } = useAuth();
+    const maintenancePath = user?.role === "OWNER"
+        ? "/owner/maintenance"
+        : user?.role === "TENANT"
+            ? "/tenant/maintenance/dashboard"
+            : user?.role === "ADMIN"
+                ? "/admin/maintenance"
+                : "/maintenance";
 
     return (
         <header className="relative flex items-center justify-between border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-6 py-3 shrink-0 z-20">
@@ -47,6 +54,9 @@ export default function Navbar({ showSearch = false, searchQuery = "", onSearchC
                 </Link>
                 <Link to="/favorites" className="text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">
                     Favorites
+                </Link>
+                <Link to={maintenancePath} className="text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">
+                    Maintenance
                 </Link>
             </nav>
 
