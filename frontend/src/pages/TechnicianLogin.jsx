@@ -14,6 +14,12 @@ export default function TechnicianLogin() {
     const [loading, setLoading] = useState(false);
     const [apiError, setApiError] = useState("");
 
+    const normalizeRole = (roleValue) =>
+        String(roleValue || "")
+            .trim()
+            .toUpperCase()
+            .replace(/^ROLE_/, "");
+
     useEffect(() => {
         if (user?.role === "TECHNICIAN") {
             navigate("/technician/dashboard", { replace: true });
@@ -57,13 +63,20 @@ export default function TechnicianLogin() {
                 password: formData.password,
             });
 
-            const userData = res.data?.data;
-            if (userData?.role !== "TECHNICIAN") {
+            const userData = res.data?.data ?? res.data;
+            const normalizedRole = normalizeRole(userData?.role);
+
+            if (!userData || !userData.token) {
+                setApiError("Login response was incomplete. Please try again.");
+                return;
+            }
+
+            if (normalizedRole !== "TECHNICIAN") {
                 setApiError("This portal is for technicians only.");
                 return;
             }
 
-            login(userData);
+            login({ ...userData, role: normalizedRole });
             navigate("/technician/dashboard", { replace: true });
         } catch (err) {
             const msg = err.response?.data?.message || "Something went wrong. Please try again.";
