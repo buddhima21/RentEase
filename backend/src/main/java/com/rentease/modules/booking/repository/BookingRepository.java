@@ -32,5 +32,11 @@ public interface BookingRepository extends MongoRepository<Booking, String> {
 
     /** Used by scheduler to find allocated bookings whose rental period has ended. */
     List<Booking> findByStatusAndEndDateBefore(BookingStatus status, LocalDate endDate);
+
+    List<Booking> findByStatusOrderByCreatedAtDesc(BookingStatus status);
+
+    List<Booking> findAllByOrderByCreatedAtDesc();
+
+    List<Booking> findByStatusInOrderByCreatedAtDesc(List<BookingStatus> statuses);
 }
 
