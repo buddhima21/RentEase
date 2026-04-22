@@ -206,6 +206,15 @@ export const hardDeleteBooking = (bookingId) => API.delete(`/api/v1/bookings/${b
 export const getPropertyAvailableSlots = (propertyId) =>
     API.get(`/api/v1/bookings/property/${propertyId}/available-slots`);
 
+/** Admin gets bookings with optional status filtering */
+export const getAllBookingsForAdmin = (statuses = []) => {
+    const params = new URLSearchParams();
+    if (statuses && statuses.length > 0) {
+        statuses.forEach(s => params.append("status", s));
+    }
+    return API.get("/api/v1/bookings/admin/all", { params });
+};
+
 // ── Reviews ───────────────────────────────────────────
 /**
  * Fetch approved reviews for a specific property.

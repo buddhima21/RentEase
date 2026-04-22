@@ -208,6 +208,21 @@ public class BookingService {
                 .stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
+    public List<BookingResponse> getCompletedBookings() {
+        return bookingRepository.findByStatusOrderByCreatedAtDesc(BookingStatus.COMPLETED)
+                .stream().map(this::mapToResponse).collect(Collectors.toList());
+    }
+
+    public List<BookingResponse> getAdminBookings(List<BookingStatus> statuses) {
+        List<Booking> bookings;
+        if (statuses == null || statuses.isEmpty()) {
+            bookings = bookingRepository.findAllByOrderByCreatedAtDesc();
+        } else {
+            bookings = bookingRepository.findByStatusInOrderByCreatedAtDesc(statuses);
+        }
+        return bookings.stream().map(this::mapToResponse).collect(Collectors.toList());
+    }
+
     public int getAvailableSlots(String propertyId) {
         Property property = propertyRepository.findById(propertyId)
                 .orElseThrow(() -> new ResourceNotFoundException("Property", "id", propertyId));

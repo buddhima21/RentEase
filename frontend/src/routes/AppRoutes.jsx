@@ -13,6 +13,7 @@ import Favorites from "../pages/Favorites";
 import PropertyDetails from "../pages/PropertyDetails";
 import AdminDashboard from "../pages/AdminDashboard";
 import AdminLogin from "../pages/AdminLogin";
+import AdminBookings from "../pages/AdminBookings";
 import OwnerAnalytics from "../pages/OwnerAnalytics";
 import TenantDashboard from "../pages/TenantDashboard";
 import OwnerBookings from "../pages/OwnerBookings";
@@ -111,6 +112,7 @@ export default function AppRoutes() {
             <Route element={<ProtectedAdminRoute />}>
                 <Route path="/admin/dashboard" element={<AdminDashboard />} />
                 <Route path="/admin/listings" element={<ListingModeration />} />
+                <Route path="/admin/bookings" element={<AdminBookings />} />
                 <Route path="/admin/maintenance" element={<AdminMaintenanceDashboard />} />
                 <Route path="/admin/maintenance/calendar" element={<MaintenanceCalendar />} />
             </Route>
