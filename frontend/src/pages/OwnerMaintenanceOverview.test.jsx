@@ -1,5 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { MemoryRouter } from "react-router-dom";
 import OwnerMaintenanceOverview from "./OwnerMaintenanceOverview";
 
 const mockGetOwnerMaintenance = vi.fn();
@@ -11,6 +12,26 @@ vi.mock("../context/AuthContext", () => ({
 vi.mock("../services/api", () => ({
   getOwnerMaintenance: (...args) => mockGetOwnerMaintenance(...args),
 }));
+
+vi.mock("../components/owner/dashboard/Sidebar", () => ({
+  default: () => <div>Owner Sidebar</div>,
+}));
+
+vi.mock("../components/owner/dashboard/OwnerNotificationsBell", () => ({
+  default: () => <div>Owner Notifications</div>,
+}));
+
+vi.mock("../components/UserDropdown", () => ({
+  default: () => <div>User Dropdown</div>,
+}));
+
+function renderWithRouter() {
+  return render(
+    <MemoryRouter>
+      <OwnerMaintenanceOverview />
+    </MemoryRouter>
+  );
+}
 
 describe("OwnerMaintenanceOverview", () => {
   beforeEach(() => {
@@ -26,7 +47,7 @@ describe("OwnerMaintenanceOverview", () => {
       },
     });
 
-    render(<OwnerMaintenanceOverview />);
+    renderWithRouter();
 
     await waitFor(() => {
       expect(screen.getByText("Pipe leak")).toBeInTheDocument();
@@ -39,7 +60,7 @@ describe("OwnerMaintenanceOverview", () => {
   it("renders empty state when no requests", async () => {
     mockGetOwnerMaintenance.mockResolvedValueOnce({ data: { data: [] } });
 
-    render(<OwnerMaintenanceOverview />);
+    renderWithRouter();
 
     await waitFor(() => {
       expect(screen.getByText("No requests found.")).toBeInTheDocument();
@@ -49,7 +70,7 @@ describe("OwnerMaintenanceOverview", () => {
   it("renders empty state when API fails", async () => {
     mockGetOwnerMaintenance.mockRejectedValueOnce(new Error("network"));
 
-    render(<OwnerMaintenanceOverview />);
+    renderWithRouter();
 
     await waitFor(() => {
       expect(screen.getByText("No requests found.")).toBeInTheDocument();

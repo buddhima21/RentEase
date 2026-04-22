@@ -4,6 +4,8 @@ import MaintenanceBadge from "../components/maintenance/MaintenanceBadge";
 import MaintenanceSectionCard from "../components/maintenance/MaintenanceSectionCard";
 import { MAINTENANCE_TIMELINE, formatMaintenanceDate } from "../constants/maintenance";
 import { getMaintenanceById } from "../services/api";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 export default function MaintenanceTracking() {
     const { requestId } = useParams();
@@ -19,8 +21,9 @@ export default function MaintenanceTracking() {
     const completedIndex = Math.max(MAINTENANCE_TIMELINE.findIndex((stage) => stage.key === request?.status), 0);
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 p-6 md:p-10">
-            <div className="mx-auto max-w-5xl space-y-6">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 flex flex-col">
+            <Navbar />
+            <div className="flex-1 w-full mx-auto max-w-5xl p-6 md:p-10 space-y-6">
                 <MaintenanceSectionCard
                     eyebrow="Maintenance Tracking"
                     title="Track your request as it moves through maintenance"
@@ -105,6 +108,7 @@ export default function MaintenanceTracking() {
                     )}
                 </MaintenanceSectionCard>
             </div>
+            <Footer />
         </div>
     );
 }
