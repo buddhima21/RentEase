@@ -11,6 +11,8 @@ import {
     resumeMaintenance,
 } from "../services/api";
 import { MAX_MAINTENANCE_IMAGES } from "../constants/maintenance";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 const CHECKLIST_ITEMS = [
     "Inspect issue",
@@ -155,12 +157,21 @@ export default function TechnicianJobDetails() {
     };
 
     if (!job) {
-        return <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 p-8 text-slate-600 dark:text-slate-300">{error || "Unable to load job."}</div>;
+        return (
+            <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 flex flex-col">
+                <Navbar />
+                <div className="flex-1 flex items-center justify-center p-8 text-slate-600 dark:text-slate-300">
+                    {error || "Unable to load job."}
+                </div>
+                <Footer />
+            </div>
+        );
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 p-6 md:p-10">
-            <div className="mx-auto max-w-5xl space-y-6">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 flex flex-col">
+            <Navbar />
+            <div className="flex-1 w-full mx-auto max-w-5xl p-6 md:p-10 space-y-6">
                 <MaintenanceSectionCard
                     eyebrow="Technician Job"
                     title={job.title}
@@ -256,6 +267,7 @@ export default function TechnicianJobDetails() {
                     </div>
                 </MaintenanceSectionCard>
             </div>
+            <Footer />
         </div>
     );
 }

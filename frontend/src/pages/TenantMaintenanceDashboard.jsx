@@ -7,6 +7,8 @@ import MaintenanceQueueTable from "../components/maintenance/MaintenanceQueueTab
 import MaintenanceSectionCard from "../components/maintenance/MaintenanceSectionCard";
 import MaintenanceStatCard from "../components/maintenance/MaintenanceStatCard";
 import { formatMaintenanceDate } from "../constants/maintenance";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 export default function TenantMaintenanceDashboard() {
     const { user } = useAuth();
@@ -20,8 +22,9 @@ export default function TenantMaintenanceDashboard() {
     }, [user?.id]);
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 p-6 md:p-10">
-            <div className="mx-auto max-w-7xl space-y-6">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 flex flex-col">
+            <Navbar />
+            <div className="flex-1 w-full mx-auto max-w-7xl p-6 md:p-10 space-y-6">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div>
                         <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">Tenant Maintenance Dashboard</h1>
@@ -92,6 +95,7 @@ export default function TenantMaintenanceDashboard() {
                     />
                 </MaintenanceSectionCard>
             </div>
+            <Footer />
         </div>
     );
 }
