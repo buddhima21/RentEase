@@ -63,6 +63,7 @@ export default function RentPayment({ bill, onComplete }) {
 
   const [showAddCard, setShowAddCard] = useState(false);
   const [newCard, setNewCard] = useState({ name: "", card: "", expiry: "", cvv: "" });
+  const [cardErrors, setCardErrors] = useState({});
   const [form, setForm] = useState({ name: "", email: "", bankAccount: "" });
   
   useEffect(() => {
@@ -82,12 +83,39 @@ export default function RentPayment({ bill, onComplete }) {
     if (name === "expiry") value = value.replace(/\D/g, "").replace(/^(\d{2})(\d)/, "$1/$2").slice(0, 5);
     if (name === "cvv") value = value.replace(/\D/g, "").slice(0, 3);
     setNewCard(f => ({ ...f, [name]: value }));
+    setCardErrors(prev => ({ ...prev, [name]: "" }));
   };
 
-  const newCardValid = newCard.name && newCard.card.length === 19 && newCard.expiry.length === 5 && newCard.cvv.length === 3;
+  const validateCardForm = () => {
+      const errors = {};
+      if (!newCard.name.trim()) errors.name = "Card holder name is required.";
+      const rawDigits = newCard.card.replace(/\s/g, "");
+      if (!rawDigits) errors.card = "Card number is required.";
+      else if (rawDigits.length !== 16) errors.card = "Card number must be exactly 16 digits.";
+      
+      if (!newCard.expiry) {
+          errors.expiry = "Expiry date is required.";
+      } else if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(newCard.expiry)) {
+          errors.expiry = "Enter a valid expiry date (MM/YY).";
+      } else {
+          const [mm, yy] = newCard.expiry.split("/").map(Number);
+          const now = new Date();
+          const expYear = 2000 + yy;
+          const expMonth = mm;
+          if (expYear < now.getFullYear() || (expYear === now.getFullYear() && expMonth < now.getMonth() + 1)) {
+              errors.expiry = "This card has expired.";
+          }
+      }
+      
+      if (!newCard.cvv) errors.cvv = "CVV is required.";
+      else if (!/^\d{3}$/.test(newCard.cvv)) errors.cvv = "CVV must be exactly 3 digits.";
+      
+      setCardErrors(errors);
+      return Object.keys(errors).length === 0;
+  };
 
   const addCard = async () => {
-    if (!newCardValid || !user?.id) return;
+    if (!validateCardForm() || !user?.id) return;
     setLoading(true);
     try {
         const payload = {
@@ -226,13 +254,25 @@ export default function RentPayment({ bill, onComplete }) {
                     </button>
                   </div>
                   <div className="space-y-8">
-                    <input className="w-full bg-white dark:bg-slate-900 border-4 border-slate-100 dark:border-slate-700/50 rounded-2xl px-8 py-6 text-2xl font-medium focus:border-primary outline-none shadow-sm" name="name" placeholder="Name on card" value={newCard.name} onChange={handleNewCard} />
-                    <input className="w-full bg-white dark:bg-slate-900 border-4 border-slate-100 dark:border-slate-700/50 rounded-2xl px-8 py-6 text-2xl font-medium focus:border-primary outline-none shadow-sm" name="card" placeholder="Card Number" value={newCard.card} onChange={handleNewCard} maxLength="19" />
-                    <div className="grid grid-cols-2 gap-8">
-                      <input className="bg-white dark:bg-slate-900 border-4 border-slate-100 dark:border-slate-700/50 rounded-2xl px-8 py-6 text-2xl font-medium focus:border-primary outline-none shadow-sm" name="expiry" placeholder="MM/YY" value={newCard.expiry} onChange={handleNewCard} maxLength="5" />
-                      <input className="bg-white dark:bg-slate-900 border-4 border-slate-100 dark:border-slate-700/50 rounded-2xl px-8 py-6 text-2xl font-medium focus:border-primary outline-none shadow-sm" name="cvv" placeholder="CVV" value={newCard.cvv} onChange={handleNewCard} maxLength="3" type="password" />
+                    <div>
+                      <input className={`w-full bg-white dark:bg-slate-900 border-4 ${cardErrors.name ? "border-red-400 focus:border-red-400" : "border-slate-100 dark:border-slate-700/50 focus:border-primary"} rounded-2xl px-8 py-6 text-2xl font-medium outline-none shadow-sm`} name="name" placeholder="Name on card" value={newCard.name} onChange={handleNewCard} />
+                      {cardErrors.name && <p className="text-red-500 text-sm mt-2 ml-2 font-bold">{cardErrors.name}</p>}
                     </div>
-                    <button className="w-full bg-primary text-white py-8 rounded-2xl font-black text-2xl shadow-xl shadow-primary/20 transition-all active:scale-95 disabled:opacity-50" onClick={addCard} disabled={!newCardValid}>
+                    <div>
+                      <input className={`w-full bg-white dark:bg-slate-900 border-4 ${cardErrors.card ? "border-red-400 focus:border-red-400" : "border-slate-100 dark:border-slate-700/50 focus:border-primary"} rounded-2xl px-8 py-6 text-2xl font-medium outline-none shadow-sm`} name="card" placeholder="Card Number" value={newCard.card} onChange={handleNewCard} maxLength="19" />
+                      {cardErrors.card && <p className="text-red-500 text-sm mt-2 ml-2 font-bold">{cardErrors.card}</p>}
+                    </div>
+                    <div className="grid grid-cols-2 gap-8">
+                      <div>
+                        <input className={`w-full bg-white dark:bg-slate-900 border-4 ${cardErrors.expiry ? "border-red-400 focus:border-red-400" : "border-slate-100 dark:border-slate-700/50 focus:border-primary"} rounded-2xl px-8 py-6 text-2xl font-medium outline-none shadow-sm`} name="expiry" placeholder="MM/YY" value={newCard.expiry} onChange={handleNewCard} maxLength="5" />
+                        {cardErrors.expiry && <p className="text-red-500 text-sm mt-2 ml-2 font-bold">{cardErrors.expiry}</p>}
+                      </div>
+                      <div>
+                        <input className={`w-full bg-white dark:bg-slate-900 border-4 ${cardErrors.cvv ? "border-red-400 focus:border-red-400" : "border-slate-100 dark:border-slate-700/50 focus:border-primary"} rounded-2xl px-8 py-6 text-2xl font-medium outline-none shadow-sm`} name="cvv" placeholder="CVV" value={newCard.cvv} onChange={handleNewCard} maxLength="3" type="password" />
+                        {cardErrors.cvv && <p className="text-red-500 text-sm mt-2 ml-2 font-bold">{cardErrors.cvv}</p>}
+                      </div>
+                    </div>
+                    <button className="w-full bg-primary text-white py-8 rounded-2xl font-black text-2xl shadow-xl shadow-primary/20 transition-all active:scale-95 disabled:opacity-50" onClick={addCard}>
                       Save & Confirm Card
                     </button>
                   </div>
