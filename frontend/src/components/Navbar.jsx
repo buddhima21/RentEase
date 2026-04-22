@@ -11,7 +11,9 @@ export default function Navbar({ showSearch = false, searchQuery = "", onSearchC
             ? "/tenant/maintenance/dashboard"
             : user?.role === "ADMIN"
                 ? "/admin/maintenance"
-                : "/maintenance";
+                : user?.role === "TECHNICIAN"
+                    ? "/technician/dashboard"
+                    : "/maintenance";
 
     return (
         <header className="relative flex items-center justify-between border-b border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-6 py-3 shrink-0 z-20">
@@ -49,14 +51,18 @@ export default function Navbar({ showSearch = false, searchQuery = "", onSearchC
                 <Link to="/" className="text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">
                     Home
                 </Link>
-                <Link to="/listings" className="text-sm font-semibold text-primary">
-                    Listings
-                </Link>
-                <Link to="/favorites" className="text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">
-                    Favorites
-                </Link>
+                {user?.role !== "TECHNICIAN" && (
+                    <>
+                        <Link to="/listings" className="text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">
+                            Listings
+                        </Link>
+                        <Link to="/favorites" className="text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">
+                            Favorites
+                        </Link>
+                    </>
+                )}
                 <Link to={maintenancePath} className="text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-primary transition-colors">
-                    Maintenance
+                    {user?.role === "TECHNICIAN" ? "Job Queue" : "Maintenance"}
                 </Link>
             </nav>
 
