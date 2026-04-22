@@ -44,6 +44,7 @@ import MaintenanceTracking from "../pages/MaintenanceTracking";
 import MaintenanceHistory from "../pages/MaintenanceHistory";
 import AdminMaintenanceDashboard from "../pages/AdminMaintenanceDashboard";
 import MaintenanceCalendar from "../pages/MaintenanceCalendar";
+import AdminTechnicians from "../pages/AdminTechnicians";
 import TechnicianDashboard from "../pages/TechnicianDashboard";
 import TechnicianJobDetails from "../pages/TechnicianJobDetails";
 import TechnicianLogin from "../pages/TechnicianLogin";
@@ -116,6 +117,7 @@ export default function AppRoutes() {
                 <Route path="/admin/bookings" element={<AdminBookings />} />
                 <Route path="/admin/maintenance" element={<AdminMaintenanceDashboard />} />
                 <Route path="/admin/maintenance/calendar" element={<MaintenanceCalendar />} />
+                <Route path="/admin/technicians" element={<AdminTechnicians />} />
             </Route>
         </Routes>
     );

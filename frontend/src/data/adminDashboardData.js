@@ -20,6 +20,7 @@ export const adminSidebarLinks = [
   { label: "Reviews", icon: "reviews", path: "/admin/reviews", badge: 5 },
   { label: "Bookings", icon: "calendar_month", path: "/admin/bookings" },
   { label: "Maintenance", icon: "construction", path: "/admin/maintenance" },
+  { label: "Technicians", icon: "engineering", path: "/admin/technicians" },
   { label: "Reports", icon: "assessment", path: "/admin/reports" },
   { label: "Settings", icon: "settings", path: "/admin/settings" },
 ];
