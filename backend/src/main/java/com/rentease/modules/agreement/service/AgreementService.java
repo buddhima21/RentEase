@@ -32,7 +32,15 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * Rental agreement lifecycle: creation (only after owner-approved booking), PDF/email, expiry, reminders, early termination.
+ * Rental agreement lifecycle service.
+ *
+ * <p>Key workflow:
+ * <ol>
+ *   <li>Owner approves a booking → {@link #createAgreementFromBooking} is called automatically</li>
+ *   <li>Agreement created with status {@code PENDING} and {@code ownerApproved=true}</li>
+ *   <li>Tenant accepts → {@link #tenantAcceptAgreement} → status becomes {@code ACTIVE}</li>
+ *   <li>Tenant rejects → {@link #tenantRejectAgreement} → status becomes {@code CANCELLED}</li>
+ * </ol>
  */
 @Service
 @RequiredArgsConstructor
@@ -50,6 +58,159 @@ public class AgreementService {
     private final AgreementPdfService agreementPdfService;
     private final AgreementEmailService agreementEmailService;
 
+    // ── Auto-creation (called by BookingService on owner approval) ──────────
+
+    /**
+     * Automatically creates a PENDING agreement when an owner approves a booking.
+     * Called internally from BookingService — no authentication check needed here
+     * because the booking approval endpoint already validates owner identity.
+     *
+     * @param booking the just-approved booking (status already set to ALLOCATED)
+     */
+    @Transactional
+    public void createAgreementFromBooking(Booking booking) {
+        // Guard: skip if an agreement already exists for this booking
+        if (agreementRepository.existsByBookingId(booking.getId())) {
+            log.info("Agreement already exists for booking {} — skipping auto-creation", booking.getId());
+            return;
+        }
+
+        Property property = propertyRepository.findById(booking.getPropertyId())
+                .orElse(null);
+
+        String termsSnapshot = (property != null && property.getTermsAndConditions() != null)
+                ? property.getTermsAndConditions() : "";
+
+        LocalDate start = booking.getStartDate() != null ? booking.getStartDate() : LocalDate.now();
+        LocalDate end = booking.getEndDate() != null ? booking.getEndDate() : start.plusMonths(12);
+        int durationMonths = computeDurationMonths(start, end);
+
+        Agreement agreement = Agreement.builder()
+                .agreementNumber(nextAgreementNumber())
+                .bookingId(booking.getId())
+                .tenantId(booking.getTenantId())
+                .ownerId(booking.getOwnerId())
+                .propertyId(booking.getPropertyId())
+                .startDate(start)
+                .endDate(end)
+                .durationMonths(durationMonths)
+                .rentAmount(booking.getMonthlyRent())
+                .deposit(0)                           // default deposit — tenant/owner can negotiate
+                .paymentDueDate(1)                    // default: 1st of each month
+                .propertyTermsSnapshot(termsSnapshot)
+                .status(AgreementStatus.PENDING)      // awaiting tenant decision
+                .ownerApproved(true)                  // owner approved by definition
+                .tenantApproved(false)
+                .build();
+
+        Agreement saved = agreementRepository.save(agreement);
+        log.info("Auto-created agreement {} (PENDING) for booking {}", saved.getAgreementNumber(), booking.getId());
+
+        // Send the generated agreement PDF to the tenant with the owner as the sender
+        try {
+            User tenant = userRepository.findById(saved.getTenantId()).orElse(null);
+            User owner = userRepository.findById(saved.getOwnerId()).orElse(null);
+            
+            if (tenant != null && owner != null && property != null) {
+                byte[] pdfBytes = agreementPdfService.buildPdf(saved, property, tenant, owner);
+                agreementEmailService.sendAgreementCreatedEmail(owner, tenant, saved, pdfBytes);
+            } else {
+                log.warn("Missing user/property details; skipping agreement email for {}", saved.getAgreementNumber());
+            }
+        } catch (Exception e) {
+            log.warn("Could not send agreement notification email for {}: {}", saved.getAgreementNumber(), e.getMessage());
+        }
+    }
+
+    // ── Tenant Accept / Reject ───────────────────────────────────────────────
+
+    /**
+     * Tenant accepts the PENDING agreement.
+     * Sets {@code tenantApproved=true}; if {@code ownerApproved} is already true, status → ACTIVE.
+     *
+     * @param agreementId      the agreement to accept
+     * @param authenticatedId  the authenticated user's ID (must be the tenant)
+     * @return updated AgreementResponse
+     */
+    @Transactional
+    public AgreementResponse tenantAcceptAgreement(String agreementId, String authenticatedId) {
+        Agreement agreement = agreementRepository.findById(agreementId)
+                .orElseThrow(() -> new ResourceNotFoundException("Agreement", "id", agreementId));
+
+        // Only the tenant of this agreement can accept it
+        if (!agreement.getTenantId().equals(authenticatedId)) {
+            throw new ForbiddenException("Only the tenant of this agreement can accept it");
+        }
+        if (agreement.getStatus() != AgreementStatus.PENDING) {
+            throw new BadRequestException("Only PENDING agreements can be accepted (current status: "
+                    + agreement.getStatus() + ")");
+        }
+
+        agreement.setTenantApproved(true);
+
+        // If owner has also approved → activate the agreement
+        if (agreement.isOwnerApproved()) {
+            agreement.setStatus(AgreementStatus.ACTIVE);
+            log.info("Agreement {} is now ACTIVE (both parties accepted)", agreement.getAgreementNumber());
+        }
+
+        Agreement saved = agreementRepository.save(agreement);
+        return mapToResponse(saved);
+    }
+
+    /**
+     * Tenant rejects the PENDING agreement → status becomes CANCELLED.
+     *
+     * @param agreementId     the agreement to reject
+     * @param authenticatedId the authenticated user's ID (must be the tenant)
+     * @return updated AgreementResponse
+     */
+    @Transactional
+    public AgreementResponse tenantRejectAgreement(String agreementId, String authenticatedId) {
+        Agreement agreement = agreementRepository.findById(agreementId)
+                .orElseThrow(() -> new ResourceNotFoundException("Agreement", "id", agreementId));
+
+        if (!agreement.getTenantId().equals(authenticatedId)) {
+            throw new ForbiddenException("Only the tenant of this agreement can reject it");
+        }
+        if (agreement.getStatus() != AgreementStatus.PENDING) {
+            throw new BadRequestException("Only PENDING agreements can be rejected (current status: "
+                    + agreement.getStatus() + ")");
+        }
+
+        agreement.setTenantApproved(false);
+        agreement.setStatus(AgreementStatus.CANCELLED);
+        log.info("Agreement {} CANCELLED by tenant", agreement.getAgreementNumber());
+
+        Agreement saved = agreementRepository.save(agreement);
+        return mapToResponse(saved);
+    }
+
+    // ── Fetch by booking ID (for owner "View Agreement" link) ────────────────
+
+    /**
+     * Returns the first agreement linked to a booking, visible to either party.
+     *
+     * @param bookingId       the booking whose agreement to retrieve
+     * @param authenticatedId must be tenant or owner of that booking
+     * @return AgreementResponse or throws if not found / not authorised
+     */
+    public AgreementResponse getByBookingId(String bookingId, String authenticatedId) {
+        List<Agreement> agreements = agreementRepository.findByBookingId(bookingId);
+        if (agreements.isEmpty()) {
+            throw new ResourceNotFoundException("Agreement", "bookingId", bookingId);
+        }
+        Agreement agreement = agreements.get(0);
+        assertParticipant(agreement, authenticatedId);
+        return refreshAndMap(agreement);
+    }
+
+    // ── Existing methods (unchanged) ────────────────────────────────────────
+
+    /**
+     * Manual creation by tenant (kept for backward compatibility).
+     * Only allowed after owner has approved the booking.
+     */
     @Transactional
     public AgreementResponse createAgreement(CreateAgreementRequest request, String authenticatedTenantId) {
         Booking booking = bookingRepository.findById(request.getBookingId())
@@ -113,7 +274,9 @@ public class AgreementService {
                 .rentAmount(rent)
                 .rulesNotes(request.getRulesNotes())
                 .propertyTermsSnapshot(termsSnapshot)
-                .status(AgreementStatus.ACTIVE)
+                .status(AgreementStatus.ACTIVE)       // manual creation → directly ACTIVE (legacy)
+                .ownerApproved(true)
+                .tenantApproved(true)
                 .build();
 
         Agreement saved = agreementRepository.save(agreement);
@@ -182,17 +345,82 @@ public class AgreementService {
             throw new BadRequestException("Agreement has already reached its end date");
         }
 
-        long remainingMonths = ChronoUnit.MONTHS.between(today, agreement.getEndDate());
-        if (remainingMonths < 0) {
-            remainingMonths = 0;
+        String reason = body != null ? body.getReason() : null;
+
+        // If the tenant is requesting, it must go to the owner for approval
+        if (authenticatedUserId.equals(agreement.getTenantId())) {
+            agreement.setStatus(AgreementStatus.TERMINATION_REQUESTED);
+            agreement.setTerminationReason(reason);
+            // DO NOT calculate penalty yet; wait for owner approval
+            log.info("Tenant requested early termination for agreement {}", agreement.getAgreementNumber());
+        } else {
+            // Owner is terminating directly
+            if (reason == null || reason.trim().isEmpty()) {
+                throw new BadRequestException("Owners must provide a reason to terminate an agreement early.");
+            }
+            long remainingMonths = ChronoUnit.MONTHS.between(today, agreement.getEndDate());
+            if (remainingMonths < 0) remainingMonths = 0;
+            double penalty = remainingMonths * agreement.getRentAmount() * 0.5;
+
+            agreement.setStatus(AgreementStatus.TERMINATED);
+            agreement.setEarlyTerminationPenalty(penalty);
+            agreement.setTerminatedAt(LocalDateTime.now());
+            agreement.setTerminationReason(reason);
+            log.info("Owner immediately terminated agreement {}", agreement.getAgreementNumber());
         }
+
+        Agreement saved = agreementRepository.save(agreement);
+        return mapToResponse(saved);
+    }
+
+    /**
+     * Owner accepts a tenant's early termination request.
+     */
+    @Transactional
+    public AgreementResponse acceptEarlyTermination(String agreementId, String authenticatedId) {
+        Agreement agreement = agreementRepository.findById(agreementId)
+                .orElseThrow(() -> new ResourceNotFoundException("Agreement", "id", agreementId));
+        
+        if (!agreement.getOwnerId().equals(authenticatedId)) {
+            throw new ForbiddenException("Only the owner can accept an early termination request");
+        }
+        if (agreement.getStatus() != AgreementStatus.TERMINATION_REQUESTED) {
+            throw new BadRequestException("Agreement does not have a pending termination request");
+        }
+
+        LocalDate today = LocalDate.now();
+        long remainingMonths = ChronoUnit.MONTHS.between(today, agreement.getEndDate());
+        if (remainingMonths < 0) remainingMonths = 0;
         double penalty = remainingMonths * agreement.getRentAmount() * 0.5;
 
         agreement.setStatus(AgreementStatus.TERMINATED);
         agreement.setEarlyTerminationPenalty(penalty);
         agreement.setTerminatedAt(LocalDateTime.now());
-        agreement.setTerminationReason(body != null ? body.getReason() : null);
 
+        log.info("Owner accepted early termination for agreement {}", agreement.getAgreementNumber());
+        Agreement saved = agreementRepository.save(agreement);
+        return mapToResponse(saved);
+    }
+
+    /**
+     * Owner rejects a tenant's early termination request.
+     */
+    @Transactional
+    public AgreementResponse rejectEarlyTermination(String agreementId, String authenticatedId) {
+        Agreement agreement = agreementRepository.findById(agreementId)
+                .orElseThrow(() -> new ResourceNotFoundException("Agreement", "id", agreementId));
+        
+        if (!agreement.getOwnerId().equals(authenticatedId)) {
+            throw new ForbiddenException("Only the owner can reject an early termination request");
+        }
+        if (agreement.getStatus() != AgreementStatus.TERMINATION_REQUESTED) {
+            throw new BadRequestException("Agreement does not have a pending termination request");
+        }
+
+        agreement.setStatus(AgreementStatus.ACTIVE);
+        agreement.setTerminationReason(null); // Clear the reason
+
+        log.info("Owner rejected early termination for agreement {}", agreement.getAgreementNumber());
         Agreement saved = agreementRepository.save(agreement);
         return mapToResponse(saved);
     }
@@ -245,7 +473,7 @@ public class AgreementService {
         return sent;
     }
 
-    // ── helpers ─────────────────────────────────────────────────────────
+    // ── helpers ─────────────────────────────────────────────────────────────
 
     private AgreementResponse refreshAndMap(Agreement agreement) {
         return mapToResponse(refreshStatusIfNeeded(agreement));
@@ -305,9 +533,13 @@ public class AgreementService {
                 .endDate(a.getEndDate())
                 .durationMonths(a.getDurationMonths())
                 .rentAmount(a.getRentAmount())
+                .deposit(a.getDeposit())
+                .paymentDueDate(a.getPaymentDueDate())
                 .rulesNotes(a.getRulesNotes())
                 .propertyTermsSnapshot(a.getPropertyTermsSnapshot())
                 .status(a.getStatus())
+                .ownerApproved(a.isOwnerApproved())
+                .tenantApproved(a.isTenantApproved())
                 .earlyTerminationPenalty(a.getEarlyTerminationPenalty())
                 .terminatedAt(a.getTerminatedAt())
                 .terminationReason(a.getTerminationReason())

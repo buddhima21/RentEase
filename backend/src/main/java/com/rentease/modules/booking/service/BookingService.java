@@ -1,8 +1,10 @@
 package com.rentease.modules.booking.service;
 
 import com.rentease.common.enums.BookingStatus;
+import com.rentease.common.enums.PropertyStatus;
 import com.rentease.exception.BadRequestException;
 import com.rentease.exception.ResourceNotFoundException;
+import com.rentease.modules.agreement.service.AgreementService;
 import com.rentease.modules.booking.dto.BookingRequest;
 import com.rentease.modules.booking.dto.BookingResponse;
 import com.rentease.modules.booking.model.Booking;
@@ -12,6 +14,9 @@ import com.rentease.modules.property.repository.PropertyRepository;
 import com.rentease.modules.user.model.User;
 import com.rentease.modules.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -22,11 +27,21 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BookingService {
 
     private final BookingRepository bookingRepository;
     private final PropertyRepository propertyRepository;
     private final UserRepository userRepository;
+
+    /**
+     * Injected lazily to break the circular dependency:
+     * BookingService → AgreementService → BookingService.
+     * Spring resolves it at runtime via a proxy.
+     */
+    @Lazy
+    @Autowired
+    private AgreementService agreementService;
 
     // Statuses that count as "occupying a bedroom"
     private static final List<BookingStatus> OCCUPYING_STATUSES =
@@ -114,7 +129,23 @@ public class BookingService {
         }
 
         booking.setStatus(BookingStatus.ALLOCATED);
-        return mapToResponse(bookingRepository.save(booking));
+        Booking saved = bookingRepository.save(booking);
+
+        // Mark the property as BOOKED — hides it from public listings immediately
+        property.setStatus(PropertyStatus.BOOKED);
+        propertyRepository.save(property);
+        log.info("Property [id={}] marked BOOKED after booking [id={}] approved",
+                property.getId(), saved.getId());
+
+        // Auto-create a PENDING rental agreement for this booking
+        try {
+            agreementService.createAgreementFromBooking(saved);
+        } catch (Exception e) {
+            // Log but do not fail the booking approval if agreement creation has an issue
+            log.warn("Could not auto-create agreement for booking {}: {}", saved.getId(), e.getMessage());
+        }
+
+        return mapToResponse(saved);
     }
 
     public BookingResponse rejectBooking(String id, String requestingOwnerId) {
@@ -144,7 +175,12 @@ public class BookingService {
             throw new BadRequestException("Only ALLOCATED bookings can have the tenant removed");
         }
         booking.setStatus(BookingStatus.CANCELLED);
-        return mapToResponse(bookingRepository.save(booking));
+        Booking cancelled = bookingRepository.save(booking);
+
+        // Restore property to APPROVED so it reappears in public listings
+        restorePropertyToApproved(booking.getPropertyId(), "allocation cancelled by owner");
+
+        return mapToResponse(cancelled);
     }
 
     public void hardDeleteBooking(String id) {
@@ -163,9 +199,17 @@ public class BookingService {
             throw new BadRequestException("Only active bookings can be cancelled");
         }
 
+        boolean wasAllocated = booking.getStatus() == BookingStatus.ALLOCATED;
         booking.setStatus(BookingStatus.CANCELLED);
         booking.setCancellationReason(reason);
-        return mapToResponse(bookingRepository.save(booking));
+        Booking cancelled = bookingRepository.save(booking);
+
+        // Only restore the property if the cancelled booking was actually occupying it
+        if (wasAllocated) {
+            restorePropertyToApproved(booking.getPropertyId(), "tenant cancelled allocation");
+        }
+
+        return mapToResponse(cancelled);
     }
 
     public BookingResponse updateBookingStatus(String id, BookingStatus status) {
@@ -184,6 +228,21 @@ public class BookingService {
                 .stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
+    public List<BookingResponse> getCompletedBookings() {
+        return bookingRepository.findByStatusOrderByCreatedAtDesc(BookingStatus.COMPLETED)
+                .stream().map(this::mapToResponse).collect(Collectors.toList());
+    }
+
+    public List<BookingResponse> getAdminBookings(List<BookingStatus> statuses) {
+        List<Booking> bookings;
+        if (statuses == null || statuses.isEmpty()) {
+            bookings = bookingRepository.findAllByOrderByCreatedAtDesc();
+        } else {
+            bookings = bookingRepository.findByStatusInOrderByCreatedAtDesc(statuses);
+        }
+        return bookings.stream().map(this::mapToResponse).collect(Collectors.toList());
+    }
+
     public int getAvailableSlots(String propertyId) {
         Property property = propertyRepository.findById(propertyId)
                 .orElseThrow(() -> new ResourceNotFoundException("Property", "id", propertyId));
@@ -195,6 +254,20 @@ public class BookingService {
     }
 
     // ── Helpers ──────────────────────────────────────────
+
+    /**
+     * Restores a property back to APPROVED status so it reappears in public listings.
+     * Called whenever an allocated booking is cancelled or completed.
+     */
+    private void restorePropertyToApproved(String propertyId, String reason) {
+        propertyRepository.findById(propertyId).ifPresent(p -> {
+            if (p.getStatus() == PropertyStatus.BOOKED || p.getStatus() == PropertyStatus.RENTED) {
+                p.setStatus(PropertyStatus.APPROVED);
+                propertyRepository.save(p);
+                log.info("Property [id={}] restored to APPROVED — reason: {}", propertyId, reason);
+            }
+        });
+    }
 
     private Booking findBookingOrThrow(String id) {
         return bookingRepository.findById(id)

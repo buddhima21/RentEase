@@ -5,6 +5,7 @@ import com.rentease.modules.booking.model.Booking;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -28,5 +29,14 @@ public interface BookingRepository extends MongoRepository<Booking, String> {
     List<Booking> findByTenantIdOrderByCreatedAtDesc(String tenantId);
 
     List<Booking> findByStatusAndCreatedAtBefore(BookingStatus status, LocalDateTime createdAt);
+
+    /** Used by scheduler to find allocated bookings whose rental period has ended. */
+    List<Booking> findByStatusAndEndDateBefore(BookingStatus status, LocalDate endDate);
+
+    List<Booking> findByStatusOrderByCreatedAtDesc(BookingStatus status);
+
+    List<Booking> findAllByOrderByCreatedAtDesc();
+
+    List<Booking> findByStatusInOrderByCreatedAtDesc(List<BookingStatus> statuses);
 }
 

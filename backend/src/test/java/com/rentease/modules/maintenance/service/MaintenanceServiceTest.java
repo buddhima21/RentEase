@@ -25,12 +25,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.StreamSupport;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -66,6 +68,9 @@ class MaintenanceServiceTest {
 
     @BeforeEach
     void setUp() {
+                ReflectionTestUtils.setField(maintenanceService, "closureGraceDays", 7L);
+                ReflectionTestUtils.setField(maintenanceService, "maxActiveJobsPerTechnician", 8L);
+
         testTenant = User.builder()
                 .id("tenant-1")
                 .fullName("John Tenant")
@@ -112,6 +117,7 @@ class MaintenanceServiceTest {
                 .status(MaintenanceStatus.REPORTED)
                 .imageUrls(Arrays.asList("img1.jpg"))
                 .preferredAt(LocalDateTime.now().plusDays(1))
+                .slaDueAt(LocalDateTime.now().plusDays(3))
                 .createdAt(LocalDateTime.now())
                 .build();
     }
@@ -143,9 +149,22 @@ class MaintenanceServiceTest {
         assertThat(response).isNotNull();
         assertThat(response.getId()).isEqualTo("req-1");
         assertThat(response.getStatus()).isEqualTo(MaintenanceStatus.REPORTED);
+                assertThat(response.getSlaDueAt()).isNotNull();
         verify(maintenanceRepository).save(any(MaintenanceRequest.class));
         verify(maintenanceNotificationService).notifyAdminsOnCreated(anyList(), any(), any(), any());
     }
+
+        @Test
+        void getById_WhenSlaIsPastAndOpen_ShouldMarkAsOverdue() {
+                testRequest.setStatus(MaintenanceStatus.ASSIGNED);
+                testRequest.setSlaDueAt(LocalDateTime.now().minusHours(2));
+                when(maintenanceRepository.findById("req-1")).thenReturn(Optional.of(testRequest));
+                when(userRepository.findById("tenant-1")).thenReturn(Optional.of(testTenant));
+
+                MaintenanceResponse response = maintenanceService.getById("req-1");
+
+                assertThat(response.getOverdue()).isTrue();
+        }
 
     @Test
     void createRequest_NonTenantAttemptingOwnRequest_ShouldSucceedIfAdmin() {
@@ -378,6 +397,7 @@ class MaintenanceServiceTest {
         MaintenanceRequest updated = MaintenanceRequest.builder()
                 .id("req-1")
                 .tenantId("tenant-1")
+                .propertyId("prop-1")
                 .assignedTechnicianId("tech-1")
                 .assignedByAdminId("admin-1")
                 .assignedAt(LocalDateTime.now())
@@ -385,11 +405,12 @@ class MaintenanceServiceTest {
                 .build();
         when(maintenanceRepository.save(any())).thenReturn(updated);
         when(userRepository.findById("tenant-1")).thenReturn(Optional.of(testTenant));
+        when(propertyRepository.findById("prop-1")).thenReturn(Optional.of(testProperty));
 
         MaintenanceResponse response = maintenanceService.assignTechnician("req-1", assignRequest, "admin-1");
 
         assertThat(response.getAssignedTechnicianId()).isEqualTo("tech-1");
-        verify(maintenanceNotificationService).notifyTechnicianAssigned(eq(testTechnician), any());
+                verify(maintenanceNotificationService).notifyTechnicianAssigned(eq(testTechnician), any(), eq(testTenant), eq(testProperty));
     }
 
     @Test
@@ -405,7 +426,7 @@ class MaintenanceServiceTest {
 
         assertThatThrownBy(() -> maintenanceService.assignTechnician("req-1", assignRequest, "admin-1"))
                 .isInstanceOf(BadRequestException.class)
-                .hasMessageContaining("Cannot assign a technician to a closed request");
+                .hasMessageContaining("Cannot assign a technician to a resolved or closed request");
 
         verify(maintenanceRepository, never()).save(any());
     }
@@ -488,6 +509,72 @@ class MaintenanceServiceTest {
         verify(maintenanceRepository).save(argThat(req -> req.getStartedAt() != null));
     }
 
+        @Test
+        void cancelRequest_ByTenantOnReportedRequest_ShouldSetStatusToCancelled() {
+                testRequest.setStatus(MaintenanceStatus.REPORTED);
+                when(maintenanceRepository.findById("req-1")).thenReturn(Optional.of(testRequest));
+
+                MaintenanceRequest updated = MaintenanceRequest.builder()
+                                .id("req-1")
+                                .tenantId("tenant-1")
+                                .status(MaintenanceStatus.CANCELLED)
+                                .closedAt(LocalDateTime.now())
+                                .build();
+                when(maintenanceRepository.save(any())).thenReturn(updated);
+
+                MaintenanceResponse response = maintenanceService.cancelRequest("req-1", "tenant-1");
+
+                assertThat(response.getStatus()).isEqualTo(MaintenanceStatus.CANCELLED);
+                verify(maintenanceRepository).save(any());
+        }
+
+        @Test
+        void cancelRequest_WhenInProgress_ShouldThrowBadRequest() {
+                testRequest.setStatus(MaintenanceStatus.IN_PROGRESS);
+                when(maintenanceRepository.findById("req-1")).thenReturn(Optional.of(testRequest));
+
+                assertThatThrownBy(() -> maintenanceService.cancelRequest("req-1", "tenant-1"))
+                                .isInstanceOf(BadRequestException.class)
+                                .hasMessageContaining("can no longer be cancelled");
+
+                verify(maintenanceRepository, never()).save(any());
+        }
+
+        @Test
+        void declineRequest_ByAssignedTechnician_ShouldSetDeclinedAndUnassign() {
+                testRequest.setStatus(MaintenanceStatus.SCHEDULED);
+                testRequest.setAssignedTechnicianId("tech-1");
+                when(maintenanceRepository.findById("req-1")).thenReturn(Optional.of(testRequest));
+
+                MaintenanceRequest updated = MaintenanceRequest.builder()
+                                .id("req-1")
+                                .tenantId("tenant-1")
+                                .status(MaintenanceStatus.DECLINED)
+                                .assignedTechnicianId(null)
+                                .build();
+                when(maintenanceRepository.save(any())).thenReturn(updated);
+                when(userRepository.findById("tenant-1")).thenReturn(Optional.of(testTenant));
+
+                MaintenanceResponse response = maintenanceService.declineRequest("req-1", "tech-1", "Schedule conflict");
+
+                assertThat(response.getStatus()).isEqualTo(MaintenanceStatus.DECLINED);
+                verify(maintenanceRepository).save(argThat(req -> req.getAssignedTechnicianId() == null));
+                verify(maintenanceNotificationService).notifyTenantStatusChanged(testTenant, updated);
+        }
+
+        @Test
+        void declineRequest_WhenInProgress_ShouldThrowBadRequest() {
+                testRequest.setStatus(MaintenanceStatus.IN_PROGRESS);
+                testRequest.setAssignedTechnicianId("tech-1");
+                when(maintenanceRepository.findById("req-1")).thenReturn(Optional.of(testRequest));
+
+                assertThatThrownBy(() -> maintenanceService.declineRequest("req-1", "tech-1", "Cannot take this now"))
+                                .isInstanceOf(BadRequestException.class)
+                                .hasMessageContaining("cannot be declined");
+
+                verify(maintenanceRepository, never()).save(any());
+        }
+
     @Test
     void pauseRequest_FromInProgress_ShouldSetStatusToPaused() {
         testRequest.setAssignedTechnicianId("tech-1");
@@ -564,6 +651,7 @@ class MaintenanceServiceTest {
         MaintenanceResolveRequest resolveRequest = MaintenanceResolveRequest.builder()
                 .completionSummary("Issue fixed")
                 .technicianNotes("Unit repaired")
+                .partsUsed(Arrays.asList("Compressor", "Wiring"))
                 .completionImageUrls(Arrays.asList("after1.jpg", "after2.jpg"))
                 .build();
 
@@ -575,8 +663,10 @@ class MaintenanceServiceTest {
                 .assignedTechnicianId("tech-1")
                 .status(MaintenanceStatus.RESOLVED)
                 .resolvedAt(LocalDateTime.now())
+                .closureDueAt(LocalDateTime.now().plusDays(7))
                 .completionSummary("Issue fixed")
                 .technicianNotes("Unit repaired")
+                .partsUsed(Arrays.asList("Compressor", "Wiring"))
                 .completionImageUrls(Arrays.asList("after1.jpg", "after2.jpg"))
                 .build();
         when(maintenanceRepository.save(any())).thenReturn(updated);
@@ -586,8 +676,42 @@ class MaintenanceServiceTest {
 
         assertThat(response.getStatus()).isEqualTo(MaintenanceStatus.RESOLVED);
         assertThat(response.getResolvedAt()).isNotNull();
+                assertThat(response.getClosureDueAt()).isNotNull();
+                assertThat(response.getPartsUsed()).containsExactly("Compressor", "Wiring");
         assertThat(response.getCompletionSummary()).isEqualTo("Issue fixed");
     }
+
+        @Test
+        void getById_WhenResolvedBeyondClosureDue_ShouldRemainResolvedUntilSchedulerRuns() {
+                testRequest.setStatus(MaintenanceStatus.RESOLVED);
+                testRequest.setResolvedAt(LocalDateTime.now().minusDays(10));
+                testRequest.setClosureDueAt(LocalDateTime.now().minusDays(1));
+                when(maintenanceRepository.findById("req-1")).thenReturn(Optional.of(testRequest));
+                when(userRepository.findById("tenant-1")).thenReturn(Optional.of(testTenant));
+
+                MaintenanceResponse response = maintenanceService.getById("req-1");
+
+                assertThat(response.getStatus()).isEqualTo(MaintenanceStatus.RESOLVED);
+                verify(maintenanceRepository, never()).save(any());
+        }
+
+        @Test
+        void autoCloseExpiredResolvedRequests_ShouldCloseExpiredRequests() {
+                testRequest.setStatus(MaintenanceStatus.RESOLVED);
+                testRequest.setClosureDueAt(LocalDateTime.now().minusMinutes(5));
+                when(maintenanceRepository.findByStatusAndClosureDueAtBefore(eq(MaintenanceStatus.RESOLVED), any(LocalDateTime.class)))
+                                .thenReturn(Arrays.asList(testRequest));
+
+                int closedCount = maintenanceService.autoCloseExpiredResolvedRequests();
+
+                assertThat(closedCount).isEqualTo(1);
+                verify(maintenanceRepository).saveAll(argThat(iterable -> {
+                        List<MaintenanceRequest> savedRequests = StreamSupport.stream(iterable.spliterator(), false).toList();
+                        return savedRequests.size() == 1
+                                        && savedRequests.get(0).getStatus() == MaintenanceStatus.CLOSED
+                                        && savedRequests.get(0).getClosedAt() != null;
+                }));
+        }
 
     @Test
     void resolveRequest_WithTooManyCompletionImages_ShouldThrowBadRequest() {
@@ -613,6 +737,8 @@ class MaintenanceServiceTest {
     @Test
     void closeRequest_OnResolvedRequest_ShouldSucceed() {
         testRequest.setStatus(MaintenanceStatus.RESOLVED);
+        testRequest.setImageUrls(Arrays.asList("before.jpg"));
+        testRequest.setCompletionImageUrls(Arrays.asList("after.jpg"));
         when(maintenanceRepository.findById("req-1")).thenReturn(Optional.of(testRequest));
 
         MaintenanceRequest updated = MaintenanceRequest.builder()
@@ -620,6 +746,8 @@ class MaintenanceServiceTest {
                 .tenantId("tenant-1")
                 .status(MaintenanceStatus.CLOSED)
                 .closedAt(LocalDateTime.now())
+                .imageUrls(Arrays.asList("before.jpg"))
+                .completionImageUrls(Arrays.asList("after.jpg"))
                 .build();
         when(maintenanceRepository.save(any())).thenReturn(updated);
         when(userRepository.findById("tenant-1")).thenReturn(Optional.of(testTenant));
@@ -628,6 +756,11 @@ class MaintenanceServiceTest {
 
         assertThat(response.getStatus()).isEqualTo(MaintenanceStatus.CLOSED);
         assertThat(response.getClosedAt()).isNotNull();
+        verify(maintenanceRepository).save(argThat(req ->
+                req.getMediaArchivedAt() != null
+                        && req.getImageUrls().contains("before.jpg")
+                        && req.getCompletionImageUrls().contains("after.jpg")
+        ));
     }
 
     @Test
@@ -666,6 +799,7 @@ class MaintenanceServiceTest {
 
         assertThat(responses).hasSize(1);
         assertThat(responses.get(0).getTenantId()).isEqualTo("tenant-1");
+                verify(maintenanceRepository, never()).save(any());
     }
 
     @Test
@@ -724,6 +858,33 @@ class MaintenanceServiceTest {
 
         assertThat(responses).hasSize(1);
     }
+
+        @Test
+        void getAdminQueue_WithTechnicianAndStatus_ShouldUseCombinedRepositoryFilter() {
+                when(maintenanceRepository.findByAssignedTechnicianIdAndStatusOrderByCreatedAtDesc("tech-1", MaintenanceStatus.REPORTED))
+                                .thenReturn(Arrays.asList(testRequest));
+
+                List<MaintenanceResponse> responses = maintenanceService.getAdminQueue(MaintenanceStatus.REPORTED, null, "tech-1");
+
+                assertThat(responses).hasSize(1);
+                verify(maintenanceRepository).findByAssignedTechnicianIdAndStatusOrderByCreatedAtDesc("tech-1", MaintenanceStatus.REPORTED);
+                verify(maintenanceRepository, never()).findAll();
+        }
+
+        @Test
+        void getAdminQueue_WithTechnicianStatusAndPriority_ShouldUseFullCombinedRepositoryFilter() {
+                when(maintenanceRepository.findByAssignedTechnicianIdAndStatusAndPriorityIgnoreCaseOrderByCreatedAtDesc(
+                                "tech-1", MaintenanceStatus.REPORTED, "HIGH"
+                )).thenReturn(Arrays.asList(testRequest));
+
+                List<MaintenanceResponse> responses = maintenanceService.getAdminQueue(MaintenanceStatus.REPORTED, "HIGH", "tech-1");
+
+                assertThat(responses).hasSize(1);
+                verify(maintenanceRepository).findByAssignedTechnicianIdAndStatusAndPriorityIgnoreCaseOrderByCreatedAtDesc(
+                                "tech-1", MaintenanceStatus.REPORTED, "HIGH"
+                );
+                verify(maintenanceRepository, never()).findAll();
+        }
 
     @Test
     void getTechnicians_ShouldReturnAllTechnicianUsers() {
@@ -786,7 +947,7 @@ class MaintenanceServiceTest {
 
         assertThatThrownBy(() -> maintenanceService.scheduleRequest("req-1", scheduleRequest, "admin-1"))
                 .isInstanceOf(BadRequestException.class)
-                .hasMessageContaining("must be in the future");
+                .hasMessageContaining("at least 1 hour in the future");
 
         verify(maintenanceRepository, never()).save(any());
     }
@@ -802,7 +963,7 @@ class MaintenanceServiceTest {
 
         assertThatThrownBy(() -> maintenanceService.scheduleRequest("req-1", scheduleRequest, "admin-1"))
                 .isInstanceOf(BadRequestException.class)
-                .hasMessageContaining("Cannot schedule a closed request");
+                .hasMessageContaining("Cannot schedule a resolved or closed request");
 
         verify(maintenanceRepository, never()).save(any());
     }

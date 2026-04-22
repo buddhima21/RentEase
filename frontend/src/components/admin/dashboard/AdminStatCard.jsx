@@ -15,7 +15,7 @@ export default function AdminStatCard({
     badgeColor,
 }) {
     return (
-        <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col min-h-[140px]">
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-700/50 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col min-h-[140px]">
             {/* Top row: icon + badge */}
             <div className="flex items-center justify-between mb-4">
                 <span
@@ -32,7 +32,7 @@ export default function AdminStatCard({
                 )}
             </div>
             {/* Label + Value */}
-            <p className="text-slate-500 text-sm font-medium">{label}</p>
+            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">{label}</p>
             <h3 className="text-3xl font-extrabold mt-1 tracking-tight">{value}</h3>
         </div>
     );

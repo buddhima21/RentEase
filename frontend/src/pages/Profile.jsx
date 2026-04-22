@@ -64,12 +64,12 @@ export default function Profile() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 flex flex-col">
             <Navbar />
 
             <main className="flex-grow container mx-auto px-4 py-8">
                 <div className="max-w-4xl mx-auto">
-                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
 
                         {/* Header Background */}
                         <div className="h-32 bg-gradient-to-r from-primary/80 to-primary relative">
@@ -80,7 +80,7 @@ export default function Profile() {
                             {/* Avatar Section */}
                             <div className="relative -mt-12 mb-6 flex justify-between items-end">
                                 <div className="relative">
-                                    <div className="w-24 h-24 rounded-full border-4 border-white bg-white shadow-md overflow-hidden">
+                                    <div className="w-24 h-24 rounded-full border-4 border-white bg-white dark:bg-slate-900 shadow-md overflow-hidden">
                                         {(isEditing ? formData.avatar : (user?.profileImageUrl || user?.avatar)) ? (
                                             <img
                                                 src={isEditing ? formData.avatar : (user?.profileImageUrl || user?.avatar)}
@@ -104,7 +104,7 @@ export default function Profile() {
                                             />
                                             <button
                                                 onClick={() => fileInputRef.current.click()}
-                                                className="absolute bottom-0 right-0 bg-white p-1.5 rounded-full shadow border border-slate-200 text-slate-600 hover:text-[#26C289] transition-colors"
+                                                className="absolute bottom-0 right-0 bg-white dark:bg-slate-900 p-1.5 rounded-full shadow border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-[#26C289] transition-colors"
                                                 title="Change Avatar"
                                             >
                                                 <span className="material-symbols-outlined text-[18px]">photo_camera</span>
@@ -126,7 +126,7 @@ export default function Profile() {
                                             });
                                             setIsEditing(true);
                                         }}
-                                        className="bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-colors shadow-sm"
+                                        className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:bg-slate-800/50 px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 transition-colors shadow-sm"
                                     >
                                         <span className="material-symbols-outlined text-[18px]">edit</span>
                                         Edit Profile
@@ -145,7 +145,7 @@ export default function Profile() {
                                                     avatar: user?.profileImageUrl || user?.avatar || "",
                                                 });
                                             }}
-                                            className="bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 px-4 py-2 rounded-lg font-medium text-sm transition-colors"
+                                            className="bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:bg-slate-800/50 px-4 py-2 rounded-lg font-medium text-sm transition-colors"
                                         >
                                             Cancel
                                         </button>
@@ -165,24 +165,24 @@ export default function Profile() {
                                 {/* Left Column: Identity */}
                                 <div className="md:col-span-1 space-y-4">
                                     <div>
-                                        <h1 className="text-2xl font-bold text-slate-900">{user?.fullName}</h1>
-                                        <p className="text-slate-500 font-medium">{user?.role || "User"}</p>
+                                        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{user?.fullName}</h1>
+                                        <p className="text-slate-500 dark:text-slate-400 font-medium">{user?.role || "User"}</p>
                                     </div>
 
-                                    <div className="pt-4 border-t border-slate-100 space-y-3">
-                                        <div className="flex items-center gap-3 text-slate-600">
+                                    <div className="pt-4 border-t border-slate-100 dark:border-slate-700/50 space-y-3">
+                                        <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300">
                                             <span className="material-symbols-outlined text-slate-400">mail</span>
                                             <span className="text-sm">{user?.email}</span>
                                         </div>
-                                        <div className="flex items-center gap-3 text-slate-600">
+                                        <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300">
                                             <span className="material-symbols-outlined text-slate-400">call</span>
                                             <span className="text-sm">{user?.phone || "No phone added"}</span>
                                         </div>
-                                        <div className="flex items-center gap-3 text-slate-600">
+                                        <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300">
                                             <span className="material-symbols-outlined text-slate-400">location_on</span>
                                             <span className="text-sm">{user?.location || "No location added"}</span>
                                         </div>
-                                        <div className="flex items-center gap-3 text-slate-600">
+                                        <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300">
                                             <span className="material-symbols-outlined text-slate-400">calendar_month</span>
                                             <span className="text-sm">Joined March 2024</span>
                                         </div>
@@ -194,15 +194,15 @@ export default function Profile() {
                                     {!isEditing ? (
                                         <div className="space-y-6">
                                             <div>
-                                                <h3 className="text-lg font-bold text-slate-900 mb-2">About</h3>
-                                                <p className="text-slate-600 leading-relaxed">
+                                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">About</h3>
+                                                <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
                                                     {user?.bio || "No bio added yet. Click 'Edit Profile' to tell others about yourself."}
                                                 </p>
                                             </div>
 
                                             {/* Could add more read-only sections here */}
-                                            <div className="bg-slate-50 rounded-xl p-6 border border-slate-100">
-                                                <h4 className="font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                                            <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-6 border border-slate-100 dark:border-slate-700/50">
+                                                <h4 className="font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
                                                     <span className="material-symbols-outlined text-primary">verified_user</span>
                                                     Account Status
                                                 </h4>
@@ -216,57 +216,57 @@ export default function Profile() {
                                         <form onSubmit={handleSubmit} className="space-y-5">
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                                 <div>
-                                                    <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
+                                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Full Name</label>
                                                     <input
                                                         type="text"
                                                         name="fullName"
                                                         value={formData.fullName}
                                                         onChange={handleChange}
-                                                        className="w-full rounded-lg border-slate-300 focus:border-primary focus:ring-primary"
+                                                        className="w-full rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white focus:border-primary focus:ring-primary"
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Email</label>
                                                     <input
                                                         type="email"
                                                         name="email"
                                                         value={formData.email}
                                                         disabled
-                                                        className="w-full rounded-lg border-slate-200 bg-slate-50 text-slate-500 cursor-not-allowed"
+                                                        className="w-full rounded-lg border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 cursor-not-allowed"
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-slate-700 mb-1">Phone Number</label>
+                                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Phone Number</label>
                                                     <input
                                                         type="tel"
                                                         name="phone"
                                                         value={formData.phone}
                                                         onChange={handleChange}
                                                         placeholder="+1 (555) 000-0000"
-                                                        className="w-full rounded-lg border-slate-300 focus:border-primary focus:ring-primary"
+                                                        className="w-full rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white focus:border-primary focus:ring-primary"
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-medium text-slate-700 mb-1">Location</label>
+                                                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Location</label>
                                                     <input
                                                         type="text"
                                                         name="location"
                                                         value={formData.location}
                                                         onChange={handleChange}
                                                         placeholder="City, Country"
-                                                        className="w-full rounded-lg border-slate-300 focus:border-primary focus:ring-primary"
+                                                        className="w-full rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white focus:border-primary focus:ring-primary"
                                                     />
                                                 </div>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-medium text-slate-700 mb-1">Bio</label>
+                                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">Bio</label>
                                                 <textarea
                                                     name="bio"
                                                     rows="4"
                                                     value={formData.bio}
                                                     onChange={handleChange}
                                                     placeholder="Tell us about yourself..."
-                                                    className="w-full rounded-lg border-slate-300 focus:border-primary focus:ring-primary"
+                                                    className="w-full rounded-lg border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-white focus:border-primary focus:ring-primary"
                                                 ></textarea>
                                             </div>
                                         </form>

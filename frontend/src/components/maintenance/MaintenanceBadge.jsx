@@ -1,7 +1,7 @@
 import { getMaintenancePriorityMeta, getMaintenanceStatusMeta, isEmergencyPriority } from "../../constants/maintenance";
 
 const toneClasses = {
-    slate: "bg-slate-100 text-slate-700 border-slate-200",
+    slate: "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700",
     blue: "bg-blue-50 text-blue-700 border-blue-100",
     amber: "bg-amber-50 text-amber-800 border-amber-100",
     red: "bg-red-50 text-red-700 border-red-100",

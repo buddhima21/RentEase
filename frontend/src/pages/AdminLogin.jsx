@@ -77,37 +77,37 @@ export default function AdminLogin() {
     };
 
     return (
-        <div className="bg-white font-[Inter] text-slate-900 min-h-screen">
+        <div className="bg-white dark:bg-slate-900 font-[Inter] text-slate-900 dark:text-white min-h-screen">
             <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
                 <div className="flex h-full grow flex-col">
                     {/* Top Navigation Bar */}
-                    <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 px-6 md:px-10 py-3 bg-white">
+                    <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-700 px-6 md:px-10 py-3 bg-white dark:bg-slate-900">
                         <div className="flex items-center gap-3">
                             <div className="relative flex items-center justify-center w-10 h-10 bg-emerald-50/50 rounded-xl">
                                 <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M4 10L12 4L20 10V18C20 19.1046 19.1046 20 18 20H6C4.89543 20 4 19.1046 4 18V10Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-900"/>
+                                    <path d="M4 10L12 4L20 10V18C20 19.1046 19.1046 20 18 20H6C4.89543 20 4 19.1046 4 18V10Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-900 dark:text-white"/>
                                     <path d="M12 14C13.1046 14 14 13.1046 14 12C14 10.8954 13.1046 10 12 10C10.8954 10 10 10.8954 10 12C10 13.1046 10.8954 14 12 14Z" fill="currentColor" className="text-emerald-500"/>
                                     <path d="M12 14V17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-emerald-500"/>
                                 </svg>
                             </div>
-                            <h2 className="text-xl font-extrabold tracking-tight text-slate-900">
-                                Rent<span className="text-[#26C289]">Ease</span> <span className="text-slate-500 font-medium text-base ml-1">Admin</span>
+                            <h2 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+                                Rent<span className="text-[#26C289]">Ease</span> <span className="text-slate-500 dark:text-slate-400 font-medium text-base ml-1">Admin</span>
                             </h2>
                         </div>
-                        <button className="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 bg-[#26C289] text-slate-900 text-sm font-bold transition-colors hover:bg-[#26C289]/90">
+                        <button className="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 bg-[#26C289] text-slate-900 dark:text-white text-sm font-bold transition-colors hover:bg-[#26C289]/90">
                             <span className="truncate">Support</span>
                         </button>
                     </header>
 
-                    <main className="flex-1 flex items-center justify-center p-4 md:p-8 bg-slate-100">
-                        <div className="w-full max-w-[1100px] grid grid-cols-1 lg:grid-cols-2 bg-white rounded-2xl shadow-xl shadow-slate-200 overflow-hidden border border-slate-200">
+                    <main className="flex-1 flex items-center justify-center p-4 md:p-8 bg-slate-100 dark:bg-slate-800">
+                        <div className="w-full max-w-[1100px] grid grid-cols-1 lg:grid-cols-2 bg-white dark:bg-slate-900 rounded-2xl shadow-xl shadow-slate-200 overflow-hidden border border-slate-200 dark:border-slate-700">
                             {/* Left Side: Hero/Branding */}
-                            <div className="hidden lg:flex flex-col justify-between p-12 bg-white border-r border-slate-100 relative overflow-hidden">
+                            <div className="hidden lg:flex flex-col justify-between p-12 bg-white dark:bg-slate-900 border-r border-slate-100 dark:border-slate-700/50 relative overflow-hidden">
                                 <div className="relative z-10">
-                                    <h1 className="text-4xl font-black text-slate-900 mb-4">
+                                    <h1 className="text-4xl font-black text-slate-900 dark:text-white mb-4">
                                         The future of property management.
                                     </h1>
-                                    <p className="text-slate-600 text-lg">
+                                    <p className="text-slate-600 dark:text-slate-300 text-lg">
                                         Streamline your operations, manage listings, and handle tenant requests all in one secure place.
                                     </p>
                                 </div>
@@ -130,10 +130,10 @@ export default function AdminLogin() {
                             </div>
 
                             {/* Right Side: Login Form */}
-                            <div className="flex flex-col justify-center p-8 md:p-16 bg-white">
+                            <div className="flex flex-col justify-center p-8 md:p-16 bg-white dark:bg-slate-900">
                                 <div className="mb-10">
-                                    <h2 className="text-3xl font-black text-slate-900 mb-2">Admin Login</h2>
-                                    <p className="text-slate-500">Welcome back. Please enter your administrator credentials.</p>
+                                    <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-2">Admin Login</h2>
+                                    <p className="text-slate-500 dark:text-slate-400">Welcome back. Please enter your administrator credentials.</p>
                                 </div>
 
                                 {error && (
@@ -145,13 +145,13 @@ export default function AdminLogin() {
 
                                 <form className="space-y-6" onSubmit={handleLogin}>
                                     <div className="flex flex-col gap-2">
-                                        <label className="text-sm font-semibold text-slate-700">
+                                        <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">
                                             Official Email
                                         </label>
                                         <div className="relative">
                                             <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">mail</span>
                                             <input 
-                                                className="w-full pl-12 pr-4 py-3.5 rounded-lg border border-slate-300 bg-white text-slate-900 focus:ring-2 focus:ring-[#26C289] focus:border-transparent transition-all outline-none" 
+                                                className="w-full pl-12 pr-4 py-3.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-[#26C289] focus:border-transparent transition-all outline-none" 
                                                 placeholder="admin@rentease.com" 
                                                 required 
                                                 type="email"
@@ -163,13 +163,13 @@ export default function AdminLogin() {
 
                                     <div className="flex flex-col gap-2">
                                         <div className="flex justify-between items-center">
-                                            <label className="text-sm font-semibold text-slate-700">Password</label>
+                                            <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">Password</label>
                                             <a className="text-xs font-bold text-emerald-600 hover:underline" href="#">Forgot Password?</a>
                                         </div>
                                         <div className="relative">
                                             <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">lock</span>
                                             <input 
-                                                className="w-full pl-12 pr-12 py-3.5 rounded-lg border border-slate-300 bg-white text-slate-900 focus:ring-2 focus:ring-[#26C289] focus:border-transparent transition-all outline-none" 
+                                                className="w-full pl-12 pr-12 py-3.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-[#26C289] focus:border-transparent transition-all outline-none" 
                                                 placeholder="••••••••" 
                                                 required 
                                                 type={showPassword ? "text" : "password"}
@@ -179,7 +179,7 @@ export default function AdminLogin() {
                                             <button 
                                                 type="button"
                                                 onClick={() => setShowPassword(!showPassword)}
-                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 focus:outline-none" 
+                                                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-slate-300 focus:outline-none" 
                                             >
                                                 <span className="material-symbols-outlined">
                                                     {showPassword ? "visibility_off" : "visibility"}
@@ -194,9 +194,9 @@ export default function AdminLogin() {
                                             type="checkbox"
                                             checked={remember}
                                             onChange={(e) => setRemember(e.target.checked)}
-                                            className="rounded border-slate-300 text-[#26C289] focus:ring-[#26C289] h-4 w-4 cursor-pointer" 
+                                            className="rounded border-slate-300 dark:border-slate-600 text-[#26C289] focus:ring-[#26C289] h-4 w-4 cursor-pointer" 
                                         />
-                                        <label className="text-sm text-slate-600 cursor-pointer select-none" htmlFor="remember">
+                                        <label className="text-sm text-slate-600 dark:text-slate-300 cursor-pointer select-none" htmlFor="remember">
                                             Keep me logged in for 30 days
                                         </label>
                                     </div>
@@ -221,18 +221,18 @@ export default function AdminLogin() {
                                 </form>
 
                                 {/* Mobile Security Badges */}
-                                <div className="lg:hidden flex flex-wrap gap-3 mt-8 pt-8 border-t border-slate-100">
-                                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                                <div className="lg:hidden flex flex-wrap gap-3 mt-8 pt-8 border-t border-slate-100 dark:border-slate-700/50">
+                                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
                                         <span className="material-symbols-outlined text-sm text-[#26C289]">verified_user</span>
                                         MFA Protected
                                     </div>
-                                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
                                         <span className="material-symbols-outlined text-sm text-[#26C289]">lock</span>
                                         256-bit Encryption
                                     </div>
                                 </div>
 
-                                <p className="mt-10 text-center text-sm text-slate-500">
+                                <p className="mt-10 text-center text-sm text-slate-500 dark:text-slate-400">
                                     Authorized personnel only. Use of this system is monitored. 
                                     <br className="hidden md:block"/>
                                     <a className="text-emerald-600 hover:underline font-medium ml-1" href="#">Read Security Policy</a>
@@ -241,7 +241,7 @@ export default function AdminLogin() {
                         </div>
                     </main>
 
-                    <footer className="p-6 text-center text-slate-500 text-xs bg-slate-100">
+                    <footer className="p-6 text-center text-slate-500 dark:text-slate-400 text-xs bg-slate-100 dark:bg-slate-800">
                         © 2024 RentEase Property Management Solutions. All rights reserved.
                     </footer>
                 </div>

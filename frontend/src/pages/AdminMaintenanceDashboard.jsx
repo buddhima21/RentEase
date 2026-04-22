@@ -8,6 +8,7 @@ import MaintenanceSectionCard from "../components/maintenance/MaintenanceSection
 import MaintenanceStatCard from "../components/maintenance/MaintenanceStatCard";
 import {
     assignMaintenanceTechnician,
+    closeMaintenance,
     getAdminMaintenanceQueue,
     getMaintenanceTechnicians,
     updateMaintenancePriority,
@@ -22,6 +23,9 @@ export default function AdminMaintenanceDashboard() {
     const [filters, setFilters] = useState({ status: "", priority: "", technicianId: "" });
     const [loading, setLoading] = useState(false);
     const [priorityDrafts, setPriorityDrafts] = useState({});
+    const [closeNotes, setCloseNotes] = useState({});
+    const [loadError, setLoadError] = useState("");
+    const [actionError, setActionError] = useState("");
 
     useEffect(() => {
         try {
@@ -44,15 +48,17 @@ export default function AdminMaintenanceDashboard() {
     const load = async () => {
         try {
             setLoading(true);
+            setLoadError("");
             const [queueRes, techRes] = await Promise.all([
                 getAdminMaintenanceQueue(Object.fromEntries(Object.entries(filters).filter(([, value]) => value))),
                 getMaintenanceTechnicians(),
             ]);
             setQueue(queueRes.data?.data || []);
             setTechs(techRes.data?.data || []);
-        } catch {
+        } catch (err) {
             setQueue([]);
             setTechs([]);
+            setLoadError(err?.response?.data?.message || "Unable to load maintenance queue right now.");
         } finally {
             setLoading(false);
         }
@@ -65,15 +71,36 @@ export default function AdminMaintenanceDashboard() {
     const assign = async (requestId) => {
         const technicianId = selectedTechByRequest[requestId];
         if (!technicianId) return;
-        await assignMaintenanceTechnician(requestId, { technicianId });
-        load();
+        try {
+            setActionError("");
+            await assignMaintenanceTechnician(requestId, { technicianId });
+            load();
+        } catch (err) {
+            setActionError(err?.response?.data?.message || "Unable to assign technician.");
+        }
     };
 
     const savePriority = async (requestId) => {
         const priority = priorityDrafts[requestId];
         if (!priority) return;
-        await updateMaintenancePriority(requestId, priority);
-        load();
+        try {
+            setActionError("");
+            await updateMaintenancePriority(requestId, priority);
+            load();
+        } catch (err) {
+            setActionError(err?.response?.data?.message || "Unable to update priority.");
+        }
+    };
+
+    const closeRequest = async (requestId) => {
+        try {
+            setActionError("");
+            await closeMaintenance(requestId, closeNotes[requestId] || undefined);
+            setCloseNotes((prev) => ({ ...prev, [requestId]: "" }));
+            load();
+        } catch (err) {
+            setActionError(err?.response?.data?.message || "Unable to close request.");
+        }
     };
 
     if (authLoading) {
@@ -94,7 +121,7 @@ export default function AdminMaintenanceDashboard() {
 
             <main className="flex-1 flex flex-col min-w-0">
                 <header className="sticky top-0 z-30 h-[88px] bg-[#F8FAFC]/80 backdrop-blur-xl border-b border-white/50 px-8 flex items-center justify-between gap-4 shrink-0">
-                    <h2 className="text-[22px] font-black tracking-tight whitespace-nowrap pl-12 lg:pl-0 text-slate-800">
+                    <h2 className="text-[22px] font-black tracking-tight whitespace-nowrap pl-12 lg:pl-0 text-slate-800 dark:text-slate-100">
                         Maintenance Control Center
                     </h2>
 
@@ -120,18 +147,18 @@ export default function AdminMaintenanceDashboard() {
                                 <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
                                 <span className="text-[10px] font-black tracking-widest uppercase">Maintenance Operations</span>
                             </div>
-                            <h1 className="text-[32px] md:text-[40px] font-black tracking-tight text-slate-900 leading-[1.1]">Maintenance Dashboard</h1>
-                            <p className="text-slate-500 font-medium mt-2 text-[15px]">Review requests, tune priorities, and dispatch technicians with one operational view.</p>
+                            <h1 className="text-[32px] md:text-[40px] font-black tracking-tight text-slate-900 dark:text-white leading-[1.1]">Maintenance Dashboard</h1>
+                            <p className="text-slate-500 dark:text-slate-400 font-medium mt-2 text-[15px]">Review requests, tune priorities, and dispatch technicians with one operational view.</p>
                         </div>
 
                         <div className="flex flex-col items-end gap-3">
-                            <div className="bg-white border border-slate-100 shadow-sm px-4 py-2.5 rounded-xl flex items-center gap-2 text-sm font-bold text-slate-700">
+                            <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-700/50 shadow-sm px-4 py-2.5 rounded-xl flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-200">
                                 <span className="material-symbols-outlined text-slate-400 text-[18px]">calendar_month</span>
                                 {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
                             </div>
                             <Link
                                 to="/admin/maintenance/calendar"
-                                className="bg-white border border-slate-200 text-slate-700 font-semibold px-5 py-2.5 rounded-xl hover:border-emerald-300 hover:text-emerald-700 transition-all text-sm flex items-center gap-2"
+                                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-semibold px-5 py-2.5 rounded-xl hover:border-emerald-300 hover:text-emerald-700 transition-all text-sm flex items-center gap-2"
                             >
                                 <span className="material-symbols-outlined text-[18px]">event_available</span>
                                 Schedule Visits
@@ -148,21 +175,25 @@ export default function AdminMaintenanceDashboard() {
 
                     <MaintenanceSectionCard eyebrow="Filters" title="Queue filters" description="Filter the request queue by status, priority, or assigned technician.">
                         <div className="grid gap-4 md:grid-cols-3">
-                            <select className="rounded-xl border border-slate-300 bg-white p-3" value={filters.status} onChange={(e) => setFilters((prev) => ({ ...prev, status: e.target.value }))}>
+                            <select className="rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 p-3" value={filters.status} onChange={(e) => setFilters((prev) => ({ ...prev, status: e.target.value }))}>
                                 <option value="">All statuses</option>
                                 <option value="REPORTED">Reported</option>
+                                <option value="ASSIGNED">Assigned</option>
+                                <option value="SCHEDULED">Scheduled</option>
+                                <option value="DECLINED">Declined</option>
                                 <option value="IN_PROGRESS">In Progress</option>
                                 <option value="RESOLVED">Resolved</option>
+                                <option value="CANCELLED">Cancelled</option>
                                 <option value="CLOSED">Closed</option>
                             </select>
-                            <select className="rounded-xl border border-slate-300 bg-white p-3" value={filters.priority} onChange={(e) => setFilters((prev) => ({ ...prev, priority: e.target.value }))}>
+                            <select className="rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 p-3" value={filters.priority} onChange={(e) => setFilters((prev) => ({ ...prev, priority: e.target.value }))}>
                                 <option value="">All priorities</option>
                                 <option value="LOW">Low</option>
                                 <option value="MEDIUM">Medium</option>
                                 <option value="HIGH">High</option>
                                 <option value="EMERGENCY">Emergency</option>
                             </select>
-                            <select className="rounded-xl border border-slate-300 bg-white p-3" value={filters.technicianId} onChange={(e) => setFilters((prev) => ({ ...prev, technicianId: e.target.value }))}>
+                            <select className="rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 p-3" value={filters.technicianId} onChange={(e) => setFilters((prev) => ({ ...prev, technicianId: e.target.value }))}>
                                 <option value="">All technicians</option>
                                 {techs.map((tech) => (
                                     <option key={tech.id} value={tech.id}>{tech.fullName}</option>
@@ -172,9 +203,11 @@ export default function AdminMaintenanceDashboard() {
                     </MaintenanceSectionCard>
 
                     <MaintenanceSectionCard eyebrow="Queue" title="Maintenance requests" description="Assign technicians directly from the request list.">
-                        <div className="overflow-hidden rounded-3xl border border-slate-200">
+                        {loadError ? <p className="mb-4 text-sm font-medium text-red-600">{loadError}</p> : null}
+                        {actionError ? <p className="mb-4 text-sm font-medium text-red-600">{actionError}</p> : null}
+                        <div className="overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-700">
                             <table className="w-full text-sm">
-                                <thead className="bg-slate-100">
+                                <thead className="bg-slate-100 dark:bg-slate-800">
                                     <tr>
                                         <th className="text-left p-3">Title</th>
                                         <th className="text-left p-3">Priority</th>
@@ -183,18 +216,18 @@ export default function AdminMaintenanceDashboard() {
                                         <th className="text-left p-3">Action</th>
                                     </tr>
                                 </thead>
-                                <tbody className="bg-white">
+                                <tbody className="bg-white dark:bg-slate-900">
                                     {loading ? (
-                                        <tr><td className="p-6 text-center text-slate-500" colSpan={5}>Loading queue...</td></tr>
+                                        <tr><td className="p-6 text-center text-slate-500 dark:text-slate-400" colSpan={5}>Loading queue...</td></tr>
                                     ) : queue.map((item) => (
-                                        <tr key={item.id} className="border-t border-slate-200">
-                                            <td className="p-3 font-medium text-slate-900">{item.title}</td>
+                                        <tr key={item.id} className="border-t border-slate-200 dark:border-slate-700">
+                                            <td className="p-3 font-medium text-slate-900 dark:text-white">{item.title}</td>
                                             <td className="p-3">
                                                 <div className="flex flex-col gap-2">
                                                     <MaintenanceBadge kind="priority" value={item.priority} />
                                                     <div className="flex gap-2">
                                                         <select
-                                                            className="rounded-xl border border-slate-300 bg-white px-2 py-1 text-xs"
+                                                            className="rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-1 text-xs"
                                                             value={priorityDrafts[item.id] || item.priority}
                                                             onChange={(e) => setPriorityDrafts((prev) => ({ ...prev, [item.id]: e.target.value }))}
                                                         >
@@ -203,7 +236,7 @@ export default function AdminMaintenanceDashboard() {
                                                             <option value="HIGH">High</option>
                                                             <option value="EMERGENCY">Emergency</option>
                                                         </select>
-                                                        <button type="button" className="rounded-xl border border-slate-300 px-2 py-1 text-xs font-semibold text-slate-700" onClick={() => savePriority(item.id)}>
+                                                        <button type="button" className="rounded-xl border border-slate-300 dark:border-slate-600 px-2 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200" onClick={() => savePriority(item.id)}>
                                                             Save
                                                         </button>
                                                     </div>
@@ -212,7 +245,7 @@ export default function AdminMaintenanceDashboard() {
                                             <td className="p-3"><MaintenanceBadge value={item.status} /></td>
                                             <td className="p-3">
                                                 <select
-                                                    className="rounded-xl border border-slate-300 bg-white p-2"
+                                                    className="rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 p-2"
                                                     value={selectedTechByRequest[item.id] || item.assignedTechnicianId || ""}
                                                     onChange={(e) => setSelectedTechByRequest((prev) => ({ ...prev, [item.id]: e.target.value }))}
                                                 >
@@ -223,13 +256,29 @@ export default function AdminMaintenanceDashboard() {
                                                 </select>
                                             </td>
                                             <td className="p-3">
-                                                <button className="rounded-xl bg-primary px-3 py-2 font-semibold text-white" onClick={() => assign(item.id)}>
-                                                    Assign
-                                                </button>
+                                                <div className="flex flex-col gap-2">
+                                                    <button className="rounded-xl bg-primary px-3 py-2 font-semibold text-white" onClick={() => assign(item.id)}>
+                                                        Assign
+                                                    </button>
+                                                    {item.status === "RESOLVED" ? (
+                                                        <>
+                                                            <input
+                                                                className="rounded-xl border border-slate-300 bg-white px-2 py-1 text-xs"
+                                                                placeholder="Closure note"
+                                                                maxLength={1000}
+                                                                value={closeNotes[item.id] || ""}
+                                                                onChange={(e) => setCloseNotes((prev) => ({ ...prev, [item.id]: e.target.value }))}
+                                                            />
+                                                            <button className="rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700" onClick={() => closeRequest(item.id)}>
+                                                                Close
+                                                            </button>
+                                                        </>
+                                                    ) : null}
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
-                                    {!loading && queue.length === 0 ? <tr><td className="p-6 text-center text-slate-500" colSpan={5}>No requests in queue.</td></tr> : null}
+                                    {!loading && queue.length === 0 ? <tr><td className="p-6 text-center text-slate-500 dark:text-slate-400" colSpan={5}>{loadError ? "Unable to load queue." : "No requests in queue."}</td></tr> : null}
                                 </tbody>
                             </table>
                         </div>
@@ -240,11 +289,11 @@ export default function AdminMaintenanceDashboard() {
                             {techs.map((tech) => {
                                 const assignedCount = queue.filter((item) => item.assignedTechnicianId === tech.id).length;
                                 return (
-                                    <div key={tech.id} className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
-                                        <p className="text-sm font-bold text-slate-900">{tech.fullName}</p>
-                                        <p className="mt-1 text-sm text-slate-600">{tech.email}</p>
-                                        <p className="mt-4 text-xs font-bold uppercase tracking-[0.22em] text-slate-500">Assigned requests</p>
-                                        <p className="mt-1 text-2xl font-black text-slate-900">{assignedCount}</p>
+                                    <div key={tech.id} className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-5">
+                                        <p className="text-sm font-bold text-slate-900 dark:text-white">{tech.fullName}</p>
+                                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{tech.email}</p>
+                                        <p className="mt-4 text-xs font-bold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Assigned requests</p>
+                                        <p className="mt-1 text-2xl font-black text-slate-900 dark:text-white">{assignedCount}</p>
                                     </div>
                                 );
                             })}

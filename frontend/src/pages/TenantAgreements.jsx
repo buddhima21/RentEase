@@ -4,11 +4,49 @@ import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
 import { getTenantAgreements } from "../services/api";
 
+// Status badge styles — Merged icons and labels with Dark Mode support
 const STATUS_STYLE = {
-    ACTIVE: "bg-emerald-50 text-emerald-800 border-emerald-200",
-    EXPIRED: "bg-slate-100 text-slate-600 border-slate-200",
-    TERMINATED: "bg-amber-50 text-amber-800 border-amber-200",
+    PENDING: { 
+        cls: "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800", 
+        icon: "hourglass_top", 
+        label: "Pending" 
+    },
+    ACTIVE: { 
+        cls: "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-400 dark:border-emerald-800", 
+        icon: "check_circle", 
+        label: "Active" 
+    },
+    CANCELLED: { 
+        cls: "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800", 
+        icon: "cancel", 
+        label: "Cancelled" 
+    },
+    EXPIRED: { 
+        cls: "bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700", 
+        icon: "schedule", 
+        label: "Expired" 
+    },
+    TERMINATION_REQUESTED: { 
+        cls: "bg-orange-50 text-orange-800 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800", 
+        icon: "assignment_late", 
+        label: "Term Request" 
+    },
+    TERMINATED: { 
+        cls: "bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800", 
+        icon: "highlight_off", 
+        label: "Terminated" 
+    },
 };
+
+function StatusBadge({ status }) {
+    const cfg = STATUS_STYLE[status] || STATUS_STYLE["PENDING"];
+    return (
+        <span className={`inline-flex items-center gap-1 text-xs font-bold px-3 py-1 rounded-full border ${cfg.cls}`}>
+            <span className="material-symbols-outlined text-[13px]">{cfg.icon}</span>
+            {cfg.label}
+        </span>
+    );
+}
 
 export default function TenantAgreements() {
     const { user } = useAuth();
@@ -40,21 +78,16 @@ export default function TenantAgreements() {
     }, [user, navigate]);
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50">
             <Navbar />
             <div className="max-w-4xl mx-auto px-4 py-8">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
                     <div>
-                        <h1 className="text-2xl font-black text-slate-900">Rental agreements</h1>
-                        <p className="text-slate-500 text-sm mt-1">View and download your digital contracts</p>
+                        <h1 className="text-2xl font-black text-slate-900 dark:text-white">Rental Agreements</h1>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
+                            Your agreements appear here after an owner approves your booking request.
+                        </p>
                     </div>
-                    <Link
-                        to="/tenant/agreements/new"
-                        className="inline-flex items-center justify-center gap-2 bg-primary text-white font-bold px-5 py-2.5 rounded-xl hover:bg-primary/90 text-sm"
-                    >
-                        <span className="material-symbols-outlined text-[18px]">add</span>
-                        New agreement
-                    </Link>
                 </div>
 
                 {loading && (
@@ -63,17 +96,19 @@ export default function TenantAgreements() {
                     </div>
                 )}
                 {error && (
-                    <div className="rounded-2xl border border-red-200 bg-red-50 text-red-800 p-4 text-sm font-medium">{error}</div>
+                    <div className="rounded-2xl border border-red-200 bg-red-50 text-red-800 p-4 text-sm font-medium dark:bg-red-900/20 dark:text-red-400 dark:border-red-800">
+                        {error}
+                    </div>
                 )}
                 {!loading && !error && list.length === 0 && (
-                    <div className="text-center py-20 rounded-2xl border border-slate-200 bg-white">
+                    <div className="text-center py-20 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
                         <span className="material-symbols-outlined text-5xl text-slate-200">description</span>
-                        <p className="mt-4 text-slate-600 font-medium">No agreements yet</p>
+                        <p className="mt-4 text-slate-600 dark:text-slate-300 font-medium">No agreements yet</p>
                         <p className="text-sm text-slate-400 mt-2 max-w-sm mx-auto">
-                            After your booking is approved by the owner, you can create a rental agreement here.
+                            Once an owner approves your booking request, a rental agreement will appear here for you to review and accept.
                         </p>
-                        <Link to="/tenant/agreements/new" className="inline-block mt-6 text-primary font-bold text-sm hover:underline">
-                            Create agreement
+                        <Link to="/tenant/bookings" className="inline-block mt-6 text-primary font-bold text-sm hover:underline">
+                            View my bookings
                         </Link>
                     </div>
                 )}
@@ -83,23 +118,24 @@ export default function TenantAgreements() {
                             <li key={a.id}>
                                 <Link
                                     to={`/tenant/agreements/${a.id}`}
-                                    className="block bg-white rounded-2xl border border-slate-200 p-5 hover:border-primary/40 hover:shadow-md transition-all"
+                                    className="block bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 p-5 hover:border-primary/40 hover:shadow-md transition-all"
                                 >
                                     <div className="flex flex-wrap items-start justify-between gap-3">
                                         <div>
-                                            <p className="font-black text-slate-900">{a.agreementNumber}</p>
-                                            <p className="text-sm text-slate-500 mt-1">{a.propertyTitle || "Property"}</p>
+                                            <p className="font-black text-slate-900 dark:text-white">{a.agreementNumber}</p>
+                                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{a.propertyTitle || "Property"}</p>
                                             <p className="text-xs text-slate-400 mt-2">
                                                 {a.startDate} → {a.endDate} · LKR {Number(a.rentAmount).toLocaleString()} / mo
                                             </p>
                                         </div>
-                                        <span
-                                            className={`text-xs font-bold px-3 py-1 rounded-full border shrink-0 ${
-                                                STATUS_STYLE[a.status] || STATUS_STYLE.ACTIVE
-                                            }`}
-                                        >
-                                            {a.status}
-                                        </span>
+                                        <div className="flex flex-col items-end gap-2">
+                                            <StatusBadge status={a.status} />
+                                            {a.status === "PENDING" && (
+                                                <span className="text-xs font-semibold text-amber-700 dark:text-amber-500 animate-pulse">
+                                                    Action required
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                 </Link>
                             </li>
