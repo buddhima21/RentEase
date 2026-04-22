@@ -4,6 +4,7 @@ import com.rentease.common.enums.BookingStatus;
 import com.rentease.common.enums.PropertyStatus;
 import com.rentease.exception.BadRequestException;
 import com.rentease.exception.ResourceNotFoundException;
+import com.rentease.modules.agreement.service.AgreementService;
 import com.rentease.modules.booking.dto.BookingRequest;
 import com.rentease.modules.booking.dto.BookingResponse;
 import com.rentease.modules.booking.model.Booking;
@@ -14,6 +15,8 @@ import com.rentease.modules.user.model.User;
 import com.rentease.modules.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -30,6 +33,15 @@ public class BookingService {
     private final BookingRepository bookingRepository;
     private final PropertyRepository propertyRepository;
     private final UserRepository userRepository;
+
+    /**
+     * Injected lazily to break the circular dependency:
+     * BookingService → AgreementService → BookingService.
+     * Spring resolves it at runtime via a proxy.
+     */
+    @Lazy
+    @Autowired
+    private AgreementService agreementService;
 
     // Statuses that count as "occupying a bedroom"
     private static final List<BookingStatus> OCCUPYING_STATUSES =
@@ -124,6 +136,14 @@ public class BookingService {
         propertyRepository.save(property);
         log.info("Property [id={}] marked BOOKED after booking [id={}] approved",
                 property.getId(), saved.getId());
+
+        // Auto-create a PENDING rental agreement for this booking
+        try {
+            agreementService.createAgreementFromBooking(saved);
+        } catch (Exception e) {
+            // Log but do not fail the booking approval if agreement creation has an issue
+            log.warn("Could not auto-create agreement for booking {}: {}", saved.getId(), e.getMessage());
+        }
 
         return mapToResponse(saved);
     }

@@ -79,6 +79,7 @@ export default function AppRoutes() {
             <Route path="/owner/properties/:id/edit" element={<UpdateProperty />} />
             <Route path="/owner/analytics" element={<OwnerAnalytics />} />
             <Route path="/owner/agreements" element={<OwnerAgreements />} />
+            <Route path="/owner/agreements/:id" element={<AgreementDetail />} />
             <Route path="/owner/reviews" element={<OwnerReviews />} />
             <Route path="/owner/milestones" element={<OwnerMilestones />} />
 
