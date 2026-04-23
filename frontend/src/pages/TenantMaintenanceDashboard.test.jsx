@@ -13,6 +13,14 @@ vi.mock("../services/api", () => ({
   getTenantMaintenance: (...args) => mockGetTenantMaintenance(...args),
 }));
 
+vi.mock("../components/Navbar", () => ({
+  default: () => <div>Navbar</div>,
+}));
+
+vi.mock("../components/Footer", () => ({
+  default: () => <div>Footer</div>,
+}));
+
 describe("TenantMaintenanceDashboard", () => {
   beforeEach(() => {
     mockGetTenantMaintenance.mockReset();
@@ -52,7 +60,7 @@ describe("TenantMaintenanceDashboard", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("No maintenance requests yet.")).toBeInTheDocument();
+      expect(screen.getByText("No maintenance requests yet")).toBeInTheDocument();
     });
   });
 
@@ -66,7 +74,7 @@ describe("TenantMaintenanceDashboard", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText("No maintenance requests yet.")).toBeInTheDocument();
+      expect(screen.getByText("No maintenance requests yet")).toBeInTheDocument();
     });
   });
 });

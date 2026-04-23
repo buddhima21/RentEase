@@ -23,6 +23,14 @@ vi.mock("../services/api", () => ({
   startMaintenance: (...args) => mockStartMaintenance(...args),
 }));
 
+vi.mock("../components/Navbar", () => ({
+  default: () => <div>Navbar</div>,
+}));
+
+vi.mock("../components/Footer", () => ({
+  default: () => <div>Footer</div>,
+}));
+
 vi.mock("react-router-dom", async () => {
   const actual = await vi.importActual("react-router-dom");
   return {

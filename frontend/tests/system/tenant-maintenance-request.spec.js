@@ -58,5 +58,5 @@ test('tenant creates maintenance request and lands on dashboard', async ({ page 
   await page.getByRole('button', { name: 'Submit Request' }).click();
 
   await expect(page).toHaveURL(/\/tenant\/maintenance\/dashboard$/);
-  await expect(page.getByText('Tenant Maintenance Dashboard')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Maintenance' })).toBeVisible();
 });

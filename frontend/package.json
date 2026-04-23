@@ -6,8 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "test": "vitest run",
-    "test:e2e": "playwright test",
+    "test": "npm run test:integration",
+    "test:integration": "vitest run",
+    "test:system": "playwright test",
+    "test:e2e": "npm run test:system",
     "lint": "eslint .",
     "preview": "vite preview"
   },

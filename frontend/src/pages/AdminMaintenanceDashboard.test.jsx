@@ -4,17 +4,19 @@ import { BrowserRouter } from "react-router-dom";
 import { NotificationsProvider } from "../context/NotificationsContext";
 import AdminMaintenanceDashboard from "./AdminMaintenanceDashboard";
 
-const mockAssignMaintenanceTechnician = vi.fn();
+const mockCreateTechnicianAccount = vi.fn();
 const mockCloseMaintenance = vi.fn();
 const mockGetAdminMaintenanceQueue = vi.fn();
 const mockGetMaintenanceTechnicians = vi.fn();
+const mockScheduleMaintenance = vi.fn();
 const mockUpdateMaintenancePriority = vi.fn();
 
 vi.mock("../services/api", () => ({
-  assignMaintenanceTechnician: (...args) => mockAssignMaintenanceTechnician(...args),
+  createTechnicianAccount: (...args) => mockCreateTechnicianAccount(...args),
   closeMaintenance: (...args) => mockCloseMaintenance(...args),
   getAdminMaintenanceQueue: (...args) => mockGetAdminMaintenanceQueue(...args),
   getMaintenanceTechnicians: (...args) => mockGetMaintenanceTechnicians(...args),
+  scheduleMaintenance: (...args) => mockScheduleMaintenance(...args),
   updateMaintenancePriority: (...args) => mockUpdateMaintenancePriority(...args),
 }));
 
@@ -41,10 +43,11 @@ describe("AdminMaintenanceDashboard", () => {
       token: 'test-admin-token'
     }));
 
-    mockAssignMaintenanceTechnician.mockReset();
+    mockCreateTechnicianAccount.mockReset();
     mockCloseMaintenance.mockReset();
     mockGetAdminMaintenanceQueue.mockReset();
     mockGetMaintenanceTechnicians.mockReset();
+    mockScheduleMaintenance.mockReset();
     mockUpdateMaintenancePriority.mockReset();
 
     mockGetAdminMaintenanceQueue.mockResolvedValue({
@@ -83,8 +86,9 @@ describe("AdminMaintenanceDashboard", () => {
         ],
       },
     });
-    mockAssignMaintenanceTechnician.mockResolvedValue({ data: { success: true } });
+    mockCreateTechnicianAccount.mockResolvedValue({ data: { success: true } });
     mockCloseMaintenance.mockResolvedValue({ data: { success: true } });
+    mockScheduleMaintenance.mockResolvedValue({ data: { success: true } });
     mockUpdateMaintenancePriority.mockResolvedValue({ data: { success: true } });
   });
 
@@ -106,19 +110,28 @@ describe("AdminMaintenanceDashboard", () => {
     expect(mockGetMaintenanceTechnicians).toHaveBeenCalled();
   });
 
-  it("assigns technician and reloads queue", async () => {
+  it("dispatches technician and reloads queue", async () => {
     renderWithRouter(<AdminMaintenanceDashboard />);
 
     await waitFor(() => {
       expect(screen.getByText("AC breakdown")).toBeInTheDocument();
     });
 
-    fireEvent.change(screen.getByLabelText("Technician for AC breakdown"), { target: { value: "tech-1" } });
+    fireEvent.click(screen.getByRole("button", { name: /Dispatch AC breakdown/i }));
 
-    fireEvent.click(screen.getByRole("button", { name: "Assign technician for AC breakdown" }));
+    await screen.findByRole("heading", { name: "Dispatch Technician" });
+
+    fireEvent.change(screen.getByLabelText("Assign technician"), { target: { value: "tech-1" } });
+    fireEvent.change(screen.getByLabelText("Schedule time"), { target: { value: "2026-04-24T10:30" } });
+
+    fireEvent.click(screen.getByRole("button", { name: "Dispatch request" }));
 
     await waitFor(() => {
-      expect(mockAssignMaintenanceTechnician).toHaveBeenCalledWith("req-1", { technicianId: "tech-1" });
+      expect(mockScheduleMaintenance).toHaveBeenCalledWith("req-1", {
+        technicianId: "tech-1",
+        scheduledAt: "2026-04-24T10:30",
+        adminNotes: "",
+      });
     });
 
     expect(mockGetAdminMaintenanceQueue).toHaveBeenCalledTimes(2);
@@ -131,8 +144,8 @@ describe("AdminMaintenanceDashboard", () => {
       expect(screen.getByText("Pipe leak")).toBeInTheDocument();
     });
 
-    fireEvent.change(screen.getByPlaceholderText("Closure note"), { target: { value: "Verified by admin" } });
-    fireEvent.click(screen.getByRole("button", { name: "Close Pipe leak" }));
+    fireEvent.change(screen.getByPlaceholderText(/Closure note/i), { target: { value: "Verified by admin" } });
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
 
     await waitFor(() => {
       expect(mockCloseMaintenance).toHaveBeenCalledWith("req-2", "Verified by admin");
@@ -146,28 +159,27 @@ describe("AdminMaintenanceDashboard", () => {
       expect(screen.getByText("AC breakdown")).toBeInTheDocument();
     });
 
-    fireEvent.change(screen.getByLabelText("Priority for AC breakdown"), { target: { value: "EMERGENCY" } });
-
-    fireEvent.click(screen.getByRole("button", { name: "Save priority for AC breakdown" }));
+    fireEvent.change(screen.getAllByTitle("Change Priority")[0], { target: { value: "EMERGENCY" } });
 
     await waitFor(() => {
       expect(mockUpdateMaintenancePriority).toHaveBeenCalledWith("req-1", "EMERGENCY");
     });
   });
 
-  it("does not assign when technician is not selected", async () => {
+  it("does not dispatch when technician is not selected", async () => {
     renderWithRouter(<AdminMaintenanceDashboard />);
 
     await waitFor(() => {
       expect(screen.getByText("AC breakdown")).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByRole("button", { name: "Assign technician for AC breakdown" }));
+    fireEvent.click(screen.getByRole("button", { name: /Dispatch AC breakdown/i }));
+    fireEvent.click(screen.getByRole("button", { name: "Dispatch request" }));
 
-    expect(mockAssignMaintenanceTechnician).not.toHaveBeenCalled();
+    expect(mockScheduleMaintenance).not.toHaveBeenCalled();
   });
 
-  it("applies queue filters and calls API with selected params", async () => {
+  it("applies queue filters on the client-side", async () => {
     renderWithRouter(<AdminMaintenanceDashboard />);
 
     await waitFor(() => {
@@ -176,15 +188,14 @@ describe("AdminMaintenanceDashboard", () => {
 
     fireEvent.change(screen.getByLabelText("Filter by status"), { target: { value: "REPORTED" } });
     fireEvent.change(screen.getByLabelText("Filter by priority"), { target: { value: "HIGH" } });
-    fireEvent.change(screen.getByLabelText("Filter by technician"), { target: { value: "tech-1" } });
+    fireEvent.change(screen.getByLabelText("Filter by technician"), { target: { value: "" } });
 
     await waitFor(() => {
-      expect(mockGetAdminMaintenanceQueue).toHaveBeenLastCalledWith({
-        priority: "HIGH",
-        status: "REPORTED",
-        technicianId: "tech-1",
-      });
+      expect(screen.getByText("AC breakdown")).toBeInTheDocument();
+      expect(screen.queryByText("Pipe leak")).not.toBeInTheDocument();
     });
+
+    expect(mockGetAdminMaintenanceQueue).toHaveBeenCalledTimes(1);
   });
 
   it("filters the queue with search across request and technician text", async () => {

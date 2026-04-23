@@ -11,6 +11,7 @@ export default function ListingModerationCard({ listing, onModerate, onViewDetai
     const isApproved = listing.status === "approved";
     const isRejected = listing.status === "rejected";
     const isDeleted = listing.status === "deleted";
+    const isLive = listing.status === "live";
 
     return (
         <div
@@ -42,6 +43,10 @@ export default function ListingModerationCard({ listing, onModerate, onViewDetai
                     ) : isDeleted ? (
                         <span className="bg-slate-200 text-slate-700 dark:text-slate-200 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded flex items-center gap-1 backdrop-blur-sm">
                             <span className="material-symbols-outlined text-sm">delete</span> Deleted
+                        </span>
+                    ) : isLive ? (
+                        <span className="bg-indigo-100 text-indigo-700 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded flex items-center gap-1 backdrop-blur-sm">
+                            <span className="material-symbols-outlined text-sm">home</span> Active Listing
                         </span>
                     ) : (
                         <span className="bg-blue-100 text-blue-700 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded flex items-center gap-1 backdrop-blur-sm">
@@ -112,7 +117,7 @@ export default function ListingModerationCard({ listing, onModerate, onViewDetai
                     >
                         <span className="material-symbols-outlined text-lg">visibility</span> View Details
                     </button>
-                    {!isApproved && !isRejected && !isDeleted && (
+                    {listing.canModerate && (
                         <>
                             <button 
                                 onClick={() => onModerate(listing.id, "REJECT")}

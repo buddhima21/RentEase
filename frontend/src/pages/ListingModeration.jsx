@@ -34,16 +34,22 @@ export default function ListingModeration() {
 
             const createdDate = parseDate(prop.createdAt);
             
+            const backendStatus = prop.status || "PENDING_APPROVAL";
+            const canModerate =
+                backendStatus === "PENDING_APPROVAL" || backendStatus === "PENDING_DELETE";
+
             return {
                 id: prop.id,
                 title: prop.title || "Untitled Property",
                 image: prop.imageUrls?.[0] || `https://source.unsplash.com/featured/?house&sig=${encodeURIComponent(prop.id)}`,
-                status: prop.status === 'PENDING_DELETE' ? 'flagged' :
-                    prop.status === 'PENDING_APPROVAL' ? 'pending' :
-                        prop.status === 'APPROVED' ? 'approved' :
-                            prop.status === 'RENTED' ? 'approved' :
-                                prop.status === 'REJECTED' ? 'rejected' :
-                                    prop.status === 'DELETED' ? 'deleted' : 'pending',
+                status: backendStatus === 'PENDING_DELETE' ? 'flagged' :
+                    backendStatus === 'PENDING_APPROVAL' ? 'pending' :
+                        backendStatus === 'APPROVED' ? 'approved' :
+                            backendStatus === 'RENTED' ? 'approved' :
+                                backendStatus === 'REJECTED' ? 'rejected' :
+                                    backendStatus === 'DELETED' ? 'deleted' : 'live',
+                backendStatus,
+                canModerate,
                 location: `${prop.address || ""}, ${prop.city || ""}`,
                 listingType: prop.propertyType || "Apartment",
                 submittedBy: {
@@ -52,7 +58,7 @@ export default function ListingModeration() {
                 },
                 submittedDate: createdDate.toLocaleDateString(),
                 createdAt: createdDate.toISOString(), 
-                flagReason: prop.status === 'PENDING_DELETE' ? prop.deleteReason || 'Owner requested deletion.' : null
+                flagReason: backendStatus === 'PENDING_DELETE' ? prop.deleteReason || 'Owner requested deletion.' : null
             };
         } catch (err) {
             console.error("Error mapping property:", prop, err);
@@ -142,6 +148,12 @@ export default function ListingModeration() {
 
     const handleModerate = async (id, action) => {
         try {
+            const listing = listings.find((item) => item.id === id);
+            if (!listing?.canModerate) {
+                alert(`This property cannot be moderated right now (current status: ${listing?.backendStatus || "UNKNOWN"}).`);
+                return;
+            }
+
             const remarks = prompt(`Enter optional remarks for ${action}:`);
             const response = await moderateProperty(id, { action, remarks: remarks || "" });
             if (response.data.success) {

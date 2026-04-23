@@ -238,6 +238,20 @@ async function setupMaintenanceRoutes(context, state) {
       return;
     }
 
+    if (method === 'PATCH' && action === 'schedule') {
+      const payload = route.request().postDataJSON() || {};
+      const technicianId = payload.technicianId;
+      const technician = state.technicians.find((item) => item.id === technicianId);
+      updateRequest(state, requestId, {
+        assignedTechnicianId: technicianId,
+        technicianName: technician?.fullName || technicianId,
+        scheduledAt: payload.scheduledAt || null,
+        status: payload.scheduledAt ? 'SCHEDULED' : 'ASSIGNED',
+      }, 'Scheduled maintenance', technician?.fullName || technicianId);
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ data: findRequest(state, requestId) }) });
+      return;
+    }
+
     if (method === 'PATCH' && action === 'priority') {
       const payload = route.request().postDataJSON() || {};
       const priority = url.searchParams.get('priority') || payload.priority;
@@ -330,9 +344,11 @@ test.describe('Maintenance Module - Full Lifecycle E2E', () => {
     await adminPage.goto('/admin/maintenance');
 
     const adminRow = adminPage.locator('tr', { hasText: 'AC Leak' });
-    await adminRow.locator('select').nth(1).selectOption('tech-1');
-    await adminRow.getByRole('button', { name: 'Assign' }).click();
-    await expect(adminRow).toContainText('Assigned');
+    await adminRow.getByRole('button', { name: /Dispatch/i }).click();
+    await adminPage.getByLabel('Assign technician').selectOption('tech-1');
+    await adminPage.getByLabel('Schedule time').fill('2026-04-24T10:30');
+    await adminPage.getByRole('button', { name: 'Dispatch request' }).click();
+    await expect(adminRow).toContainText(/Scheduled|Assigned/i);
 
     const techPage = await context.newPage();
     await setTechAuth(techPage);
@@ -360,7 +376,7 @@ test.describe('Maintenance Module - Full Lifecycle E2E', () => {
     await expect(adminPage.getByText('No requests in queue.')).toBeVisible();
 
     await tenantPage.goto('/tenant/maintenance/history');
-    await expect(tenantPage.locator('tbody tr', { hasText: 'req-1' })).toContainText('Closed');
+    await expect(tenantPage.locator('tbody tr', { hasText: 'AC Leak' })).toContainText(/Closed/i);
 
     const ownerPage = await context.newPage();
     await setOwnerAuth(ownerPage);
@@ -381,8 +397,10 @@ test.describe('Maintenance Module - Full Lifecycle E2E', () => {
     await expect(page.locator('tbody tr', { hasText: 'AC Leak' })).not.toBeVisible();
 
     const emergencyRow = page.locator('tr', { hasText: 'Electrical Hazard' });
-    await emergencyRow.locator('select').nth(1).selectOption('tech-1');
-    await emergencyRow.getByRole('button', { name: 'Assign' }).click();
+    await emergencyRow.getByRole('button', { name: /Dispatch/i }).click();
+    await page.getByLabel('Assign technician').selectOption('tech-1');
+    await page.getByLabel('Schedule time').fill('2026-04-24T10:30');
+    await page.getByRole('button', { name: 'Dispatch request' }).click();
 
     await filterSelects.nth(2).selectOption('tech-1');
     await expect(page.locator('tbody tr', { hasText: 'Electrical Hazard' })).toBeVisible();

@@ -26,22 +26,24 @@ test('admin assigns technician from maintenance queue', async ({ page }) => {
     });
   });
 
-  let assignCalled = false;
-  await page.route('**/api/v1/maintenance/req-1/assign', async (route) => {
-    assignCalled = true;
+  let scheduleCalled = false;
+  await page.route('**/api/v1/maintenance/req-1/schedule', async (route) => {
+    scheduleCalled = true;
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ data: { id: 'req-1', assignedTechnicianId: 'tech-1' } }),
+      body: JSON.stringify({ data: { id: 'req-1', assignedTechnicianId: 'tech-1', status: 'SCHEDULED' } }),
     });
   });
 
   await page.goto('/admin/maintenance');
 
-  await page.selectOption('tbody tr select:has(option[value="tech-1"])', 'tech-1');
-  await page.getByRole('button', { name: 'Assign' }).click();
+  await page.getByRole('button', { name: /Dispatch/i }).click();
+  await page.getByLabel('Assign technician').selectOption('tech-1');
+  await page.getByLabel('Schedule time').fill('2026-04-24T10:30');
+  await page.getByRole('button', { name: 'Dispatch request' }).click();
 
-  await expect.poll(() => assignCalled).toBe(true);
+  await expect.poll(() => scheduleCalled).toBe(true);
 });
 
 test('technician resolves assigned maintenance job', async ({ page }) => {

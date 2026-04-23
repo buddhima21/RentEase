@@ -13,6 +13,14 @@ vi.mock("../services/api", () => ({
   getTechnicianMaintenance: (...args) => mockGetTechnicianMaintenance(...args),
 }));
 
+vi.mock("../components/Navbar", () => ({
+  default: () => <div>Navbar</div>,
+}));
+
+vi.mock("../components/Footer", () => ({
+  default: () => <div>Footer</div>,
+}));
+
 describe("TechnicianDashboard", () => {
   beforeEach(() => {
     mockGetTechnicianMaintenance.mockReset();

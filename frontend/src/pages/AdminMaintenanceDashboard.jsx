@@ -427,6 +427,7 @@ export default function AdminMaintenanceDashboard() {
                                                             adminNotes: ""
                                                         });
                                                     }}
+                                                    aria-label={`Dispatch ${item.title}`}
                                                     className="ml-auto rounded-xl bg-blue-50 text-blue-700 px-3 py-1.5 text-xs font-bold hover:bg-blue-100 transition-colors shadow-sm border border-blue-200"
                                                 >
                                                     Dispatch
@@ -628,6 +629,7 @@ export default function AdminMaintenanceDashboard() {
                                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Assign To</label>
                                 <select
                                     required
+                                    aria-label="Assign technician"
                                     value={dispatchForm.technicianId}
                                     onChange={(e) => setDispatchForm({ ...dispatchForm, technicianId: e.target.value })}
                                     className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
@@ -643,6 +645,7 @@ export default function AdminMaintenanceDashboard() {
                                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Schedule Time</label>
                                 <input
                                     required
+                                    aria-label="Schedule time"
                                     type="datetime-local"
                                     value={dispatchForm.scheduledAt}
                                     onChange={(e) => setDispatchForm({ ...dispatchForm, scheduledAt: e.target.value })}
@@ -654,6 +657,7 @@ export default function AdminMaintenanceDashboard() {
                                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Admin Note (Optional)</label>
                                 <textarea
                                     rows="2"
+                                    aria-label="Admin note"
                                     placeholder="Any special instructions for the technician..."
                                     value={dispatchForm.adminNotes}
                                     onChange={(e) => setDispatchForm({ ...dispatchForm, adminNotes: e.target.value })}
@@ -671,6 +675,7 @@ export default function AdminMaintenanceDashboard() {
                                 </button>
                                 <button
                                     type="submit"
+                                    aria-label="Dispatch request"
                                     disabled={dispatchLoading}
                                     className="flex-1 px-4 py-3 font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center"
                                 >
