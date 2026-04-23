@@ -76,11 +76,6 @@ export default function TechnicianLogin() {
                 return;
             }
 
-            // Prevent session pollution by aggressive clearing of stale/conflicting auth
-            localStorage.removeItem("adminToken");
-            localStorage.removeItem("adminUser");
-            localStorage.removeItem("token");
-            
             login({ ...userData, role: normalizedRole });
             navigate("/technician/dashboard", { replace: true });
         } catch (err) {

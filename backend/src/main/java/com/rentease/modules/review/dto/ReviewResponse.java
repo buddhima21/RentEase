@@ -29,4 +29,6 @@ public class ReviewResponse {
     private ReviewStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private int helpfulCount;
+    private List<String> helpfulUserIds;
 }

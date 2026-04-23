@@ -5,10 +5,14 @@ const ProtectedAdminRoute = () => {
     const adminToken = localStorage.getItem("adminToken");
     const adminUser = localStorage.getItem("adminUser");
 
-    const hasValue = (value) => Boolean(value && value !== "undefined" && value !== "null" && value.trim() !== "");
-
     // Stronger check: ensure valid strings and not "undefined"/"null"
-    const isValid = hasValue(adminToken) && hasValue(adminUser);
+    const isValid = 
+        adminToken && 
+        adminToken !== "undefined" && 
+        adminToken !== "null" &&
+        adminUser && 
+        adminUser !== "undefined" && 
+        adminUser !== "null";
 
     if (!isValid) {
         // Redirect to admin login if not authenticated

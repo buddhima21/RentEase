@@ -11,17 +11,12 @@ import com.rentease.modules.user.model.User;
 import com.rentease.modules.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 @Service
 @RequiredArgsConstructor
@@ -39,7 +34,6 @@ public class PropertyService {
      * Owner creates a new property listing.
      * Status is automatically set to PENDING_APPROVAL.
      */
-    @CacheEvict(value = "approvedProperties", allEntries = true)
     public PropertyResponse createProperty(PropertyRequest request,
                                             String ownerId,
                                             String ownerName,
@@ -74,7 +68,6 @@ public class PropertyService {
      * Owner updates their property details.
      * Only allowed for APPROVED or REJECTED properties.
      */
-    @CacheEvict(value = "approvedProperties", allEntries = true)
     public PropertyResponse updateProperty(String propertyId,
                                             PropertyUpdateRequest request,
                                             String ownerId) {
@@ -112,7 +105,6 @@ public class PropertyService {
      * Owner requests deletion of their property.
      * Only allowed for APPROVED properties — sets status to PENDING_DELETE.
      */
-    @CacheEvict(value = "approvedProperties", allEntries = true)
     public PropertyResponse requestDeleteProperty(String propertyId, String ownerId, String reason) {
         Property property = findPropertyOrThrow(propertyId);
         verifyOwnership(property, ownerId);
@@ -138,11 +130,11 @@ public class PropertyService {
      * Owner fetches all their properties (regardless of status).
      */
     public List<PropertyResponse> getMyProperties(String ownerId) {
-        List<Property> props = propertyRepository.findByOwnerId(ownerId)
+        return propertyRepository.findByOwnerId(ownerId)
                 .stream()
                 .filter(p -> p.getStatus() != PropertyStatus.DELETED)
+                .map(this::mapToResponse)
                 .collect(Collectors.toList());
-        return mapToResponseList(props);
     }
 
     /**
@@ -163,7 +155,6 @@ public class PropertyService {
      * For PENDING_APPROVAL: APPROVE → APPROVED, REJECT → REJECTED
      * For PENDING_DELETE: APPROVE → DELETED (soft-delete), REJECT → APPROVED (restored)
      */
-    @CacheEvict(value = "approvedProperties", allEntries = true)
     public PropertyResponse moderateProperty(String propertyId, AdminModerationRequest request) {
         Property property = propertyRepository.findById(propertyId)
                 .orElseThrow(() -> new ResourceNotFoundException("Property", "id", propertyId));
@@ -197,16 +188,20 @@ public class PropertyService {
     public List<PropertyResponse> getPendingProperties() {
         List<PropertyStatus> pendingStatuses = Arrays.asList(
                 PropertyStatus.PENDING_APPROVAL, PropertyStatus.PENDING_DELETE);
-        List<Property> props = propertyRepository.findByStatusIn(pendingStatuses);
-        return mapToResponseList(props);
+        return propertyRepository.findByStatusIn(pendingStatuses)
+                .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 
     /**
      * Admin gets all properties (for admin dashboard overview).
      */
     public List<PropertyResponse> getAllPropertiesForAdmin() {
-        List<Property> props = propertyRepository.findAll();
-        return mapToResponseList(props);
+        return propertyRepository.findAll()
+                .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -225,11 +220,11 @@ public class PropertyService {
     /**
      * Public: Get all approved properties.
      */
-    @Cacheable("approvedProperties")
     public List<PropertyResponse> getApprovedProperties() {
-        log.debug("Cache miss — fetching approved properties from MongoDB");
-        List<Property> props = propertyRepository.findByStatus(PropertyStatus.APPROVED);
-        return mapToResponseList(props);
+        return propertyRepository.findByStatus(PropertyStatus.APPROVED)
+                .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -249,45 +244,43 @@ public class PropertyService {
      * Public: Search approved properties with optional filters.
      */
     public List<PropertyResponse> searchProperties(PropertySearchCriteria criteria) {
-        boolean hasCity = criteria.getCity() != null && !criteria.getCity().isBlank();
-        boolean hasType = criteria.getPropertyType() != null && !criteria.getPropertyType().isBlank();
-        boolean hasMinPrice = criteria.getMinPrice() != null;
-        boolean hasMaxPrice = criteria.getMaxPrice() != null;
+        // Start with all approved properties
+        List<Property> results = propertyRepository.findByStatus(PropertyStatus.APPROVED);
 
-        // ── Push as much filtering as possible to MongoDB ──────────────────
-        List<Property> results;
-
-        if (hasCity && hasType) {
-            results = propertyRepository
-                    .findByStatusAndCityContainingIgnoreCaseAndPropertyTypeIgnoreCase(
-                            PropertyStatus.APPROVED, criteria.getCity(), criteria.getPropertyType());
-        } else if (hasCity) {
-            results = propertyRepository
-                    .findByStatusAndCityContainingIgnoreCase(PropertyStatus.APPROVED, criteria.getCity());
-        } else if (hasType) {
-            results = propertyRepository
-                    .findByStatusAndPropertyTypeIgnoreCase(PropertyStatus.APPROVED, criteria.getPropertyType());
-        } else if (hasMinPrice && hasMaxPrice) {
-            results = propertyRepository
-                    .findByStatusAndPriceBetween(PropertyStatus.APPROVED,
-                            criteria.getMinPrice(), criteria.getMaxPrice());
-        } else {
-            results = propertyRepository.findByStatus(PropertyStatus.APPROVED);
+        // Apply filters
+        if (criteria.getCity() != null && !criteria.getCity().isBlank()) {
+            String cityLower = criteria.getCity().toLowerCase();
+            results = results.stream()
+                    .filter(p -> p.getCity() != null && p.getCity().toLowerCase().contains(cityLower))
+                    .collect(Collectors.toList());
         }
 
-        // ── Apply remaining in-memory filters on the reduced result set ─────
-        if (hasMinPrice && !(hasMinPrice && hasMaxPrice && !hasCity && !hasType)) {
-            double min = criteria.getMinPrice();
-            results = results.stream().filter(p -> p.getPrice() >= min).collect(Collectors.toList());
+        if (criteria.getPropertyType() != null && !criteria.getPropertyType().isBlank()) {
+            String typeLower = criteria.getPropertyType().toLowerCase();
+            results = results.stream()
+                    .filter(p -> p.getPropertyType() != null
+                            && p.getPropertyType().toLowerCase().equals(typeLower))
+                    .collect(Collectors.toList());
         }
-        if (hasMaxPrice && !(hasMinPrice && hasMaxPrice && !hasCity && !hasType)) {
-            double max = criteria.getMaxPrice();
-            results = results.stream().filter(p -> p.getPrice() <= max).collect(Collectors.toList());
+
+        if (criteria.getMinPrice() != null) {
+            results = results.stream()
+                    .filter(p -> p.getPrice() >= criteria.getMinPrice())
+                    .collect(Collectors.toList());
         }
+
+        if (criteria.getMaxPrice() != null) {
+            results = results.stream()
+                    .filter(p -> p.getPrice() <= criteria.getMaxPrice())
+                    .collect(Collectors.toList());
+        }
+
         if (criteria.getMinBedrooms() != null) {
-            int min = criteria.getMinBedrooms();
-            results = results.stream().filter(p -> p.getBedrooms() >= min).collect(Collectors.toList());
+            results = results.stream()
+                    .filter(p -> p.getBedrooms() >= criteria.getMinBedrooms())
+                    .collect(Collectors.toList());
         }
+
         if (criteria.getKeyword() != null && !criteria.getKeyword().isBlank()) {
             String kw = criteria.getKeyword().toLowerCase();
             results = results.stream()
@@ -297,7 +290,9 @@ public class PropertyService {
                     .collect(Collectors.toList());
         }
 
-        return mapToResponseList(results);
+        return results.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 
     // ══════════════════════════════════════════════════════
@@ -342,37 +337,8 @@ public class PropertyService {
         }
     }
 
-    /**
-     * Maps a list of properties to responses in bulk.
-     * <p>
-     * Fixes the N+1 query problem: instead of firing one userRepository.findById()
-     * per property, we collect all unique ownerIds and fire a SINGLE
-     * userRepository.findAllById() call, then build a lookup map.
-     * </p>
-     */
-    private List<PropertyResponse> mapToResponseList(List<Property> properties) {
-        if (properties == null || properties.isEmpty()) {
-            return List.of();
-        }
-
-        // Collect distinct owner IDs
-        List<String> ownerIds = properties.stream()
-                .map(Property::getOwnerId)
-                .distinct()
-                .collect(Collectors.toList());
-
-        // ONE database round-trip to fetch all needed users
-        Map<String, User> ownerMap = StreamSupport
-                .stream(userRepository.findAllById(ownerIds).spliterator(), false)
-                .collect(Collectors.toMap(User::getId, Function.identity()));
-
-        return properties.stream()
-                .map(p -> mapToResponseWithOwner(p, ownerMap.get(p.getOwnerId())))
-                .collect(Collectors.toList());
-    }
-
-    /** Used by list operations — owner already resolved from the batch map. */
-    private PropertyResponse mapToResponseWithOwner(Property property, User owner) {
+    private PropertyResponse mapToResponse(Property property) {
+        User owner = userRepository.findById(property.getOwnerId()).orElse(null);
         return PropertyResponse.builder()
                 .id(property.getId())
                 .title(property.getTitle())
@@ -402,11 +368,5 @@ public class PropertyService {
                 .createdAt(property.getCreatedAt())
                 .updatedAt(property.getUpdatedAt())
                 .build();
-    }
-
-    /** Used by single-property operations (get by ID, etc.) */
-    private PropertyResponse mapToResponse(Property property) {
-        User owner = userRepository.findById(property.getOwnerId()).orElse(null);
-        return mapToResponseWithOwner(property, owner);
     }
 }

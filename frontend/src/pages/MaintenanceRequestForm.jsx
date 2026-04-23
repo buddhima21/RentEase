@@ -5,8 +5,6 @@ import { createMaintenanceRequest, getTenantAgreements } from "../services/api";
 import MaintenanceBadge from "../components/maintenance/MaintenanceBadge";
 import MaintenanceSectionCard from "../components/maintenance/MaintenanceSectionCard";
 import { MAINTENANCE_PRIORITIES, MAINTENANCE_SERVICES, MAX_MAINTENANCE_IMAGES, isEmergencyPriority, toLocalDateInputValue } from "../constants/maintenance";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
 
 export default function MaintenanceRequestForm() {
     const { user } = useAuth();
@@ -67,20 +65,9 @@ export default function MaintenanceRequestForm() {
     }, [user?.id]);
 
     const handleFileChange = (e) => {
-        setError("");
         const files = Array.from(e.target.files || []);
-        const validFiles = [];
-        
-        for (const file of files) {
-            if (file.size > 5 * 1024 * 1024) {
-                setError("One or more files exceed the 5MB limit. Please choose smaller images.");
-                return;
-            }
-            validFiles.push(file);
-        }
-
         const remaining = MAX_MAINTENANCE_IMAGES - form.imageUrls.length;
-        const selected = validFiles.slice(0, remaining);
+        const selected = files.slice(0, remaining);
         selected.forEach((file) => {
             const reader = new FileReader();
             reader.onloadend = () => {
@@ -114,15 +101,11 @@ export default function MaintenanceRequestForm() {
             return;
         }
 
-        if (form.preferredDate || form.preferredTime) {
-            if (!form.preferredDate || !form.preferredTime) {
-                setError("Please select both a preferred date and time, or leave both blank.");
-                return;
-            }
-
-            const preferredDateTime = new Date(`${form.preferredDate}T${form.preferredTime}`);
-            if (preferredDateTime < new Date()) {
-                setError("Preferred date and time cannot be in the past.");
+        if (form.preferredDate) {
+            const preferredDate = new Date(`${form.preferredDate}T00:00:00`);
+            const currentDate = new Date(`${today}T00:00:00`);
+            if (preferredDate < currentDate) {
+                setError("Preferred date cannot be in the past.");
                 return;
             }
         }
@@ -144,9 +127,8 @@ export default function MaintenanceRequestForm() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 flex flex-col">
-            <Navbar />
-            <div className="flex-1 w-full mx-auto max-w-4xl p-6 md:p-10 space-y-6">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 p-6 md:p-10">
+            <div className="mx-auto max-w-4xl space-y-6">
                 <MaintenanceSectionCard
                     eyebrow={isEmergency ? "Emergency Request" : "Maintenance Request"}
                     title={isEmergency ? "Emergency maintenance request" : "Maintenance request"}
@@ -240,7 +222,6 @@ export default function MaintenanceRequestForm() {
                     </form>
                 </MaintenanceSectionCard>
             </div>
-            <Footer />
         </div>
     );
 }

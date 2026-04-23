@@ -264,7 +264,7 @@ export default function OwnerFinance() {
     };
 
     const tenant = tenants.find((t) => t.id === tenantId);
-    const rental = tenant ? parseFloat(tenant.rentalFee) || 0 : 0;
+    const rental = tenant ? tenant.rentalFee : 0;
     const elec = parseFloat(electricity) || 0;
     const wat = parseFloat(water) || 0;
     const extraTotal = extras.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);

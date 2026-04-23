@@ -1,15 +1,13 @@
-import React from "react";
-import Sidebar from "../components/owner/dashboard/Sidebar";
-import UserDropdown from "../components/UserDropdown";
-import { useAuth } from "../context/AuthContext";
-import { ownerProfile } from "../data/ownerDashboardData";
+import React, { useState, useEffect } from "react";
+import AdminSidebar from "../components/admin/dashboard/AdminSidebar";
+import AdminProfileDropdown from "../components/admin/dashboard/AdminProfileDropdown";
+import { getSystemAnalytics } from "../services/api";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, PieChart, Pie, Cell
 } from "recharts";
-
-import axios from "axios";
 
 // --- Mock Data (Fallbacks for Demo) ---
 const revenueData = [
@@ -81,58 +79,9 @@ const ChartContainer = ({ title, subtitle, children, className = "" }) => (
   </div>
 );
 
-const MilestoneCard = ({ milestone, index }) => (
-  <motion.div
-    initial={{ opacity: 0, y: 30 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.6, delay: index * 0.1 }}
-    whileHover={{ y: -5, scale: 1.01 }}
-    className="relative group h-full"
-  >
-    {/* Animated background glow */}
-    <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-teal-400 rounded-3xl opacity-0 group-hover:opacity-10 blur-xl transition-all duration-500"></div>
-    
-    <div className="relative h-full bg-white dark:bg-slate-900 rounded-[2rem] p-8 border border-slate-100 dark:border-slate-700/50 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex flex-col justify-between overflow-hidden">
-      {/* Decorative background shape */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 dark:bg-slate-800/50 rounded-full -mr-16 -mt-16 group-hover:bg-emerald-50 transition-colors duration-700"></div>
-
-      <div className="relative z-10 flex flex-col h-full">
-        <div className="flex justify-between items-start mb-6">
-          <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
-            <span className="material-symbols-outlined text-[26px]">terminal</span>
-          </div>
-          <div className="flex items-center gap-2 px-3 py-1 bg-emerald-50 border border-emerald-100 rounded-full">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-            <span className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">{milestone.status}</span>
-          </div>
-        </div>
-
-        <h3 className="text-xl font-black text-slate-900 dark:text-white mb-3 group-hover:text-emerald-600 transition-colors">{milestone.title}</h3>
-        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed mb-6">
-          {milestone.description}
-        </p>
-
-        <div className="mt-auto space-y-3">
-          <div className="flex justify-between items-center text-[11px] font-black uppercase tracking-wider text-slate-400">
-            <span>Progress Efficiency</span>
-            <span className="text-slate-900 dark:text-white">{milestone.progress}%</span>
-          </div>
-          <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-            <motion.div 
-              initial={{ width: 0 }}
-              animate={{ width: `${milestone.progress}%` }}
-              transition={{ duration: 1, delay: 0.5 }}
-              className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  </motion.div>
-);
-
-export default function OwnerAnalytics() {
-  const { user, logout } = useAuth();
+export default function AdminAnalytics() {
+  const navigate = useNavigate();
+  const [adminUser, setAdminUser] = useState(null);
   
   // States for dynamic data
   const [realStats, setRealStats] = React.useState(null);
@@ -141,20 +90,58 @@ export default function OwnerAnalytics() {
   const [exporting, setExporting] = React.useState(false);
   const [isExported, setIsExported] = React.useState(false);
 
-  // Fetch real-time analytics data
-  React.useEffect(() => {
-    const fetchAnalytics = async () => {
-      try {
-        const response = await axios.get("http://localhost:8080/api/v1/analytics/overview");
-        if (response.data && response.data.data) {
-          setRealStats(response.data.data);
+  useEffect(() => {
+    const checkAuthAndFetch = async () => {
+        let isAdmin = false;
+        try {
+            const token = localStorage.getItem("adminToken");
+            const stored = localStorage.getItem("adminUser");
+            if (token && stored) {
+                const parsed = JSON.parse(stored);
+                if (parsed.role === "ADMIN") {
+                    setAdminUser(parsed);
+                    isAdmin = true;
+                }
+            }
+        } catch {
+            localStorage.removeItem("adminToken");
+            localStorage.removeItem("adminUser");
         }
-      } catch (error) {
-        console.error("Failed to fetch analytics:", error);
-      }
+
+        if (isAdmin) {
+            fetchAnalytics();
+        } else {
+            navigate("/admin/login");
+        }
     };
-    fetchAnalytics();
-  }, []);
+
+    checkAuthAndFetch();
+  }, [navigate]);
+
+  // Fetch real-time analytics data
+  const fetchAnalytics = async () => {
+    try {
+      const [analyticsRes, reviewsRes] = await Promise.all([
+        getSystemAnalytics(),
+        getAllReviews().catch(() => ({ data: { data: [] } }))
+      ]);
+
+      if (analyticsRes.data && analyticsRes.data.data) {
+        // Calculate average rating from real reviews
+        const reviews = reviewsRes.data.data || [];
+        const avgRating = reviews.length > 0 
+          ? (reviews.reduce((acc, r) => acc + (r.rating || 0), 0) / reviews.length).toFixed(1)
+          : "4.8"; // Realistic fallback
+
+        setRealStats({
+          ...analyticsRes.data.data,
+          averageRating: avgRating
+        });
+      }
+    } catch (error) {
+      console.error("Failed to fetch analytics:", error);
+    }
+  };
 
   const handleExport = () => {
     setExporting(true);
@@ -169,7 +156,7 @@ export default function OwnerAnalytics() {
       const kpis = [
         ["KPIs", "Total Revenue", `Rs. ${realStats?.totalRevenue / 1000 || 2845.9}k`, "+12.5%"],
         ["KPIs", "Active Bookings", `${realStats?.activeBookings || 24}`, "+8.2%"],
-        ["KPIs", "Avg. Rating", "4.8", "+0.3"],
+        ["KPIs", "Avg. Rating", `${realStats?.averageRating || 4.8}`, "+0.3"],
         ["KPIs", "Total Properties", `${realStats?.totalProperties || 12}`, "N/A"],
       ];
 
@@ -243,7 +230,7 @@ export default function OwnerAnalytics() {
         )}
       </AnimatePresence>
       {/* Sidebar */}
-      <Sidebar />
+      <AdminSidebar />
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 font-sans">
@@ -317,7 +304,7 @@ export default function OwnerAnalytics() {
             </button>
 
             <div className="h-8 w-px bg-slate-200" />
-            {user && <UserDropdown user={user} onLogout={logout} />}
+            {adminUser && <AdminProfileDropdown adminUser={adminUser} />}
           </div>
         </header>
 
@@ -344,7 +331,7 @@ export default function OwnerAnalytics() {
             />
             <KPIStatCard 
               title="Avg. Rating" 
-              value="4.8" 
+              value={realStats?.averageRating || "4.8"} 
               icon="star" 
               trend="+0.3" 
               iconBg="bg-emerald-50"
@@ -363,7 +350,7 @@ export default function OwnerAnalytics() {
             {/* Revenue Overview */}
             <ChartContainer 
               title="Revenue Overview" 
-              subtitle="Monthly revenue for current active properties" 
+              subtitle="Monthly revenue for platform properties" 
               className="xl:col-span-2"
             >
               <ResponsiveContainer width="100%" height="100%">
@@ -406,7 +393,7 @@ export default function OwnerAnalytics() {
             {/* Property Status */}
             <ChartContainer 
               title="Property Status" 
-              subtitle="Current occupancy rates"
+              subtitle="Current platform occupancy rates"
             >
               <div className="relative h-full w-full flex items-center justify-center">
                 <ResponsiveContainer width="100%" height="100%">
@@ -438,7 +425,7 @@ export default function OwnerAnalytics() {
           {/* Lower Grid: Weekly Bookings & Alerts */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
             {/* Weekly Bookings */}
-            <ChartContainer title="Weekly Bookings" subtitle="Bookings activity this week">
+            <ChartContainer title="Weekly Bookings" subtitle="Platform bookings activity this week">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={weeklyBookings}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />

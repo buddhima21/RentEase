@@ -11,8 +11,6 @@ import {
     resumeMaintenance,
 } from "../services/api";
 import { MAX_MAINTENANCE_IMAGES } from "../constants/maintenance";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
 
 const CHECKLIST_ITEMS = [
     "Inspect issue",
@@ -71,17 +69,9 @@ export default function TechnicianJobDetails() {
             const stored = localStorage.getItem(getCompletionDraftKey(jobId));
             if (stored) {
                 const parsed = JSON.parse(stored);
-                if (parsed.completionImages && Array.isArray(parsed.completionImages)) {
-                    setCompletionImages(parsed.completionImages.slice(0, MAX_MAINTENANCE_IMAGES));
-                } else if (Array.isArray(parsed)) {
-                    // Backward compatibility for old drafts
+                if (Array.isArray(parsed)) {
                     setCompletionImages(parsed.slice(0, MAX_MAINTENANCE_IMAGES));
                 }
-                
-                if (parsed.summary) setSummary(parsed.summary);
-                if (parsed.notes) setNotes(parsed.notes);
-                if (parsed.partsUsed) setPartsUsed(parsed.partsUsed);
-                if (parsed.checklist && Array.isArray(parsed.checklist)) setChecklist(parsed.checklist);
             }
         } catch {
             // Ignore malformed local draft payloads.
@@ -90,14 +80,8 @@ export default function TechnicianJobDetails() {
 
     useEffect(() => {
         if (!jobId) return;
-        localStorage.setItem(getCompletionDraftKey(jobId), JSON.stringify({
-            completionImages,
-            summary,
-            notes,
-            partsUsed,
-            checklist
-        }));
-    }, [jobId, completionImages, summary, notes, partsUsed, checklist]);
+        localStorage.setItem(getCompletionDraftKey(jobId), JSON.stringify(completionImages));
+    }, [jobId, completionImages]);
 
     const runAction = async (action, fallbackMessage, reloadAfter = true) => {
         setBusy(true);
@@ -171,21 +155,12 @@ export default function TechnicianJobDetails() {
     };
 
     if (!job) {
-        return (
-            <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 flex flex-col">
-                <Navbar />
-                <div className="flex-1 flex items-center justify-center p-8 text-slate-600 dark:text-slate-300">
-                    {error || "Unable to load job."}
-                </div>
-                <Footer />
-            </div>
-        );
+        return <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 p-8 text-slate-600 dark:text-slate-300">{error || "Unable to load job."}</div>;
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 flex flex-col">
-            <Navbar />
-            <div className="flex-1 w-full mx-auto max-w-5xl p-6 md:p-10 space-y-6">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 p-6 md:p-10">
+            <div className="mx-auto max-w-5xl space-y-6">
                 <MaintenanceSectionCard
                     eyebrow="Technician Job"
                     title={job.title}
@@ -281,7 +256,6 @@ export default function TechnicianJobDetails() {
                     </div>
                 </MaintenanceSectionCard>
             </div>
-            <Footer />
         </div>
     );
 }

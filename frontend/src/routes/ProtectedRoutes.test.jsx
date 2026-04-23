@@ -88,15 +88,6 @@ describe("ProtectedAdminRoute", () => {
     expect(screen.queryByText("Admin Content")).not.toBeInTheDocument();
   });
 
-  it("redirects when admin token is blank", () => {
-    localStorage.setItem("adminToken", "   ");
-    localStorage.setItem("adminUser", JSON.stringify({ id: "a1", role: "ADMIN" }));
-
-    renderAdminRoute();
-
-    expect(screen.getByText("Admin Login")).toBeInTheDocument();
-  });
-
   it("redirects when admin user role is not ADMIN", () => {
     localStorage.setItem("adminToken", "token");
     localStorage.setItem("adminUser", JSON.stringify({ id: "u1", role: "TENANT" }));

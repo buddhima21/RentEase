@@ -112,7 +112,6 @@ public class MaintenanceService {
 
         List<User> admins = userRepository.findByRole(UserRole.ADMIN);
         maintenanceNotificationService.notifyAdminsOnCreated(admins, saved, tenant, property);
-        maintenanceNotificationService.notifyTenantSubmitted(tenant, saved);
 
         return mapToResponse(saved);
     }
@@ -332,23 +331,11 @@ public class MaintenanceService {
                 throw new BadRequestException("Scheduled user must have TECHNICIAN role");
             }
             validateTechnicianCapacity(request.getTechnicianId(), maintenanceRequest.getId());
-            boolean isRescheduled = maintenanceRequest.getAssignedTechnicianId() != null
-                    && maintenanceRequest.getAssignedTechnicianId().equals(request.getTechnicianId());
             maintenanceRequest.setAssignedTechnicianId(request.getTechnicianId());
             maintenanceRequest.setAssignedAt(LocalDateTime.now());
             Property property = maintenanceRequest.getPropertyId() == null ? null : propertyRepository.findById(maintenanceRequest.getPropertyId()).orElse(null);
             User tenant = maintenanceRequest.getTenantId() == null ? null : userRepository.findById(maintenanceRequest.getTenantId()).orElse(null);
-            if (isRescheduled) {
-                // Technician already assigned — this is a schedule update, not a new assignment
-                maintenanceNotificationService.notifyTechnicianScheduleUpdated(technician, maintenanceRequest);
-            } else {
-                maintenanceNotificationService.notifyTechnicianAssigned(technician, maintenanceRequest, tenant, property);
-            }
-        } else if (maintenanceRequest.getAssignedTechnicianId() != null) {
-            // No new technician provided but one is already assigned — just a schedule time update
-            userRepository.findById(maintenanceRequest.getAssignedTechnicianId()).ifPresent(
-                    technician -> maintenanceNotificationService.notifyTechnicianScheduleUpdated(technician, maintenanceRequest)
-            );
+            maintenanceNotificationService.notifyTechnicianAssigned(technician, maintenanceRequest, tenant, property);
         }
         if (request.getAdminNotes() != null && !request.getAdminNotes().isBlank()) {
             maintenanceRequest.setAdminNotes(request.getAdminNotes());
@@ -434,15 +421,6 @@ public class MaintenanceService {
         );
 
         MaintenanceRequest updated = maintenanceRepository.save(request);
-
-        // Notify tenant their cancellation is confirmed
-        userRepository.findById(updated.getTenantId())
-                .ifPresent(tenant -> maintenanceNotificationService.notifyTenantCancellationConfirmed(tenant, updated));
-        // Notify admins so they can un-schedule any technician visit
-        List<User> admins = userRepository.findByRole(UserRole.ADMIN);
-        userRepository.findById(updated.getTenantId())
-                .ifPresent(tenant -> maintenanceNotificationService.notifyAdminTenantCancelled(admins, updated, tenant));
-
         return mapToResponse(updated);
     }
 
@@ -551,9 +529,6 @@ public class MaintenanceService {
 
         MaintenanceRequest updated = maintenanceRepository.save(request);
         notifyTenantForUpdatedRequest(updated);
-        // Notify admins that a resolution is pending their closure review
-        List<User> admins = userRepository.findByRole(UserRole.ADMIN);
-        maintenanceNotificationService.notifyAdminResolved(admins, updated);
         return mapToResponse(updated);
     }
 
@@ -715,21 +690,6 @@ public class MaintenanceService {
             default -> SLA_MEDIUM;
         };
         return baseTime.plus(target);
-    }
-
-    /**
-     * Returns all active requests whose SLA deadline has passed.
-     * Used by the hourly SLA breach scheduler.
-     */
-    public List<MaintenanceRequest> findSlaBreachedActiveRequests() {
-        return maintenanceRepository.findAll().stream()
-                .filter(r -> r.getSlaDueAt() != null
-                        && r.getSlaDueAt().isBefore(LocalDateTime.now())
-                        && r.getStatus() != MaintenanceStatus.RESOLVED
-                        && r.getStatus() != MaintenanceStatus.CLOSED
-                        && r.getStatus() != MaintenanceStatus.CANCELLED
-                        && r.getStatus() != MaintenanceStatus.DECLINED)
-                .collect(Collectors.toList());
     }
 
     @Transactional

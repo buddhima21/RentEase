@@ -50,4 +50,8 @@ public class Review {
 
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+    // Engagement Metrics
+    private int helpfulCount = 0;
+    private List<String> helpfulUserIds; // IDs of users who found this review helpful
 }

@@ -48,6 +48,8 @@ import TechnicianDashboard from "../pages/TechnicianDashboard";
 import TechnicianJobDetails from "../pages/TechnicianJobDetails";
 import TechnicianLogin from "../pages/TechnicianLogin";
 import OwnerMaintenanceOverview from "../pages/OwnerMaintenanceOverview";
+import AdminReviews from "../pages/AdminReviews";
+import AdminAnalytics from "../pages/AdminAnalytics";
 
 export default function AppRoutes() {
     return (
@@ -116,6 +118,8 @@ export default function AppRoutes() {
                 <Route path="/admin/bookings" element={<AdminBookings />} />
                 <Route path="/admin/maintenance" element={<AdminMaintenanceDashboard />} />
                 <Route path="/admin/maintenance/calendar" element={<MaintenanceCalendar />} />
+                <Route path="/admin/reviews" element={<AdminReviews />} />
+                <Route path="/admin/analytics" element={<AdminAnalytics />} />
             </Route>
         </Routes>
     );
