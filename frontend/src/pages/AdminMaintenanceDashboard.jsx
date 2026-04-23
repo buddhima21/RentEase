@@ -15,6 +15,7 @@ import {
     getMaintenanceTechnicians,
     updateMaintenancePriority,
     getAllPropertiesForAdmin,
+    createTechnicianAccount,
 } from "../services/api";
 
 const STATUS_OPTIONS = [
@@ -42,7 +43,6 @@ export default function AdminMaintenanceDashboard() {
     const [authLoading, setAuthLoading] = useState(true);
     const [queue, setQueue] = useState([]);
     const [techs, setTechs] = useState([]);
-    const [selectedTechByRequest, setSelectedTechByRequest] = useState({});
     const [filters, setFilters] = useState({ status: "", priority: "", technicianId: "", propertyId: "" });
     const [allProperties, setAllProperties] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -50,8 +50,17 @@ export default function AdminMaintenanceDashboard() {
     const [closeNotes, setCloseNotes] = useState({});
     const [loadError, setLoadError] = useState("");
     const [actionError, setActionError] = useState("");
-    const [sortBy, setSortBy] = useState("newest");
-    const [isSortOpen, setIsSortOpen] = useState(false);
+
+    // Create Technician State
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [createLoading, setCreateLoading] = useState(false);
+    const [createError, setCreateError] = useState("");
+    const [createForm, setCreateForm] = useState({
+        fullName: "",
+        email: "",
+        phone: "",
+        password: "",
+    });
 
     useEffect(() => {
         try {
@@ -77,7 +86,7 @@ export default function AdminMaintenanceDashboard() {
         }
     }, []);
 
-    const load = async (params = filterParams) => {
+    const load = async () => {
         try {
             setLoading(true);
             setLoadError("");
@@ -99,20 +108,8 @@ export default function AdminMaintenanceDashboard() {
     };
 
     useEffect(() => {
-        load();
-    }, [filters.status, filters.priority, filters.technicianId, filters.propertyId]);
-
-    const assign = async (requestId) => {
-        const technicianId = selectedTechByRequest[requestId];
-        if (!technicianId) return;
-        try {
-            setActionError("");
-            await assignMaintenanceTechnician(requestId, { technicianId });
-            load();
-        } catch (err) {
-            setActionError(err?.response?.data?.message || "Unable to assign technician.");
-        }
-    };
+        if (adminUser) load();
+    }, [adminUser, filters.status, filters.priority, filters.technicianId, filters.propertyId]);
 
     const savePriority = async (requestId) => {
         const priority = priorityDrafts[requestId];
@@ -136,6 +133,42 @@ export default function AdminMaintenanceDashboard() {
             setActionError(err?.response?.data?.message || "Unable to close request.");
         }
     };
+
+    const handleCreateTechnician = async (e) => {
+        e.preventDefault();
+        setCreateLoading(true);
+        setCreateError("");
+        try {
+            await createTechnicianAccount(createForm);
+            setShowCreateModal(false);
+            setCreateForm({ fullName: "", email: "", phone: "", password: "" });
+            load();
+        } catch (err) {
+            setCreateError(err?.response?.data?.message || "Failed to create technician account.");
+        } finally {
+            setCreateLoading(false);
+        }
+    };
+
+    // Derived Stats
+    const queueStats = useMemo(() => {
+        return {
+            requests: queue.length,
+            emergency: queue.filter((i) => i.priority === "EMERGENCY").length,
+            assigned: queue.filter((i) => i.assignedTechnicianId || i.technicianName).length,
+            openTechs: techs.length,
+        };
+    }, [queue, techs]);
+
+    const technicianAssignments = useMemo(() => {
+        const map = new Map();
+        queue.forEach((item) => {
+            if (item.assignedTechnicianId) {
+                map.set(item.assignedTechnicianId, (map.get(item.assignedTechnicianId) || 0) + 1);
+            }
+        });
+        return map;
+    }, [queue]);
 
     if (authLoading) {
         return (
@@ -200,7 +233,6 @@ export default function AdminMaintenanceDashboard() {
 
                     <MaintenanceSectionCard eyebrow="Filters" title="Operational filters" description="Filter the request queue by status, priority, or assigned technician.">
                         <div className="flex flex-wrap items-center gap-4">
-                            {/* Status Filter */}
                             <div className="flex-1 min-w-[200px] flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:border-emerald-200">
                                 <span className="material-symbols-outlined text-[18px] text-slate-400">rule</span>
                                 <select 
@@ -208,19 +240,10 @@ export default function AdminMaintenanceDashboard() {
                                     value={filters.status} 
                                     onChange={(e) => setFilters((prev) => ({ ...prev, status: e.target.value }))}
                                 >
-                                    <option value="">All Statuses</option>
-                                    <option value="REPORTED">Reported</option>
-                                    <option value="ASSIGNED">Assigned</option>
-                                    <option value="SCHEDULED">Scheduled</option>
-                                    <option value="DECLINED">Declined</option>
-                                    <option value="IN_PROGRESS">In Progress</option>
-                                    <option value="RESOLVED">Resolved</option>
-                                    <option value="CANCELLED">Cancelled</option>
-                                    <option value="CLOSED">Closed</option>
+                                    {STATUS_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                                 </select>
                             </div>
 
-                            {/* Priority Filter */}
                             <div className="flex-1 min-w-[200px] flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:border-emerald-200">
                                 <span className="material-symbols-outlined text-[18px] text-slate-400">priority_high</span>
                                 <select 
@@ -228,16 +251,10 @@ export default function AdminMaintenanceDashboard() {
                                     value={filters.priority} 
                                     onChange={(e) => setFilters((prev) => ({ ...prev, priority: e.target.value }))}
                                 >
-                                    <option value="">All Priorities</option>
-                                    <option value="LOW">Low</option>
-                                    <option value="MEDIUM">Medium</option>
-                                    <option value="HIGH">High</option>
-                                    <option value="EMERGENCY">Emergency</option>
+                                    {PRIORITY_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                                 </select>
                             </div>
 
-
-                            {/* Technician Filter */}
                             <div className="flex-1 min-w-[240px] flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:border-emerald-200">
                                 <span className="material-symbols-outlined text-[18px] text-slate-400">engineering</span>
                                 <select 
@@ -260,161 +277,117 @@ export default function AdminMaintenanceDashboard() {
                                 Refresh Queue
                             </button>
                         </div>
+                    </MaintenanceSectionCard>
 
                     <MaintenanceSectionCard eyebrow="Queue" title="Maintenance requests" description="Assign technicians directly from the request list.">
                         {loadError ? <p className="mb-4 text-sm font-medium text-red-600">{loadError}</p> : null}
                         {actionError ? <p className="mb-4 text-sm font-medium text-red-600">{actionError}</p> : null}
                         
-                        <div className="flex justify-between items-center mb-6">
-                            <div className="text-sm font-bold text-slate-500 uppercase tracking-wider">
-                                {queue.length} Requests Found
-                            </div>
-                            
-                            <div className="relative">
-                                <button 
-                                    onClick={() => setIsSortOpen(!isSortOpen)}
-                                    className="flex items-center gap-2 text-slate-700 dark:text-slate-200 text-sm font-bold bg-white dark:bg-slate-900 px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:border-emerald-200 group"
-                                >
-                                    <span className="material-symbols-outlined text-[18px] group-hover:rotate-12 transition-transform text-slate-400">sort</span>
-                                    <span>{sortBy === "newest" ? "Newest First" : sortBy === "oldest" ? "Oldest First" : sortBy === "az" ? "Title: A-Z" : "Title: Z-A"}</span>
-                                    <span className={`material-symbols-outlined text-[18px] transition-transform duration-300 ${isSortOpen ? 'rotate-180' : ''}`}>expand_more</span>
-                                </button>
-
-                                <AnimatePresence>
-                                    {isSortOpen && (
-                                        <>
-                                            <div className="fixed inset-0 z-[9998]" onClick={() => setIsSortOpen(false)} />
-                                            <motion.div 
-                                                initial={{ opacity: 0, y: 5 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, y: 5 }}
-                                                className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 py-1 z-[9999]"
-                                            >
-                                                {[
-                                                    { label: "Newest First", value: "newest", icon: "schedule" },
-                                                    { label: "Oldest First", value: "oldest", icon: "history" },
-                                                    { label: "Title: A-Z", value: "az", icon: "sort_by_alpha" },
-                                                    { label: "Title: Z-A", value: "za", icon: "sort_by_alpha" }
-                                                ].map((option) => (
-                                                    <button
-                                                        key={option.value}
-                                                        onClick={() => {
-                                                            setSortBy(option.value);
-                                                            setIsSortOpen(false);
-                                                            // client side sort
-                                                            const sorted = [...queue].sort((a, b) => {
-                                                                if (option.value === "newest") return new Date(b.createdAt) - new Date(a.createdAt);
-                                                                if (option.value === "oldest") return new Date(a.createdAt) - new Date(b.createdAt);
-                                                                if (option.value === "az") return a.title.localeCompare(b.title);
-                                                                if (option.value === "za") return b.title.localeCompare(a.title);
-                                                                return 0;
-                                                            });
-                                                            setQueue(sorted);
-                                                        }}
-                                                        className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold transition-all ${
-                                                            sortBy === option.value 
-                                                            ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10' 
-                                                            : 'text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/50'
-                                                        }`}
+                        <div className="overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+                            <MaintenanceQueueTable
+                                data={queue}
+                                loading={loading}
+                                columns={[
+                                    {
+                                        header: "Request",
+                                        render: (item) => (
+                                            <div className="flex flex-col gap-0.5">
+                                                <span className="font-bold text-slate-900 dark:text-white">{item.title}</span>
+                                                <span className="text-[10px] text-slate-400 font-black uppercase tracking-wider">{item.serviceType}</span>
+                                            </div>
+                                        )
+                                    },
+                                    {
+                                        header: "Priority",
+                                        render: (item) => (
+                                            <div className="flex items-center gap-3">
+                                                <MaintenanceBadge kind="priority" value={item.priority} />
+                                                <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <select
+                                                        className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-bold"
+                                                        value={priorityDrafts[item.id] || item.priority}
+                                                        onChange={(e) => setPriorityDrafts((prev) => ({ ...prev, [item.id]: e.target.value }))}
                                                     >
-                                                        <span className="material-symbols-outlined text-[18px] opacity-70">{option.icon}</span>
-                                                        {option.label}
+                                                        <option value="LOW">Low</option>
+                                                        <option value="MEDIUM">Medium</option>
+                                                        <option value="HIGH">High</option>
+                                                        <option value="EMERGENCY">Emergency</option>
+                                                    </select>
+                                                    <button onClick={() => savePriority(item.id)} className="p-1 rounded-lg bg-slate-900 text-white hover:bg-emerald-600 transition-colors">
+                                                        <span className="material-symbols-outlined text-[14px]">done</span>
                                                     </button>
-                                                ))}
-                                            </motion.div>
-                                        </>
-                                    )}
-                                </AnimatePresence>
-                            </div>
-                        </div>
-
-                        <div className="overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-700">
-                            <table className="w-full text-sm">
-                                <thead className="bg-slate-100 dark:bg-slate-800">
-                                    <tr>
-                                        <th className="text-left p-3">Title</th>
-                                        <th className="text-left p-3">Priority</th>
-                                        <th className="text-left p-3">Status</th>
-                                        <th className="text-left p-3">Technician</th>
-                                        <th className="text-left p-3">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white dark:bg-slate-900">
-                                    {loading ? (
-                                        <tr><td className="p-6 text-center text-slate-500 dark:text-slate-400" colSpan={5}>Loading queue...</td></tr>
-                                    ) : queue.map((item) => (
-                                        <tr key={item.id} className="border-t border-slate-200 dark:border-slate-700">
-                                            <td className="p-3 font-medium text-slate-900 dark:text-white">{item.title}</td>
-                                            <td className="p-3">
-                                                <div className="flex flex-col gap-2">
-                                                    <MaintenanceBadge kind="priority" value={item.priority} />
-                                                    <div className="flex gap-2">
-                                                        <select
-                                                            className="rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 px-2 py-1 text-xs"
-                                                            value={priorityDrafts[item.id] || item.priority}
-                                                            onChange={(e) => setPriorityDrafts((prev) => ({ ...prev, [item.id]: e.target.value }))}
-                                                        >
-                                                            <option value="LOW">Low</option>
-                                                            <option value="MEDIUM">Medium</option>
-                                                            <option value="HIGH">High</option>
-                                                            <option value="EMERGENCY">Emergency</option>
-                                                        </select>
-                                                        <button type="button" className="rounded-xl border border-slate-300 dark:border-slate-600 px-2 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200" onClick={() => savePriority(item.id)}>
-                                                            Save
-                                                        </button>
-                                                    </div>
                                                 </div>
-                                            </td>
-                                            <td className="p-3"><MaintenanceBadge value={item.status} /></td>
-                                            <td className="p-3">
+                                            </div>
+                                        )
+                                    },
+                                    {
+                                        header: "Status",
+                                        render: (item) => <MaintenanceBadge value={item.status} />
+                                    },
+                                    {
+                                        header: "Technician",
+                                        render: (item) => (
+                                            <div className="relative group/tech min-w-[160px]">
+                                                <div className="flex items-center gap-2 py-1 px-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-transparent group-hover/tech:border-slate-200 transition-all">
+                                                    <div className="w-7 h-7 rounded-lg bg-white dark:bg-slate-700 flex items-center justify-center text-slate-500">
+                                                        <span className="material-symbols-outlined text-[16px]">engineering</span>
+                                                    </div>
+                                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                                                        {item.technicianName || "Unassigned"}
+                                                    </span>
+                                                </div>
                                                 <select
                                                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                                     value={""}
-                                                    onChange={(e) => {
+                                                    onChange={async (e) => {
                                                         const val = e.target.value;
                                                         if (val) {
-                                                            runAction(() => assignMaintenanceTechnician(item.id, { technicianId: val }), "Unable to assign technician.");
+                                                            try {
+                                                                await assignMaintenanceTechnician(item.id, { technicianId: val });
+                                                                load();
+                                                            } catch (err) {
+                                                                setActionError(err?.response?.data?.message || "Failed to assign.");
+                                                            }
                                                         }
                                                     }}
-                                                    title="Assign Technician"
                                                 >
-                                                    <option value="">Assign tech...</option>
+                                                    <option value="">Choose technician...</option>
                                                     {techs.map((tech) => (
                                                         <option key={tech.id} value={tech.id}>{tech.fullName}</option>
                                                     ))}
                                                 </select>
-                                            </td>
-                                            <td className="p-3">
-                                                <div className="flex flex-col gap-2">
-                                                    <button className="rounded-xl bg-primary px-3 py-2 font-semibold text-white" onClick={() => assign(item.id)}>
-                                                        Assign
-                                                    </button>
-                                                    {item.status === "RESOLVED" ? (
-                                                        <>
-                                                            <input
-                                                                className="rounded-xl border border-slate-300 bg-white px-2 py-1 text-xs"
-                                                                placeholder="Closure note"
-                                                                maxLength={1000}
-                                                                value={closeNotes[item.id] || ""}
-                                                                onChange={(e) => setCloseNotes((prev) => ({ ...prev, [item.id]: e.target.value }))}
-                                                            />
-                                                            <button className="rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700" onClick={() => closeRequest(item.id)}>
-                                                                Close
-                                                            </button>
-                                                        </>
-                                                    ) : null}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    {!loading && queue.length === 0 ? <tr><td className="p-6 text-center text-slate-500 dark:text-slate-400" colSpan={5}>{loadError ? "Unable to load queue." : "No requests in queue."}</td></tr> : null}
-                                </tbody>
-                            </table>
+                                            </div>
+                                        )
+                                    },
+                                    {
+                                        header: "Control",
+                                        render: (item) => (
+                                            <div className="flex items-center gap-2">
+                                                {item.status === "RESOLVED" ? (
+                                                    <div className="flex items-center gap-1">
+                                                        <input
+                                                            className="w-32 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs font-medium"
+                                                            placeholder="Closure note..."
+                                                            value={closeNotes[item.id] || ""}
+                                                            onChange={(e) => setCloseNotes((prev) => ({ ...prev, [item.id]: e.target.value }))}
+                                                        />
+                                                        <button onClick={() => closeRequest(item.id)} className="h-8 px-3 rounded-lg bg-emerald-600 text-white text-xs font-black uppercase tracking-wider hover:bg-emerald-700 transition-colors">
+                                                            Close
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-[10px] font-black text-slate-300 tracking-widest uppercase italic">Auto-Monitoring</span>
+                                                )}
+                                            </div>
+                                        )
+                                    }
+                                ]}
+                            />
                         </div>
                     </MaintenanceSectionCard>
 
                     <MaintenanceSectionCard 
-                        eyebrow="Technicians" 
+                        eyebrow="Staff" 
                         title="Available technicians" 
                         description="Current staff available for assignment."
                         action={
@@ -429,11 +402,23 @@ export default function AdminMaintenanceDashboard() {
                     >
                         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                             {techs.map((tech) => (
-                                <div key={tech.id} className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-5">
-                                    <p className="text-sm font-bold text-slate-900 dark:text-white">{tech.fullName}</p>
-                                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{tech.email}</p>
-                                    <p className="mt-4 text-xs font-bold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Assigned requests</p>
-                                    <p className="mt-1 text-2xl font-black text-slate-900 dark:text-white">{technicianAssignments.get(tech.id) || 0}</p>
+                                <div key={tech.id} className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 group hover:border-emerald-500/50 transition-all shadow-sm">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                            <span className="material-symbols-outlined text-[24px]">engineering</span>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Assignments</p>
+                                            <p className="text-2xl font-black text-slate-900 dark:text-white">{technicianAssignments.get(tech.id) || 0}</p>
+                                        </div>
+                                    </div>
+                                    <p className="text-lg font-black text-slate-900 dark:text-white tracking-tight">{tech.fullName}</p>
+                                    <p className="text-sm text-slate-500 font-medium mb-4">{tech.email}</p>
+                                    <div className="h-px bg-slate-100 dark:bg-slate-800 w-full mb-4" />
+                                    <div className="flex items-center gap-2 text-emerald-600">
+                                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Active Status</span>
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -442,101 +427,119 @@ export default function AdminMaintenanceDashboard() {
             </main>
 
             {/* Create Technician Modal */}
-            {showCreateModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-                    <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in duration-200">
-                        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/20">
-                            <div>
-                                <h3 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">New Technician</h3>
-                                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Provision a new staff account.</p>
-                            </div>
-                            <button 
-                                onClick={() => setShowCreateModal(false)}
-                                className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                            >
-                                <span className="material-symbols-outlined text-[18px]">close</span>
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleCreateTechnician} className="p-6 space-y-5">
-                            {createError && (
-                                <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm font-medium">
-                                    {createError}
+            <AnimatePresence>
+                {showCreateModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                        <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setShowCreateModal(false)}
+                            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+                        />
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="bg-white dark:bg-slate-900 w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-100 dark:border-slate-800 relative z-10"
+                        >
+                            <div className="p-8 border-b border-slate-50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/20 flex justify-between items-center">
+                                <div>
+                                    <h3 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">New Technician</h3>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">Provision a new staff account.</p>
                                 </div>
-                            )}
-
-                            <div>
-                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Full Name</label>
-                                <input
-                                    required
-                                    type="text"
-                                    placeholder="John Doe"
-                                    value={createForm.fullName}
-                                    onChange={(e) => setCreateForm({ ...createForm, fullName: e.target.value })}
-                                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Email Address</label>
-                                <input
-                                    required
-                                    type="email"
-                                    placeholder="john@rentease.com"
-                                    value={createForm.email}
-                                    onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
-                                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Phone Number</label>
-                                <input
-                                    type="tel"
-                                    placeholder="+1 234 567 8900"
-                                    value={createForm.phone}
-                                    onChange={(e) => setCreateForm({ ...createForm, phone: e.target.value })}
-                                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Password</label>
-                                <input
-                                    required
-                                    minLength={8}
-                                    type="password"
-                                    placeholder="Minimum 8 characters"
-                                    value={createForm.password}
-                                    onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
-                                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
-                                />
-                            </div>
-
-                            <div className="pt-2 flex gap-3">
-                                <button
-                                    type="button"
+                                <button 
                                     onClick={() => setShowCreateModal(false)}
-                                    className="flex-1 px-4 py-3 font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors"
+                                    className="w-10 h-10 flex items-center justify-center rounded-2xl bg-white dark:bg-slate-800 text-slate-500 hover:text-red-500 transition-colors shadow-sm"
                                 >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={createLoading}
-                                    className="flex-1 px-4 py-3 font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-lg shadow-emerald-500/20 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center"
-                                >
-                                    {createLoading ? (
-                                        <span className="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
-                                    ) : (
-                                        "Create Account"
-                                    )}
+                                    <span className="material-symbols-outlined text-[20px]">close</span>
                                 </button>
                             </div>
-                        </form>
+
+                            <form onSubmit={handleCreateTechnician} className="p-8 space-y-6">
+                                {createError && (
+                                    <div className="p-4 bg-red-50 border border-red-100 text-red-600 rounded-2xl text-sm font-bold flex items-center gap-3">
+                                        <span className="material-symbols-outlined text-[18px]">error</span>
+                                        {createError}
+                                    </div>
+                                )}
+
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 pl-1">Full Name</label>
+                                        <input
+                                            required
+                                            type="text"
+                                            placeholder="e.g. Michael Chen"
+                                            value={createForm.fullName}
+                                            onChange={(e) => setCreateForm({ ...createForm, fullName: e.target.value })}
+                                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl px-5 py-4 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder:text-slate-300"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 pl-1">Email Address</label>
+                                        <input
+                                            required
+                                            type="email"
+                                            placeholder="michael@rentease.com"
+                                            value={createForm.email}
+                                            onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
+                                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl px-5 py-4 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder:text-slate-300"
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 pl-1">Phone</label>
+                                            <input
+                                                type="tel"
+                                                placeholder="+94..."
+                                                value={createForm.phone}
+                                                onChange={(e) => setCreateForm({ ...createForm, phone: e.target.value })}
+                                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl px-5 py-4 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder:text-slate-300"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 pl-1">Password</label>
+                                            <input
+                                                required
+                                                minLength={8}
+                                                type="password"
+                                                placeholder="••••••••"
+                                                value={createForm.password}
+                                                onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
+                                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl px-5 py-4 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder:text-slate-300"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="pt-4 flex gap-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowCreateModal(false)}
+                                        className="flex-1 px-6 py-4 font-black text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-2xl transition-colors text-sm uppercase tracking-widest"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={createLoading}
+                                        className="flex-1 px-6 py-4 font-black text-white bg-emerald-600 hover:bg-emerald-700 rounded-2xl shadow-xl shadow-emerald-600/20 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center text-sm uppercase tracking-widest"
+                                    >
+                                        {createLoading ? (
+                                            <span className="material-symbols-outlined animate-spin text-[20px]">progress_activity</span>
+                                        ) : (
+                                            "Provision Account"
+                                        )}
+                                    </button>
+                                </div>
+                            </form>
+                        </motion.div>
                     </div>
-                </div>
-            )}
+                )}
+            </AnimatePresence>
         </div>
     );
 }

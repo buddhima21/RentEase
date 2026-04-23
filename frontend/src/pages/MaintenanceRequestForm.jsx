@@ -4,6 +4,8 @@ import { useAuth } from "../context/AuthContext";
 import { createMaintenanceRequest, getTenantAgreements } from "../services/api";
 import MaintenanceBadge from "../components/maintenance/MaintenanceBadge";
 import MaintenanceSectionCard from "../components/maintenance/MaintenanceSectionCard";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import { MAINTENANCE_PRIORITIES, MAINTENANCE_SERVICES, MAX_MAINTENANCE_IMAGES, isEmergencyPriority, toLocalDateInputValue } from "../constants/maintenance";
 
 export default function MaintenanceRequestForm() {
