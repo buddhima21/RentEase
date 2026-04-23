@@ -67,9 +67,20 @@ export default function MaintenanceRequestForm() {
     }, [user?.id]);
 
     const handleFileChange = (e) => {
+        setError("");
         const files = Array.from(e.target.files || []);
+        const validFiles = [];
+        
+        for (const file of files) {
+            if (file.size > 5 * 1024 * 1024) {
+                setError("One or more files exceed the 5MB limit. Please choose smaller images.");
+                return;
+            }
+            validFiles.push(file);
+        }
+
         const remaining = MAX_MAINTENANCE_IMAGES - form.imageUrls.length;
-        const selected = files.slice(0, remaining);
+        const selected = validFiles.slice(0, remaining);
         selected.forEach((file) => {
             const reader = new FileReader();
             reader.onloadend = () => {
@@ -103,11 +114,15 @@ export default function MaintenanceRequestForm() {
             return;
         }
 
-        if (form.preferredDate) {
-            const preferredDate = new Date(`${form.preferredDate}T00:00:00`);
-            const currentDate = new Date(`${today}T00:00:00`);
-            if (preferredDate < currentDate) {
-                setError("Preferred date cannot be in the past.");
+        if (form.preferredDate || form.preferredTime) {
+            if (!form.preferredDate || !form.preferredTime) {
+                setError("Please select both a preferred date and time, or leave both blank.");
+                return;
+            }
+
+            const preferredDateTime = new Date(`${form.preferredDate}T${form.preferredTime}`);
+            if (preferredDateTime < new Date()) {
+                setError("Preferred date and time cannot be in the past.");
                 return;
             }
         }

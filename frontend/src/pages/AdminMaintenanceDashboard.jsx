@@ -8,13 +8,14 @@ import MaintenanceQueueTable from "../components/maintenance/MaintenanceQueueTab
 import MaintenanceSectionCard from "../components/maintenance/MaintenanceSectionCard";
 import MaintenanceStatCard from "../components/maintenance/MaintenanceStatCard";
 import {
-    assignMaintenanceTechnician,
     closeMaintenance,
     getAdminMaintenanceQueue,
     getMaintenanceTechnicians,
     updateMaintenancePriority,
     createTechnicianAccount,
+    scheduleMaintenance,
 } from "../services/api";
+import { formatMaintenanceDate } from "../constants/maintenance";
 
 const STATUS_OPTIONS = [
     { value: "", label: "All statuses" },
@@ -41,8 +42,6 @@ export default function AdminMaintenanceDashboard() {
     const [authLoading, setAuthLoading] = useState(true);
     const [queue, setQueue] = useState([]);
     const [techs, setTechs] = useState([]);
-    const [selectedTechByRequest, setSelectedTechByRequest] = useState({});
-    const [technicianSearchByRequest, setTechnicianSearchByRequest] = useState({});
     const [filters, setFilters] = useState({ status: "", priority: "", technicianId: "" });
     const [searchQuery, setSearchQuery] = useState("");
     const [loading, setLoading] = useState(false);
@@ -56,6 +55,16 @@ export default function AdminMaintenanceDashboard() {
     const [createForm, setCreateForm] = useState({ fullName: "", email: "", phone: "", password: "" });
     const [createLoading, setCreateLoading] = useState(false);
     const [createError, setCreateError] = useState("");
+
+    // Dispatch Modal State
+    const [dispatchRequest, setDispatchRequest] = useState(null);
+    const [dispatchForm, setDispatchForm] = useState({
+        technicianId: "",
+        scheduledAt: "",
+        adminNotes: ""
+    });
+    const [dispatchLoading, setDispatchLoading] = useState(false);
+    const [dispatchError, setDispatchError] = useState("");
 
     const filterParams = useMemo(
         () => Object.fromEntries(Object.entries(filters).filter(([, value]) => value)),
@@ -78,11 +87,15 @@ export default function AdminMaintenanceDashboard() {
     const normalizedSearch = searchQuery.trim().toLowerCase();
 
     const filteredQueue = useMemo(() => {
-        if (!normalizedSearch) {
-            return queue;
-        }
-
         return queue.filter((item) => {
+            // Dropdown filters
+            if (filters.status && item.status !== filters.status) return false;
+            if (filters.priority && item.priority !== filters.priority) return false;
+            if (filters.technicianId && item.assignedTechnicianId !== filters.technicianId) return false;
+
+            // Search filter
+            if (!normalizedSearch) return true;
+
             const assignedTechnician = techniciansById.get(item.assignedTechnicianId);
             const technicianText = [
                 item.technicianName,
@@ -109,12 +122,15 @@ export default function AdminMaintenanceDashboard() {
 
             return queueText.includes(normalizedSearch);
         });
-    }, [normalizedSearch, queue, techniciansById]);
+    }, [normalizedSearch, queue, techniciansById, filters]);
 
     const technicianAssignments = useMemo(() => {
         const counts = new Map();
         queue.forEach((item) => {
+            // Only count active requests that are not resolved, closed, or cancelled
             if (!item.assignedTechnicianId) return;
+            if (["RESOLVED", "CLOSED", "CANCELLED", "DECLINED"].includes(item.status)) return;
+            
             counts.set(item.assignedTechnicianId, (counts.get(item.assignedTechnicianId) || 0) + 1);
         });
         return counts;
@@ -144,12 +160,12 @@ export default function AdminMaintenanceDashboard() {
         }
     }, []);
 
-    const load = async (params = filterParams) => {
+    const load = async () => {
         try {
             setLoading(true);
             setLoadError("");
             const [queueRes, techRes] = await Promise.all([
-                getAdminMaintenanceQueue(params),
+                getAdminMaintenanceQueue(),
                 getMaintenanceTechnicians(),
             ]);
             setQueue(queueRes.data?.data || []);
@@ -167,23 +183,17 @@ export default function AdminMaintenanceDashboard() {
         if (authLoading || !adminUser) {
             return;
         }
-        load(filterParams);
-    }, [authLoading, adminUser, filterParams]);
+        load();
+    }, [authLoading, adminUser]);
 
     const runAction = async (handler, fallbackMessage) => {
         try {
             setActionError("");
             await handler();
-            load(filterParams);
+            load();
         } catch (err) {
             setActionError(err?.response?.data?.message || fallbackMessage);
         }
-    };
-
-    const assign = async (requestId) => {
-        const technicianId = selectedTechByRequest[requestId];
-        if (!technicianId) return;
-        await runAction(() => assignMaintenanceTechnician(requestId, { technicianId }), "Unable to assign technician.");
     };
 
     const savePriority = async (requestId) => {
@@ -212,11 +222,35 @@ export default function AdminMaintenanceDashboard() {
             });
             setShowCreateModal(false);
             setCreateForm({ fullName: "", email: "", phone: "", password: "" });
-            load(filterParams);
+            load();
         } catch (err) {
             setCreateError(err?.response?.data?.message || "Failed to create technician account.");
         } finally {
             setCreateLoading(false);
+        }
+    };
+
+    const handleDispatchSubmit = async (e) => {
+        e.preventDefault();
+        setDispatchError("");
+        if (!dispatchForm.technicianId || !dispatchForm.scheduledAt) {
+            setDispatchError("Please select a technician and schedule a time.");
+            return;
+        }
+        setDispatchLoading(true);
+        try {
+            await scheduleMaintenance(dispatchRequest.id, {
+                technicianId: dispatchForm.technicianId,
+                scheduledAt: dispatchForm.scheduledAt,
+                adminNotes: dispatchForm.adminNotes
+            });
+            setDispatchRequest(null);
+            setDispatchForm({ technicianId: "", scheduledAt: "", adminNotes: "" });
+            load();
+        } catch (err) {
+            setDispatchError(err?.response?.data?.message || "Failed to dispatch request.");
+        } finally {
+            setDispatchLoading(false);
         }
     };
 
@@ -374,7 +408,7 @@ export default function AdminMaintenanceDashboard() {
                                 {
                                     header: "Technician",
                                     render: (item) => (
-                                        <div className="relative flex items-center gap-3">
+                                        <div className="flex items-center gap-3">
                                             <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-xs font-bold text-blue-700 dark:text-blue-400">
                                                 {(item.technicianName || item.assignedTechnicianId || "U")[0].toUpperCase()}
                                             </div>
@@ -382,29 +416,21 @@ export default function AdminMaintenanceDashboard() {
                                                 <span className="text-slate-900 dark:text-white font-semibold">
                                                     {item.technicianName || "Unassigned"}
                                                 </span>
-                                                {!item.assignedTechnicianId && (
-                                                    <span className="text-[11px] text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        Click to assign
-                                                    </span>
-                                                )}
                                             </div>
                                             {!item.assignedTechnicianId && (
-                                                <select
-                                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                                    value={""}
-                                                    onChange={(e) => {
-                                                        const val = e.target.value;
-                                                        if (val) {
-                                                            runAction(() => assignMaintenanceTechnician(item.id, { technicianId: val }), "Unable to assign technician.");
-                                                        }
+                                                <button
+                                                    onClick={() => {
+                                                        setDispatchRequest(item);
+                                                        setDispatchForm({
+                                                            technicianId: "",
+                                                            scheduledAt: item.preferredAt ? item.preferredAt.slice(0, 16) : "",
+                                                            adminNotes: ""
+                                                        });
                                                     }}
-                                                    title="Assign Technician"
+                                                    className="ml-auto rounded-xl bg-blue-50 text-blue-700 px-3 py-1.5 text-xs font-bold hover:bg-blue-100 transition-colors shadow-sm border border-blue-200"
                                                 >
-                                                    <option value="">Assign tech...</option>
-                                                    {techs.map((tech) => (
-                                                        <option key={tech.id} value={tech.id}>{tech.fullName}</option>
-                                                    ))}
-                                                </select>
+                                                    Dispatch
+                                                </button>
                                             )}
                                         </div>
                                     )
@@ -456,7 +482,7 @@ export default function AdminMaintenanceDashboard() {
                                 <div key={tech.id} className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-5">
                                     <p className="text-sm font-bold text-slate-900 dark:text-white">{tech.fullName}</p>
                                     <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{tech.email}</p>
-                                    <p className="mt-4 text-xs font-bold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Assigned requests</p>
+                                    <p className="mt-4 text-xs font-bold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Active requests</p>
                                     <p className="mt-1 text-2xl font-black text-slate-900 dark:text-white">{technicianAssignments.get(tech.id) || 0}</p>
                                 </div>
                             ))}
@@ -554,6 +580,104 @@ export default function AdminMaintenanceDashboard() {
                                         <span className="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
                                     ) : (
                                         "Create Account"
+                                    )}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Dispatch Modal */}
+            {dispatchRequest && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+                    <div className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in duration-200">
+                        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-blue-50/50 dark:bg-blue-900/20">
+                            <div>
+                                <h3 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">Dispatch Technician</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">{dispatchRequest.title} (#{dispatchRequest.id.slice(0, 6).toUpperCase()})</p>
+                            </div>
+                            <button 
+                                onClick={() => setDispatchRequest(null)}
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                            >
+                                <span className="material-symbols-outlined text-[18px]">close</span>
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleDispatchSubmit} className="p-6 space-y-5">
+                            {dispatchError && (
+                                <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm font-medium">
+                                    {dispatchError}
+                                </div>
+                            )}
+
+                            {dispatchRequest.preferredAt && (
+                                <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/30 rounded-xl flex items-start gap-3">
+                                    <span className="material-symbols-outlined text-amber-600 dark:text-amber-400 text-xl mt-0.5">event_available</span>
+                                    <div>
+                                        <p className="text-xs font-bold uppercase tracking-wider text-amber-800 dark:text-amber-500">Tenant's Preferred Time</p>
+                                        <p className="text-sm font-medium text-amber-900 dark:text-amber-300 mt-1">
+                                            {formatMaintenanceDate(dispatchRequest.preferredAt)}
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Assign To</label>
+                                <select
+                                    required
+                                    value={dispatchForm.technicianId}
+                                    onChange={(e) => setDispatchForm({ ...dispatchForm, technicianId: e.target.value })}
+                                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                >
+                                    <option value="">Select a technician...</option>
+                                    {techs.map((tech) => (
+                                        <option key={tech.id} value={tech.id}>{tech.fullName}</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Schedule Time</label>
+                                <input
+                                    required
+                                    type="datetime-local"
+                                    value={dispatchForm.scheduledAt}
+                                    onChange={(e) => setDispatchForm({ ...dispatchForm, scheduledAt: e.target.value })}
+                                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Admin Note (Optional)</label>
+                                <textarea
+                                    rows="2"
+                                    placeholder="Any special instructions for the technician..."
+                                    value={dispatchForm.adminNotes}
+                                    onChange={(e) => setDispatchForm({ ...dispatchForm, adminNotes: e.target.value })}
+                                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none"
+                                />
+                            </div>
+
+                            <div className="pt-2 flex gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setDispatchRequest(null)}
+                                    className="flex-1 px-4 py-3 font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={dispatchLoading}
+                                    className="flex-1 px-4 py-3 font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center"
+                                >
+                                    {dispatchLoading ? (
+                                        <span className="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
+                                    ) : (
+                                        "Dispatch Request"
                                     )}
                                 </button>
                             </div>
