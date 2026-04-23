@@ -22,6 +22,9 @@ public class MaintenanceResolveRequest {
     @Size(max = 2000, message = "Technician notes cannot exceed 2000 characters")
     private String technicianNotes;
 
+    @Size(max = 20, message = "A maximum of 20 parts can be listed")
+    private List<@Size(max = 120, message = "Part names cannot exceed 120 characters") String> partsUsed;
+
     @Size(max = 5, message = "A maximum of 5 completion images is allowed")
     private List<String> completionImageUrls;
 }

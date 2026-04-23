@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import Sidebar from "../components/owner/dashboard/Sidebar";
 import StatCard from "../components/owner/dashboard/StatCard";
@@ -157,6 +158,32 @@ export default function OwnerDashboard() {
                             {/* Activity List */}
                             <motion.div variants={itemVariants}>
                                 <ActivityList />
+                            </motion.div>
+
+                            <motion.div
+                                variants={itemVariants}
+                                className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-slate-700/60 shadow-lg dark:shadow-slate-900/20 p-6 hover:shadow-xl transition-shadow duration-500"
+                            >
+                                <div className="flex items-start justify-between gap-4">
+                                    <div>
+                                        <h3 className="font-bold text-lg flex items-center gap-2.5 text-slate-800 dark:text-slate-100">
+                                            <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl text-white">
+                                                <span className="material-symbols-outlined text-lg">build</span>
+                                            </div>
+                                            Maintenance
+                                        </h3>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-3 leading-6">
+                                            Review the full maintenance history for your properties in a read-only dashboard view.
+                                        </p>
+                                    </div>
+                                    <Link
+                                        to="/owner/maintenance"
+                                        className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-primary/90"
+                                    >
+                                        Open Maintenance
+                                        <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                                    </Link>
+                                </div>
                             </motion.div>
                         </div>
                     </div>

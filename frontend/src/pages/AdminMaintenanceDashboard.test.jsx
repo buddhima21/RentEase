@@ -113,9 +113,7 @@ describe("AdminMaintenanceDashboard", () => {
       expect(screen.getByText("AC breakdown")).toBeInTheDocument();
     });
 
-    const selects = screen.getAllByRole("combobox");
-    const assignmentSelect = selects[4];
-    fireEvent.change(assignmentSelect, { target: { value: "tech-1" } });
+    fireEvent.change(screen.getByLabelText("Technician for AC breakdown"), { target: { value: "tech-1" } });
 
     fireEvent.click(screen.getAllByRole("button", { name: "Assign" })[0]);
 
@@ -148,9 +146,7 @@ describe("AdminMaintenanceDashboard", () => {
       expect(screen.getByText("AC breakdown")).toBeInTheDocument();
     });
 
-    const selects = screen.getAllByRole("combobox");
-    const prioritySelect = selects[3];
-    fireEvent.change(prioritySelect, { target: { value: "EMERGENCY" } });
+    fireEvent.change(screen.getByLabelText("Priority for AC breakdown"), { target: { value: "EMERGENCY" } });
 
     fireEvent.click(screen.getAllByRole("button", { name: "Save" })[0]);
 
@@ -178,10 +174,9 @@ describe("AdminMaintenanceDashboard", () => {
       expect(screen.getByText("AC breakdown")).toBeInTheDocument();
     });
 
-    const selects = screen.getAllByRole("combobox");
-    fireEvent.change(selects[0], { target: { value: "REPORTED" } });
-    fireEvent.change(selects[1], { target: { value: "HIGH" } });
-    fireEvent.change(selects[2], { target: { value: "tech-1" } });
+    fireEvent.change(screen.getByLabelText("Filter by status"), { target: { value: "REPORTED" } });
+    fireEvent.change(screen.getByLabelText("Filter by priority"), { target: { value: "HIGH" } });
+    fireEvent.change(screen.getByLabelText("Filter by technician"), { target: { value: "tech-1" } });
 
     await waitFor(() => {
       expect(mockGetAdminMaintenanceQueue).toHaveBeenLastCalledWith({
@@ -189,6 +184,22 @@ describe("AdminMaintenanceDashboard", () => {
         status: "REPORTED",
         technicianId: "tech-1",
       });
+    });
+  });
+
+  it("filters the queue with search across request and technician text", async () => {
+    renderWithRouter(<AdminMaintenanceDashboard />);
+
+    await waitFor(() => {
+      expect(screen.getByText("AC breakdown")).toBeInTheDocument();
+      expect(screen.getByText("Pipe leak")).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByLabelText("Search maintenance requests"), { target: { value: "tech one" } });
+
+    await waitFor(() => {
+      expect(screen.getByText("Pipe leak")).toBeInTheDocument();
+      expect(screen.queryByText("AC breakdown")).not.toBeInTheDocument();
     });
   });
 

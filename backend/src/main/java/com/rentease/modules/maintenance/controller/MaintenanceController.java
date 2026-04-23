@@ -171,6 +171,27 @@ public class MaintenanceController {
         return ResponseEntity.ok(ApiResponse.success(response, "Work started"));
     }
 
+    @PatchMapping("/{id}/cancel")
+    public ResponseEntity<ApiResponse<MaintenanceResponse>> cancelRequest(
+            @PathVariable String id,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        if (!hasRole(userDetails, "TENANT")) {
+            throw new ForbiddenException("Tenant access required");
+        }
+        MaintenanceResponse response = maintenanceService.cancelRequest(id, userDetails.getId());
+        return ResponseEntity.ok(ApiResponse.success(response, "Request cancelled"));
+    }
+
+    @PatchMapping("/{id}/decline")
+    public ResponseEntity<ApiResponse<MaintenanceResponse>> declineRequest(
+            @PathVariable String id,
+            @RequestParam(required = false) String reason,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        requireTechnician(userDetails);
+        MaintenanceResponse response = maintenanceService.declineRequest(id, userDetails.getId(), reason);
+        return ResponseEntity.ok(ApiResponse.success(response, "Request declined"));
+    }
+
     @PatchMapping("/{id}/pause")
     public ResponseEntity<ApiResponse<MaintenanceResponse>> pauseRequest(
             @PathVariable String id,

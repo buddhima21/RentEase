@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import AdminNotificationsBell from "../components/admin/dashboard/AdminNotificationsBell";
 import AdminProfileDropdown from "../components/admin/dashboard/AdminProfileDropdown";
 import AdminSidebar from "../components/admin/dashboard/AdminSidebar";
 import MaintenanceBadge from "../components/maintenance/MaintenanceBadge";
+import MaintenanceQueueTable from "../components/maintenance/MaintenanceQueueTable";
 import MaintenanceSectionCard from "../components/maintenance/MaintenanceSectionCard";
 import MaintenanceStatCard from "../components/maintenance/MaintenanceStatCard";
 import {
@@ -15,6 +16,26 @@ import {
     updateMaintenancePriority,
     getAllPropertiesForAdmin,
 } from "../services/api";
+
+const STATUS_OPTIONS = [
+    { value: "", label: "All statuses" },
+    { value: "REPORTED", label: "Reported" },
+    { value: "ASSIGNED", label: "Assigned" },
+    { value: "SCHEDULED", label: "Scheduled" },
+    { value: "DECLINED", label: "Declined" },
+    { value: "IN_PROGRESS", label: "In Progress" },
+    { value: "RESOLVED", label: "Resolved" },
+    { value: "CANCELLED", label: "Cancelled" },
+    { value: "CLOSED", label: "Closed" },
+];
+
+const PRIORITY_OPTIONS = [
+    { value: "", label: "All priorities" },
+    { value: "LOW", label: "Low" },
+    { value: "MEDIUM", label: "Medium" },
+    { value: "HIGH", label: "High" },
+    { value: "EMERGENCY", label: "Emergency" },
+];
 
 export default function AdminMaintenanceDashboard() {
     const [adminUser, setAdminUser] = useState(null);
@@ -40,7 +61,13 @@ export default function AdminMaintenanceDashboard() {
                 const parsed = JSON.parse(stored);
                 if (parsed.role === "ADMIN") {
                     setAdminUser(parsed);
+                } else {
+                    localStorage.removeItem("adminToken");
+                    localStorage.removeItem("adminUser");
                 }
+            } else {
+                localStorage.removeItem("adminToken");
+                localStorage.removeItem("adminUser");
             }
         } catch {
             localStorage.removeItem("adminToken");
@@ -50,7 +77,7 @@ export default function AdminMaintenanceDashboard() {
         }
     }, []);
 
-    const load = async () => {
+    const load = async (params = filterParams) => {
         try {
             setLoading(true);
             setLoadError("");
@@ -158,26 +185,17 @@ export default function AdminMaintenanceDashboard() {
                             <p className="text-slate-500 dark:text-slate-400 font-medium mt-2 text-[15px]">Review requests, tune priorities, and dispatch technicians with one operational view.</p>
                         </div>
 
-                        <div className="flex flex-col items-end gap-3">
-                            <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-700/50 shadow-sm px-4 py-2.5 rounded-xl flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-200">
-                                <span className="material-symbols-outlined text-slate-400 text-[18px]">calendar_month</span>
-                                {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
-                            </div>
-                            <Link
-                                to="/admin/maintenance/calendar"
-                                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-semibold px-5 py-2.5 rounded-xl hover:border-emerald-300 hover:text-emerald-700 transition-all text-sm flex items-center gap-2"
-                            >
-                                <span className="material-symbols-outlined text-[18px]">event_available</span>
-                                Schedule Visits
-                            </Link>
+                        <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-700/50 shadow-sm px-4 py-2.5 rounded-xl flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-200">
+                            <span className="material-symbols-outlined text-slate-400 text-[18px]">calendar_month</span>
+                            {new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
                         </div>
                     </div>
 
                     <div className="grid gap-4 md:grid-cols-4">
-                        <MaintenanceStatCard label="Requests" value={queue.length} accent="blue" />
-                        <MaintenanceStatCard label="Emergency" value={queue.filter((item) => item.priority === "EMERGENCY").length} accent="red" />
-                        <MaintenanceStatCard label="Assigned" value={queue.filter((item) => item.assignedTechnicianId).length} accent="emerald" />
-                        <MaintenanceStatCard label="Open techs" value={techs.length} accent="slate" />
+                        <MaintenanceStatCard label="Requests" value={queueStats.requests} accent="blue" />
+                        <MaintenanceStatCard label="Emergency" value={queueStats.emergency} accent="red" />
+                        <MaintenanceStatCard label="Assigned" value={queueStats.assigned} accent="emerald" />
+                        <MaintenanceStatCard label="Open techs" value={queueStats.openTechs} accent="slate" />
                     </div>
 
                     <MaintenanceSectionCard eyebrow="Filters" title="Operational filters" description="Filter the request queue by status, priority, or assigned technician.">
@@ -242,7 +260,6 @@ export default function AdminMaintenanceDashboard() {
                                 Refresh Queue
                             </button>
                         </div>
-                    </MaintenanceSectionCard>
 
                     <MaintenanceSectionCard eyebrow="Queue" title="Maintenance requests" description="Assign technicians directly from the request list.">
                         {loadError ? <p className="mb-4 text-sm font-medium text-red-600">{loadError}</p> : null}
@@ -351,11 +368,17 @@ export default function AdminMaintenanceDashboard() {
                                             <td className="p-3"><MaintenanceBadge value={item.status} /></td>
                                             <td className="p-3">
                                                 <select
-                                                    className="rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 p-2"
-                                                    value={selectedTechByRequest[item.id] || item.assignedTechnicianId || ""}
-                                                    onChange={(e) => setSelectedTechByRequest((prev) => ({ ...prev, [item.id]: e.target.value }))}
+                                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                    value={""}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value;
+                                                        if (val) {
+                                                            runAction(() => assignMaintenanceTechnician(item.id, { technicianId: val }), "Unable to assign technician.");
+                                                        }
+                                                    }}
+                                                    title="Assign Technician"
                                                 >
-                                                    <option value="">Select technician</option>
+                                                    <option value="">Assign tech...</option>
                                                     {techs.map((tech) => (
                                                         <option key={tech.id} value={tech.id}>{tech.fullName}</option>
                                                     ))}
@@ -390,23 +413,130 @@ export default function AdminMaintenanceDashboard() {
                         </div>
                     </MaintenanceSectionCard>
 
-                    <MaintenanceSectionCard eyebrow="Technicians" title="Available technicians" description="Current staff available for assignment.">
+                    <MaintenanceSectionCard 
+                        eyebrow="Technicians" 
+                        title="Available technicians" 
+                        description="Current staff available for assignment."
+                        action={
+                            <button
+                                onClick={() => setShowCreateModal(true)}
+                                className="flex items-center gap-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-sm font-bold px-4 py-2 rounded-xl hover:opacity-90 transition-opacity"
+                            >
+                                <span className="material-symbols-outlined text-[18px]">add</span>
+                                Add Technician
+                            </button>
+                        }
+                    >
                         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                            {techs.map((tech) => {
-                                const assignedCount = queue.filter((item) => item.assignedTechnicianId === tech.id).length;
-                                return (
-                                    <div key={tech.id} className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-5">
-                                        <p className="text-sm font-bold text-slate-900 dark:text-white">{tech.fullName}</p>
-                                        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{tech.email}</p>
-                                        <p className="mt-4 text-xs font-bold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Assigned requests</p>
-                                        <p className="mt-1 text-2xl font-black text-slate-900 dark:text-white">{assignedCount}</p>
-                                    </div>
-                                );
-                            })}
+                            {techs.map((tech) => (
+                                <div key={tech.id} className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-5">
+                                    <p className="text-sm font-bold text-slate-900 dark:text-white">{tech.fullName}</p>
+                                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{tech.email}</p>
+                                    <p className="mt-4 text-xs font-bold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Assigned requests</p>
+                                    <p className="mt-1 text-2xl font-black text-slate-900 dark:text-white">{technicianAssignments.get(tech.id) || 0}</p>
+                                </div>
+                            ))}
                         </div>
                     </MaintenanceSectionCard>
                 </div>
             </main>
+
+            {/* Create Technician Modal */}
+            {showCreateModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+                    <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in duration-200">
+                        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/20">
+                            <div>
+                                <h3 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">New Technician</h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Provision a new staff account.</p>
+                            </div>
+                            <button 
+                                onClick={() => setShowCreateModal(false)}
+                                className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                            >
+                                <span className="material-symbols-outlined text-[18px]">close</span>
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleCreateTechnician} className="p-6 space-y-5">
+                            {createError && (
+                                <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm font-medium">
+                                    {createError}
+                                </div>
+                            )}
+
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Full Name</label>
+                                <input
+                                    required
+                                    type="text"
+                                    placeholder="John Doe"
+                                    value={createForm.fullName}
+                                    onChange={(e) => setCreateForm({ ...createForm, fullName: e.target.value })}
+                                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Email Address</label>
+                                <input
+                                    required
+                                    type="email"
+                                    placeholder="john@rentease.com"
+                                    value={createForm.email}
+                                    onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
+                                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Phone Number</label>
+                                <input
+                                    type="tel"
+                                    placeholder="+1 234 567 8900"
+                                    value={createForm.phone}
+                                    onChange={(e) => setCreateForm({ ...createForm, phone: e.target.value })}
+                                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Password</label>
+                                <input
+                                    required
+                                    minLength={8}
+                                    type="password"
+                                    placeholder="Minimum 8 characters"
+                                    value={createForm.password}
+                                    onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
+                                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
+                                />
+                            </div>
+
+                            <div className="pt-2 flex gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCreateModal(false)}
+                                    className="flex-1 px-4 py-3 font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={createLoading}
+                                    className="flex-1 px-4 py-3 font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-lg shadow-emerald-500/20 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center"
+                                >
+                                    {createLoading ? (
+                                        <span className="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
+                                    ) : (
+                                        "Create Account"
+                                    )}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

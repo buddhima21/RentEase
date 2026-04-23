@@ -4,6 +4,8 @@ import MaintenanceBadge from "../components/maintenance/MaintenanceBadge";
 import MaintenanceSectionCard from "../components/maintenance/MaintenanceSectionCard";
 import { formatMaintenanceDate, toLocalDateInputValue } from "../constants/maintenance";
 import { getTenantMaintenance } from "../services/api";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 export default function MaintenanceHistory() {
     const { user } = useAuth();
@@ -34,8 +36,9 @@ export default function MaintenanceHistory() {
     }, [items, status, service, fromDate, toDate]);
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 p-6 md:p-10">
-            <div className="mx-auto max-w-6xl space-y-6">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 flex flex-col">
+            <Navbar />
+            <div className="flex-1 w-full mx-auto max-w-6xl p-6 md:p-10 space-y-6">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div>
                         <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">Maintenance History</h1>
@@ -96,6 +99,7 @@ export default function MaintenanceHistory() {
                     </div>
                 </MaintenanceSectionCard>
             </div>
+            <Footer />
         </div>
     );
 }

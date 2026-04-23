@@ -5,6 +5,8 @@ import { getTechnicianMaintenance } from "../services/api";
 import MaintenanceBadge from "../components/maintenance/MaintenanceBadge";
 import MaintenanceSectionCard from "../components/maintenance/MaintenanceSectionCard";
 import MaintenanceStatCard from "../components/maintenance/MaintenanceStatCard";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 export default function TechnicianDashboard() {
     const { user } = useAuth();
@@ -26,8 +28,9 @@ export default function TechnicianDashboard() {
     });
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 p-6 md:p-10">
-            <div className="mx-auto max-w-7xl space-y-6">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 flex flex-col">
+            <Navbar />
+            <div className="flex-1 w-full mx-auto max-w-7xl p-6 md:p-10 space-y-6">
                 <div>
                     <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">Technician Dashboard</h1>
                     <p className="mt-2 text-slate-600 dark:text-slate-300">Review your queue, switch between job buckets, and open a request to start work.</p>
@@ -87,6 +90,7 @@ export default function TechnicianDashboard() {
                     </div>
                 </MaintenanceSectionCard>
             </div>
+            <Footer />
         </div>
     );
 }

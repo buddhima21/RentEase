@@ -127,8 +127,9 @@ export default function MaintenanceRequestForm() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 p-6 md:p-10">
-            <div className="mx-auto max-w-4xl space-y-6">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 flex flex-col">
+            <Navbar />
+            <div className="flex-1 w-full mx-auto max-w-4xl p-6 md:p-10 space-y-6">
                 <MaintenanceSectionCard
                     eyebrow={isEmergency ? "Emergency Request" : "Maintenance Request"}
                     title={isEmergency ? "Emergency maintenance request" : "Maintenance request"}
@@ -222,6 +223,7 @@ export default function MaintenanceRequestForm() {
                     </form>
                 </MaintenanceSectionCard>
             </div>
+            <Footer />
         </div>
     );
 }

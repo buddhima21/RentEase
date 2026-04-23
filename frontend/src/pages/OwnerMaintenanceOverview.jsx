@@ -1,11 +1,16 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import Sidebar from "../components/owner/dashboard/Sidebar";
+import OwnerNotificationsBell from "../components/owner/dashboard/OwnerNotificationsBell";
+import UserDropdown from "../components/UserDropdown";
 import MaintenanceBadge from "../components/maintenance/MaintenanceBadge";
+import MaintenanceQueueTable from "../components/maintenance/MaintenanceQueueTable";
 import MaintenanceSectionCard from "../components/maintenance/MaintenanceSectionCard";
 import { getOwnerMaintenance } from "../services/api";
 
 export default function OwnerMaintenanceOverview() {
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
     const [items, setItems] = useState([]);
 
     useEffect(() => {
@@ -16,12 +21,8 @@ export default function OwnerMaintenanceOverview() {
     }, [user?.id]);
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 p-6 md:p-10">
-            <div className="mx-auto max-w-6xl space-y-6">
-                <div>
-                    <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">Owner Maintenance Overview</h1>
-                    <p className="mt-2 text-slate-600 dark:text-slate-300">Read-only visibility for maintenance requests related to your properties.</p>
-                </div>
+        <div className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-emerald-950/20">
+            <Sidebar />
 
                 <MaintenanceSectionCard eyebrow="Overview" title="Property maintenance" description="Monitor the request lifecycle without editing tenant or technician actions.">
                     <div className="overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-700">
@@ -49,8 +50,52 @@ export default function OwnerMaintenanceOverview() {
                             </tbody>
                         </table>
                     </div>
-                </MaintenanceSectionCard>
-            </div>
+                </header>
+
+                <div className="flex-1 overflow-y-auto p-6 lg:p-8 space-y-8 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
+                    <div className="flex flex-col gap-3">
+                        <h1 className="text-3xl lg:text-4xl font-black tracking-tight text-slate-900 dark:text-white">Owner Maintenance Overview</h1>
+                        <p className="max-w-3xl text-sm md:text-base text-slate-600 dark:text-slate-300 leading-6">
+                            Read-only visibility for maintenance requests related to your properties.
+                        </p>
+                    </div>
+
+                    <MaintenanceSectionCard eyebrow="Overview" title="Property maintenance" description="Monitor the request lifecycle without editing tenant or technician actions.">
+                        <MaintenanceQueueTable
+                            data={items}
+                            emptyMessage="No requests found."
+                            columns={[
+                                {
+                                    header: "Request",
+                                    sortable: true,
+                                    sortKey: "title",
+                                    render: (item) => <span className="font-medium text-slate-900 dark:text-white">{item.title}</span>
+                                },
+                                {
+                                    header: "Priority",
+                                    sortable: true,
+                                    sortKey: "priority",
+                                    render: (item) => <MaintenanceBadge kind="priority" value={item.priority} />
+                                },
+                                {
+                                    header: "Status",
+                                    sortable: true,
+                                    sortKey: "status",
+                                    render: (item) => <MaintenanceBadge value={item.status} />
+                                },
+                                {
+                                    header: "Technician",
+                                    render: (item) => <span className="text-slate-600 dark:text-slate-300">{item.technicianName || item.assignedTechnicianId || "Unassigned"}</span>
+                                },
+                                {
+                                    header: "Resolution",
+                                    render: (item) => <span className="text-slate-600 dark:text-slate-300">{item.completionSummary || "Pending"}</span>
+                                }
+                            ]}
+                        />
+                    </MaintenanceSectionCard>
+                </div>
+            </main>
         </div>
     );
 }

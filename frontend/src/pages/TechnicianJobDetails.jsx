@@ -159,8 +159,9 @@ export default function TechnicianJobDetails() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 p-6 md:p-10">
-            <div className="mx-auto max-w-5xl space-y-6">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 flex flex-col">
+            <Navbar />
+            <div className="flex-1 w-full mx-auto max-w-5xl p-6 md:p-10 space-y-6">
                 <MaintenanceSectionCard
                     eyebrow="Technician Job"
                     title={job.title}
@@ -256,6 +257,7 @@ export default function TechnicianJobDetails() {
                     </div>
                 </MaintenanceSectionCard>
             </div>
+            <Footer />
         </div>
     );
 }

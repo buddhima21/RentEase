@@ -11,38 +11,48 @@ const API = axios.create({
     },
 });
 
+const ADMIN_MAINTENANCE_PATHS = [
+    "/api/v1/maintenance/admin/",
+    "/api/v1/maintenance/technicians",
+    "/assign",
+    "/schedule",
+    "/priority",
+    "/close",
+    "/status",
+];
+
+const isAdminEndpoint = (url = "") => {
+    if (!url) {
+        return false;
+    }
+    if (url.includes("/api/v1/admin/")) {
+        return true;
+    }
+    if (!url.includes("/api/v1/maintenance")) {
+        return false;
+    }
+    return ADMIN_MAINTENANCE_PATHS.some((path) => url.includes(path));
+};
+
+const clearAdminSession = () => {
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("adminUser");
+};
+
 API.interceptors.request.use((req) => {
     let token = null;
-    const isAdminRequest = req.url && (
-        req.url.includes('/api/v1/admin') || 
-        (req.url.includes('/api/v1/maintenance') && /\/(assign|schedule|priority|close|status)(?:\?|$)/.test(req.url))
-    );
+    const isAdminRequest = isAdminEndpoint(req.url);
 
     // For admin endpoints, use admin token only
     if (isAdminRequest) {
-        token = localStorage.getItem('adminToken');
-        if (!token) {
-            try {
-                const adminUserStr = localStorage.getItem('adminUser');
-                if (adminUserStr) {
-                    const adminUser = JSON.parse(adminUserStr);
-                    token = adminUser?.token;
-                }
-            } catch (e) {
-                console.error("Error parsing admin user token", e);
-            }
-        }
-        // Final admin fallback in case token exists only in shared auth key.
-        if (!token) {
-            token = localStorage.getItem('token');
-        }
+        token = localStorage.getItem("adminToken");
     }
 
     // For non-admin endpoints, prefer normal user token
     if (!isAdminRequest) {
         // Prefer token stored in the 'user' object (Owner/Tenant login path)
         try {
-            const userStr = localStorage.getItem('user');
+            const userStr = localStorage.getItem("user");
             if (userStr) {
                 const userObj = JSON.parse(userStr);
                 token = userObj?.token;
@@ -53,7 +63,7 @@ API.interceptors.request.use((req) => {
 
         // Fallback (older auth flows)
         if (!token) {
-            token = localStorage.getItem('token');
+            token = localStorage.getItem("token");
         }
     }
 
@@ -62,6 +72,23 @@ API.interceptors.request.use((req) => {
     }
     return req;
 });
+
+API.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        const status = error?.response?.status;
+        const isAdminRequest = isAdminEndpoint(error?.config?.url);
+
+        if (isAdminRequest && (status === 401 || status === 403)) {
+            clearAdminSession();
+            if (typeof window !== "undefined" && window.location.pathname.startsWith("/admin")) {
+                window.location.assign("/admin/login");
+            }
+        }
+
+        return Promise.reject(error);
+    }
+);
 
 // ── Auth ──────────────────────────────────────────────
 export const signupUser = (data) => API.post("/api/v1/auth/signup", data);
