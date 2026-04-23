@@ -85,6 +85,37 @@ public class MaintenanceNotificationService {
     }
 
     /**
+     * Sent to a newly provisioned technician account immediately after the admin creates it.
+     * Includes their login email and the plain-text password set by the admin so they can
+     * sign in to the technician portal straight away.
+     *
+     * <p>Called by {@code TechnicianCreationAspect} via Spring AOP — no changes to
+     * {@code UserService} are required.
+     *
+     * @param email           the technician's login email address
+     * @param fullName        the technician's full name
+     * @param plainTextPassword the password as entered by the admin (before BCrypt encoding)
+     */
+    @Async("mailExecutor")
+    public void notifyTechnicianAccountCreated(String email, String fullName, String plainTextPassword) {
+        if (email == null || email.isBlank()) return;
+
+        String subject = "Welcome to RentEase — your technician account is ready";
+        String body = "An administrator has created a technician account for you on the RentEase platform. "
+                + "Use the credentials below to sign in to the technician portal. "
+                + "Please keep your login details secure and do not share them with anyone.";
+
+        String details = buildDetailsTable(
+                row("Name", fullName),
+                row("Login email", email),
+                row("Password", plainTextPassword),
+                row("Portal", "/technician/login")
+        );
+
+        sendHtml(email, subject, "Your account has been created", body, details);
+    }
+
+    /**
      * Sent to the tenant on every meaningful status change.
      * Uses per-status plain-English messaging so tenants understand exactly what happened.
      */
