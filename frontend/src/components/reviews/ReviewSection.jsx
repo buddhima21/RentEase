@@ -127,8 +127,12 @@ export default function ReviewSection({ propertyId, reviews, rating }) {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6 border-b border-slate-100 dark:border-slate-700/50 pb-8">
                 <div>
                     <h2 className="text-[32px] md:text-[40px] font-black text-slate-900 dark:text-white tracking-tight leading-none">
-                        Verified Reviews
+                        Resident <span className="text-emerald-500">Reviews</span>
                     </h2>
+                    <p className="text-slate-500 dark:text-slate-400 font-bold text-sm mt-3 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-emerald-500 text-[18px]">verified</span>
+                        Verified feedback from actual property residents
+                    </p>
                 </div>
                 {user && user.role === "TENANT" && (
                     <button
@@ -139,6 +143,37 @@ export default function ReviewSection({ propertyId, reviews, rating }) {
                         <span>Write a Review</span>
                     </button>
                 )}
+            </div>
+
+            {/* Detailed Categories Averages (Real-World System Style) */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12 bg-slate-50/50 dark:bg-slate-800/30 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-700/50">
+                {[
+                    { label: "Cleanliness", key: "cleanliness", icon: "cleaning_services" },
+                    { label: "Safety", key: "safety", icon: "security" },
+                    { label: "Wi-Fi Speed", key: "wifi", icon: "wifi" },
+                    { label: "Water", key: "water", icon: "water_drop" }
+                ].map((cat) => {
+                    const avg = allReviews.length > 0 
+                        ? (allReviews.reduce((acc, r) => acc + (r.detailedRating?.[cat.key] || 5), 0) / allReviews.length).toFixed(1)
+                        : "5.0";
+                    return (
+                        <div key={cat.key} className="flex flex-col gap-2">
+                            <div className="flex justify-between items-center px-1">
+                                <span className="text-[11px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
+                                    <span className="material-symbols-outlined text-[14px] text-emerald-500">{cat.icon}</span>
+                                    {cat.label}
+                                </span>
+                                <span className="text-xs font-black text-slate-900 dark:text-white">{avg}</span>
+                            </div>
+                            <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                <div 
+                                    className="h-full bg-slate-900 dark:bg-emerald-500 rounded-full transition-all duration-1000"
+                                    style={{ width: `${(avg / 5) * 100}%` }}
+                                ></div>
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
 
             {/* Sorting Header */}

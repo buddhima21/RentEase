@@ -115,7 +115,7 @@ describe("AdminMaintenanceDashboard", () => {
 
     fireEvent.change(screen.getByLabelText("Technician for AC breakdown"), { target: { value: "tech-1" } });
 
-    fireEvent.click(screen.getByRole("button", { name: "Assign technician for AC breakdown" }));
+    fireEvent.click(screen.getAllByRole("button", { name: "Assign" })[0]);
 
     await waitFor(() => {
       expect(mockAssignMaintenanceTechnician).toHaveBeenCalledWith("req-1", { technicianId: "tech-1" });
@@ -132,7 +132,7 @@ describe("AdminMaintenanceDashboard", () => {
     });
 
     fireEvent.change(screen.getByPlaceholderText("Closure note"), { target: { value: "Verified by admin" } });
-    fireEvent.click(screen.getByRole("button", { name: "Close Pipe leak" }));
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
 
     await waitFor(() => {
       expect(mockCloseMaintenance).toHaveBeenCalledWith("req-2", "Verified by admin");
@@ -148,7 +148,7 @@ describe("AdminMaintenanceDashboard", () => {
 
     fireEvent.change(screen.getByLabelText("Priority for AC breakdown"), { target: { value: "EMERGENCY" } });
 
-    fireEvent.click(screen.getByRole("button", { name: "Save priority for AC breakdown" }));
+    fireEvent.click(screen.getAllByRole("button", { name: "Save" })[0]);
 
     await waitFor(() => {
       expect(mockUpdateMaintenancePriority).toHaveBeenCalledWith("req-1", "EMERGENCY");
@@ -162,7 +162,7 @@ describe("AdminMaintenanceDashboard", () => {
       expect(screen.getByText("AC breakdown")).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByRole("button", { name: "Assign technician for AC breakdown" }));
+    fireEvent.click(screen.getAllByRole("button", { name: "Assign" })[0]);
 
     expect(mockAssignMaintenanceTechnician).not.toHaveBeenCalled();
   });

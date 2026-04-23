@@ -126,9 +126,10 @@ public class MaintenanceController {
             @RequestParam(required = false) MaintenanceStatus status,
             @RequestParam(required = false) String priority,
             @RequestParam(required = false) String technicianId,
+            @RequestParam(required = false) String propertyId,
             @AuthenticationPrincipal CustomUserDetails userDetails) {
         requireAdmin(userDetails);
-        List<MaintenanceResponse> queue = maintenanceService.getAdminQueue(status, priority, technicianId);
+        List<MaintenanceResponse> queue = maintenanceService.getAdminQueue(status, priority, technicianId, propertyId);
         return ResponseEntity.ok(ApiResponse.success(queue));
     }
 

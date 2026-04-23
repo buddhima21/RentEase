@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import MaintenanceBadge from "../components/maintenance/MaintenanceBadge";
 import MaintenanceSectionCard from "../components/maintenance/MaintenanceSectionCard";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import { useAuth } from "../context/AuthContext";
 import {
     acceptMaintenance,
@@ -11,8 +13,6 @@ import {
     resumeMaintenance,
 } from "../services/api";
 import { MAX_MAINTENANCE_IMAGES } from "../constants/maintenance";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
 
 const CHECKLIST_ITEMS = [
     "Inspect issue",
@@ -157,15 +157,7 @@ export default function TechnicianJobDetails() {
     };
 
     if (!job) {
-        return (
-            <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 flex flex-col">
-                <Navbar />
-                <div className="flex-1 flex items-center justify-center p-8 text-slate-600 dark:text-slate-300">
-                    {error || "Unable to load job."}
-                </div>
-                <Footer />
-            </div>
-        );
+        return <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 p-8 text-slate-600 dark:text-slate-300">{error || "Unable to load job."}</div>;
     }
 
     return (

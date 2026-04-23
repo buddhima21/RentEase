@@ -129,6 +129,28 @@ public class ReviewService {
         reviewRepository.delete(review);
     }
 
+    public ReviewResponse toggleHelpful(String reviewId, String userId) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(() -> new ResourceNotFoundException("Review", "id", reviewId));
+
+        if (review.getHelpfulUserIds() == null) {
+            review.setHelpfulUserIds(new java.util.ArrayList<>());
+        }
+
+        if (review.getHelpfulUserIds().contains(userId)) {
+            // Remove like
+            review.getHelpfulUserIds().remove(userId);
+            review.setHelpfulCount(Math.max(0, review.getHelpfulCount() - 1));
+        } else {
+            // Add like
+            review.getHelpfulUserIds().add(userId);
+            review.setHelpfulCount(review.getHelpfulCount() + 1);
+        }
+
+        Review updated = reviewRepository.save(review);
+        return mapToResponse(updated);
+    }
+
     // --- Helper Method ---
     private ReviewResponse mapToResponse(Review review) {
         String reviewerName = "Verified Resident";
@@ -155,6 +177,8 @@ public class ReviewService {
                 .status(review.getStatus())
                 .createdAt(review.getCreatedAt())
                 .updatedAt(review.getUpdatedAt())
+                .helpfulCount(review.getHelpfulCount())
+                .helpfulUserIds(review.getHelpfulUserIds() != null ? review.getHelpfulUserIds() : new java.util.ArrayList<>())
                 .build();
     }
 }

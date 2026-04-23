@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import AdminSidebar from "../components/admin/dashboard/AdminSidebar";
 import ListingModerationCard from "../components/admin/dashboard/ListingModerationCard";
 import ListingDetailsModal from "../components/admin/dashboard/ListingDetailsModal";
@@ -19,6 +20,12 @@ export default function ListingModeration() {
     const [listings, setListings] = useState([]);
     const [errorMessage, setErrorMessage] = useState("");
     const [viewPropertyId, setViewPropertyId] = useState(null);
+    const [sortBy, setSortBy] = useState("newest");
+    const [isSortOpen, setIsSortOpen] = useState(false);
+    const [filterTime, setFilterTime] = useState("all");
+    const [filterType, setFilterType] = useState("all");
+    const [filterOwner, setFilterOwner] = useState("all");
+    const [allProperties, setAllProperties] = useState([]);
 
     const mapPropertyToListing = (prop) => {
         try {
@@ -68,6 +75,8 @@ export default function ListingModeration() {
                 // filter(Boolean) removes any nulls from failed mappings
                 const mapped = response.data.data.map(mapPropertyToListing).filter(Boolean);
                 setListings(mapped);
+                // Keep a separate list for the filter dropdown
+                setAllProperties(mapped);
             } else {
                 console.warn("Unexpected API response format:", response);
                 setErrorMessage("Invalid data received from server.");
@@ -123,7 +132,27 @@ export default function ListingModeration() {
             if (searchQuery && !listing.title.toLowerCase().includes(searchQuery.toLowerCase())) {
                 return false;
             }
-            if (activeTab === "all") return true; // Show all listings
+            
+            // Time Filter
+            if (filterTime !== "all") {
+                const now = new Date();
+                const reviewDate = new Date(listing.createdAt);
+                const diffTime = Math.abs(now - reviewDate);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                if (diffDays > parseInt(filterTime)) return false;
+            }
+
+            // Property Type Filter
+            if (filterType !== "all" && listing.listingType !== filterType) {
+                return false;
+            }
+
+            // Owner Filter
+            if (filterOwner !== "all" && listing.submittedBy.name !== filterOwner) {
+                return false;
+            }
+
+            if (activeTab === "all") return true; 
             if (activeTab === "pending") return listing.status === "pending";
             if (activeTab === "flagged") return listing.status === "flagged";
             if (activeTab === "approved") return listing.status === "approved";
@@ -132,13 +161,32 @@ export default function ListingModeration() {
             return true;
         })
         .sort((a, b) => {
-            // Primary Sort: Pending Status First
-            if (a.status === 'pending' && b.status !== 'pending') return -1;
-            if (a.status !== 'pending' && b.status === 'pending') return 1;
+            // Priority Sort: Pending always on top if on "all" tab
+            if (activeTab === 'all') {
+                if (a.status === 'pending' && b.status !== 'pending') return -1;
+                if (a.status !== 'pending' && b.status === 'pending') return 1;
+            }
             
-            // Secondary Sort: Newest Date First
-            return new Date(b.createdAt) - new Date(a.createdAt);
+            switch (sortBy) {
+                case "newest":
+                    return new Date(b.createdAt) - new Date(a.createdAt);
+                case "oldest":
+                    return new Date(a.createdAt) - new Date(b.createdAt);
+                case "az":
+                    return a.title.localeCompare(b.title);
+                case "za":
+                    return b.title.localeCompare(a.title);
+                default:
+                    return new Date(b.createdAt) - new Date(a.createdAt);
+            }
         });
+
+    const sortOptions = [
+        { label: "Newest First", value: "newest", icon: "schedule" },
+        { label: "Oldest First", value: "oldest", icon: "history" },
+        { label: "Property: A-Z", value: "az", icon: "sort_by_alpha" },
+        { label: "Property: Z-A", value: "za", icon: "sort_by_alpha" }
+    ];
 
     const handleModerate = async (id, action) => {
         try {
@@ -244,16 +292,69 @@ export default function ListingModeration() {
                         </div>
 
                         {/* ── Page Header ──────────────────────────── */}
-                        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+                        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
                             <div>
-                                <h1 className="text-3xl font-bold tracking-tight mb-2">Listing Moderation</h1>
-                                <p className="text-slate-500 dark:text-slate-400">
+                                <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white mb-2">Listing Moderation</h1>
+                                <p className="text-slate-500 dark:text-slate-400 font-medium">
                                     Review and manage property submissions for marketplace quality assurance.
                                 </p>
                             </div>
-                            <div className="flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm cursor-pointer hover:bg-slate-50 dark:bg-slate-800/50 transition-colors">
-                                <span className="material-symbols-outlined text-lg">filter_list</span>
-                                Sort by: Newest First
+                            
+                            <div className="flex flex-wrap items-center gap-3">
+
+                                {/* Type Filter */}
+                                <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:border-emerald-200">
+                                    <span className="material-symbols-outlined text-[18px] text-slate-400">category</span>
+                                    <select 
+                                        value={filterType}
+                                        onChange={(e) => setFilterType(e.target.value)}
+                                        className="bg-transparent border-none outline-none text-sm font-bold text-slate-700 dark:text-slate-200 focus:ring-0 cursor-pointer py-0.5"
+                                    >
+                                        <option value="all">All Types</option>
+                                        {[...new Set(listings.map(l => l.listingType))].map(type => (
+                                            <option key={type} value={type}>{type}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Time Filter */}
+                                <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:border-emerald-200">
+                                    <span className="material-symbols-outlined text-[18px] text-slate-400">calendar_today</span>
+                                    <select 
+                                        value={filterTime}
+                                        onChange={(e) => setFilterTime(e.target.value)}
+                                        className="bg-transparent border-none outline-none text-sm font-bold text-slate-700 dark:text-slate-200 focus:ring-0 cursor-pointer py-0.5"
+                                    >
+                                        <option value="all">All Time</option>
+                                        <option value="7">Last 7 Days</option>
+                                        <option value="30">Last 30 Days</option>
+                                        <option value="90">Last 90 Days</option>
+                                    </select>
+                                </div>
+
+                                {/* Sorting Dropdown */}
+                                    <div className="relative group">
+                                        <button 
+                                            className="flex items-center gap-2 text-slate-700 dark:text-slate-200 text-sm font-bold bg-white dark:bg-slate-900 px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm transition-all group-hover:border-emerald-200 pointer-events-none"
+                                        >
+                                            <span className="material-symbols-outlined text-[18px] text-slate-400">sort</span>
+                                            <span>{sortOptions.find(o => o.value === sortBy)?.label}</span>
+                                            <span className="material-symbols-outlined text-[18px]">expand_more</span>
+                                        </button>
+                                        
+                                        {/* Invisible Native Select Overlay for absolute reliability */}
+                                        <select
+                                            value={sortBy}
+                                            onChange={(e) => setSortBy(e.target.value)}
+                                            className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+                                        >
+                                            {sortOptions.map(option => (
+                                                <option key={option.value} value={option.value}>
+                                                    {option.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
                             </div>
                         </div>
 

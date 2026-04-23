@@ -14,6 +14,8 @@ import PropertyDetails from "../pages/PropertyDetails";
 import AdminDashboard from "../pages/AdminDashboard";
 import AdminLogin from "../pages/AdminLogin";
 import AdminBookings from "../pages/AdminBookings";
+import AdminReviews from "../pages/AdminReviews";
+import AdminAnalytics from "../pages/AdminAnalytics";
 import OwnerAnalytics from "../pages/OwnerAnalytics";
 import TenantDashboard from "../pages/TenantDashboard";
 import OwnerBookings from "../pages/OwnerBookings";
@@ -114,6 +116,9 @@ export default function AppRoutes() {
                 <Route path="/admin/dashboard" element={<AdminDashboard />} />
                 <Route path="/admin/listings" element={<ListingModeration />} />
                 <Route path="/admin/bookings" element={<AdminBookings />} />
+                <Route path="/admin/reviews" element={<AdminReviews />} />
+                <Route path="/admin/analytics" element={<AdminAnalytics />} />
+                <Route path="/admin/reports" element={<AdminAnalytics />} />
                 <Route path="/admin/maintenance" element={<AdminMaintenanceDashboard />} />
                 <Route path="/admin/maintenance/calendar" element={<MaintenanceCalendar />} />
             </Route>

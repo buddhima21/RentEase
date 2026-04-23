@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import AdminNotificationsBell from "../components/admin/dashboard/AdminNotificationsBell";
 import AdminProfileDropdown from "../components/admin/dashboard/AdminProfileDropdown";
 import AdminSidebar from "../components/admin/dashboard/AdminSidebar";
@@ -13,6 +14,7 @@ import {
     getAdminMaintenanceQueue,
     getMaintenanceTechnicians,
     updateMaintenancePriority,
+    getAllPropertiesForAdmin,
     createTechnicianAccount,
 } from "../services/api";
 
@@ -41,84 +43,24 @@ export default function AdminMaintenanceDashboard() {
     const [authLoading, setAuthLoading] = useState(true);
     const [queue, setQueue] = useState([]);
     const [techs, setTechs] = useState([]);
-    const [selectedTechByRequest, setSelectedTechByRequest] = useState({});
-    const [technicianSearchByRequest, setTechnicianSearchByRequest] = useState({});
-    const [filters, setFilters] = useState({ status: "", priority: "", technicianId: "" });
-    const [searchQuery, setSearchQuery] = useState("");
+    const [filters, setFilters] = useState({ status: "", priority: "", technicianId: "", propertyId: "" });
+    const [allProperties, setAllProperties] = useState([]);
     const [loading, setLoading] = useState(false);
     const [priorityDrafts, setPriorityDrafts] = useState({});
     const [closeNotes, setCloseNotes] = useState({});
     const [loadError, setLoadError] = useState("");
     const [actionError, setActionError] = useState("");
 
-    // Technician Creation Modal State
+    // Create Technician State
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [createForm, setCreateForm] = useState({ fullName: "", email: "", phone: "", password: "" });
     const [createLoading, setCreateLoading] = useState(false);
     const [createError, setCreateError] = useState("");
-
-    const filterParams = useMemo(
-        () => Object.fromEntries(Object.entries(filters).filter(([, value]) => value)),
-        [filters]
-    );
-
-    const queueStats = useMemo(() => ({
-        requests: queue.length,
-        emergency: queue.filter((item) => item.priority === "EMERGENCY").length,
-        assigned: queue.filter((item) => item.assignedTechnicianId).length,
-        openTechs: techs.length,
-    }), [queue, techs]);
-
-    const techniciansById = useMemo(() => {
-        const map = new Map();
-        techs.forEach((tech) => map.set(tech.id, tech));
-        return map;
-    }, [techs]);
-
-    const normalizedSearch = searchQuery.trim().toLowerCase();
-
-    const filteredQueue = useMemo(() => {
-        if (!normalizedSearch) {
-            return queue;
-        }
-
-        return queue.filter((item) => {
-            const assignedTechnician = techniciansById.get(item.assignedTechnicianId);
-            const technicianText = [
-                item.technicianName,
-                item.technicianEmail,
-                assignedTechnician?.fullName,
-                assignedTechnician?.email,
-            ]
-                .filter(Boolean)
-                .join(" ")
-                .toLowerCase();
-
-            const queueText = [
-                item.id,
-                item.title,
-                item.status,
-                item.priority,
-                item.propertyId,
-                item.tenantId,
-                technicianText,
-            ]
-                .filter(Boolean)
-                .join(" ")
-                .toLowerCase();
-
-            return queueText.includes(normalizedSearch);
-        });
-    }, [normalizedSearch, queue, techniciansById]);
-
-    const technicianAssignments = useMemo(() => {
-        const counts = new Map();
-        queue.forEach((item) => {
-            if (!item.assignedTechnicianId) return;
-            counts.set(item.assignedTechnicianId, (counts.get(item.assignedTechnicianId) || 0) + 1);
-        });
-        return counts;
-    }, [queue]);
+    const [createForm, setCreateForm] = useState({
+        fullName: "",
+        email: "",
+        phone: "",
+        password: "",
+    });
 
     useEffect(() => {
         try {
@@ -144,16 +86,18 @@ export default function AdminMaintenanceDashboard() {
         }
     }, []);
 
-    const load = async (params = filterParams) => {
+    const load = async () => {
         try {
             setLoading(true);
             setLoadError("");
-            const [queueRes, techRes] = await Promise.all([
-                getAdminMaintenanceQueue(params),
+            const [queueRes, techRes, propRes] = await Promise.all([
+                getAdminMaintenanceQueue(Object.fromEntries(Object.entries(filters).filter(([, value]) => value))),
                 getMaintenanceTechnicians(),
+                getAllPropertiesForAdmin(),
             ]);
             setQueue(queueRes.data?.data || []);
             setTechs(techRes.data?.data || []);
+            setAllProperties(propRes.data?.data || []);
         } catch (err) {
             setQueue([]);
             setTechs([]);
@@ -164,61 +108,67 @@ export default function AdminMaintenanceDashboard() {
     };
 
     useEffect(() => {
-        if (authLoading || !adminUser) {
-            return;
-        }
-        load(filterParams);
-    }, [authLoading, adminUser, filterParams]);
-
-    const runAction = async (handler, fallbackMessage) => {
-        try {
-            setActionError("");
-            await handler();
-            load(filterParams);
-        } catch (err) {
-            setActionError(err?.response?.data?.message || fallbackMessage);
-        }
-    };
-
-    const assign = async (requestId) => {
-        const technicianId = selectedTechByRequest[requestId];
-        if (!technicianId) return;
-        await runAction(() => assignMaintenanceTechnician(requestId, { technicianId }), "Unable to assign technician.");
-    };
+        if (adminUser) load();
+    }, [adminUser, filters.status, filters.priority, filters.technicianId, filters.propertyId]);
 
     const savePriority = async (requestId) => {
         const priority = priorityDrafts[requestId];
         if (!priority) return;
-        await runAction(() => updateMaintenancePriority(requestId, priority), "Unable to update priority.");
+        try {
+            setActionError("");
+            await updateMaintenancePriority(requestId, priority);
+            load();
+        } catch (err) {
+            setActionError(err?.response?.data?.message || "Unable to update priority.");
+        }
     };
 
     const closeRequest = async (requestId) => {
-        await runAction(async () => {
+        try {
+            setActionError("");
             await closeMaintenance(requestId, closeNotes[requestId] || undefined);
             setCloseNotes((prev) => ({ ...prev, [requestId]: "" }));
-        }, "Unable to close request.");
+            load();
+        } catch (err) {
+            setActionError(err?.response?.data?.message || "Unable to close request.");
+        }
     };
 
     const handleCreateTechnician = async (e) => {
         e.preventDefault();
-        setCreateError("");
         setCreateLoading(true);
+        setCreateError("");
         try {
-            await createTechnicianAccount({
-                fullName: createForm.fullName.trim(),
-                email: createForm.email.trim(),
-                password: createForm.password,
-                phone: createForm.phone.trim() || undefined,
-            });
+            await createTechnicianAccount(createForm);
             setShowCreateModal(false);
             setCreateForm({ fullName: "", email: "", phone: "", password: "" });
-            load(filterParams);
+            load();
         } catch (err) {
             setCreateError(err?.response?.data?.message || "Failed to create technician account.");
         } finally {
             setCreateLoading(false);
         }
     };
+
+    // Derived Stats
+    const queueStats = useMemo(() => {
+        return {
+            requests: queue.length,
+            emergency: queue.filter((i) => i.priority === "EMERGENCY").length,
+            assigned: queue.filter((i) => i.assignedTechnicianId || i.technicianName).length,
+            openTechs: techs.length,
+        };
+    }, [queue, techs]);
+
+    const technicianAssignments = useMemo(() => {
+        const map = new Map();
+        queue.forEach((item) => {
+            if (item.assignedTechnicianId) {
+                map.set(item.assignedTechnicianId, (map.get(item.assignedTechnicianId) || 0) + 1);
+            }
+        });
+        return map;
+    }, [queue]);
 
     if (authLoading) {
         return (
@@ -281,164 +231,163 @@ export default function AdminMaintenanceDashboard() {
                         <MaintenanceStatCard label="Open techs" value={queueStats.openTechs} accent="slate" />
                     </div>
 
-                    <MaintenanceSectionCard eyebrow="Queue" title="Maintenance requests" description="Search and filter requests, then assign technicians and update priorities in one workspace.">
-                        <div className="mb-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                            <input
-                                className="rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 p-3"
-                                placeholder="Search request or technician"
-                                aria-label="Search maintenance requests"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
-                            <select
-                                className="rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 p-3"
-                                aria-label="Filter by status"
-                                value={filters.status}
-                                onChange={(e) => setFilters((prev) => ({ ...prev, status: e.target.value }))}
-                            >
-                                {STATUS_OPTIONS.map((option) => (
-                                    <option key={option.label} value={option.value}>{option.label}</option>
-                                ))}
-                            </select>
-                            <select
-                                className="rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 p-3"
-                                aria-label="Filter by priority"
-                                value={filters.priority}
-                                onChange={(e) => setFilters((prev) => ({ ...prev, priority: e.target.value }))}
-                            >
-                                {PRIORITY_OPTIONS.map((option) => (
-                                    <option key={option.label} value={option.value}>{option.label}</option>
-                                ))}
-                            </select>
-                            <select
-                                className="rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 p-3"
-                                aria-label="Filter by technician"
-                                value={filters.technicianId}
-                                onChange={(e) => setFilters((prev) => ({ ...prev, technicianId: e.target.value }))}
-                            >
-                                <option value="">All technicians</option>
-                                {techs.map((tech) => (
-                                    <option key={tech.id} value={tech.id}>{tech.fullName}</option>
-                                ))}
-                            </select>
-                        </div>
+                    <MaintenanceSectionCard eyebrow="Filters" title="Operational filters" description="Filter the request queue by status, priority, or assigned technician.">
+                        <div className="flex flex-wrap items-center gap-4">
+                            <div className="flex-1 min-w-[200px] flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:border-emerald-200">
+                                <span className="material-symbols-outlined text-[18px] text-slate-400">rule</span>
+                                <select 
+                                    className="flex-1 bg-transparent border-none outline-none text-sm font-bold text-slate-700 dark:text-slate-200 focus:ring-0 cursor-pointer py-1" 
+                                    value={filters.status} 
+                                    onChange={(e) => setFilters((prev) => ({ ...prev, status: e.target.value }))}
+                                >
+                                    {STATUS_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                                </select>
+                            </div>
 
+                            <div className="flex-1 min-w-[200px] flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:border-emerald-200">
+                                <span className="material-symbols-outlined text-[18px] text-slate-400">priority_high</span>
+                                <select 
+                                    className="flex-1 bg-transparent border-none outline-none text-sm font-bold text-slate-700 dark:text-slate-200 focus:ring-0 cursor-pointer py-1" 
+                                    value={filters.priority} 
+                                    onChange={(e) => setFilters((prev) => ({ ...prev, priority: e.target.value }))}
+                                >
+                                    {PRIORITY_OPTIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                                </select>
+                            </div>
+
+                            <div className="flex-1 min-w-[240px] flex items-center gap-2 bg-white dark:bg-slate-900 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm transition-all hover:border-emerald-200">
+                                <span className="material-symbols-outlined text-[18px] text-slate-400">engineering</span>
+                                <select 
+                                    className="flex-1 bg-transparent border-none outline-none text-sm font-bold text-slate-700 dark:text-slate-200 focus:ring-0 cursor-pointer py-1" 
+                                    value={filters.technicianId} 
+                                    onChange={(e) => setFilters((prev) => ({ ...prev, technicianId: e.target.value }))}
+                                >
+                                    <option value="">All Technicians</option>
+                                    {techs.map((tech) => (
+                                        <option key={tech.id} value={tech.id}>{tech.fullName}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            
+                            <button 
+                                onClick={load}
+                                className="bg-slate-900 text-white font-bold px-6 py-3 rounded-xl hover:bg-slate-800 transition-all text-sm flex items-center gap-2 shadow-sm active:scale-95"
+                            >
+                                <span className="material-symbols-outlined text-[18px]">refresh</span>
+                                Refresh Queue
+                            </button>
+                        </div>
+                    </MaintenanceSectionCard>
+
+                    <MaintenanceSectionCard eyebrow="Queue" title="Maintenance requests" description="Assign technicians directly from the request list.">
                         {loadError ? <p className="mb-4 text-sm font-medium text-red-600">{loadError}</p> : null}
                         {actionError ? <p className="mb-4 text-sm font-medium text-red-600">{actionError}</p> : null}
-                        <MaintenanceQueueTable
-                            loading={loading}
-                            data={filteredQueue}
-                            emptyMessage={loadError ? "Unable to load queue." : normalizedSearch ? "No matching requests." : "No requests in queue."}
-                            columns={[
-                                {
-                                    header: "Title",
-                                    sortable: true,
-                                    sortKey: "title",
-                                    render: (item) => (
-                                        <div className="flex flex-col">
-                                            <span className="font-semibold text-slate-900 dark:text-white">{item.title}</span>
-                                            <span className="text-xs text-slate-500 font-medium tracking-wide">#{item.id.slice(0, 6).toUpperCase()}</span>
-                                        </div>
-                                    )
-                                },
-                                {
-                                    header: "Priority",
-                                    sortable: true,
-                                    sortKey: "priority",
-                                    render: (item) => (
-                                        <div className="relative inline-block group/priority">
-                                            <MaintenanceBadge kind="priority" value={item.priority} />
-                                            <select
-                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                                value={item.priority}
-                                                onChange={(e) => {
-                                                    const val = e.target.value;
-                                                    runAction(() => updateMaintenancePriority(item.id, val), "Unable to update priority.");
-                                                }}
-                                                title="Change Priority"
-                                            >
-                                                <option value="LOW">Low</option>
-                                                <option value="MEDIUM">Medium</option>
-                                                <option value="HIGH">High</option>
-                                                <option value="EMERGENCY">Emergency</option>
-                                            </select>
-                                        </div>
-                                    )
-                                },
-                                {
-                                    header: "Status",
-                                    sortable: true,
-                                    sortKey: "status",
-                                    render: (item) => <MaintenanceBadge value={item.status} />
-                                },
-                                {
-                                    header: "Technician",
-                                    render: (item) => (
-                                        <div className="relative flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-xs font-bold text-blue-700 dark:text-blue-400">
-                                                {(item.technicianName || item.assignedTechnicianId || "U")[0].toUpperCase()}
+                        
+                        <div className="overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+                            <MaintenanceQueueTable
+                                data={queue}
+                                loading={loading}
+                                columns={[
+                                    {
+                                        header: "Request",
+                                        render: (item) => (
+                                            <div className="flex flex-col gap-0.5">
+                                                <span className="font-bold text-slate-900 dark:text-white">{item.title}</span>
+                                                <span className="text-[10px] text-slate-400 font-black uppercase tracking-wider">{item.serviceType}</span>
                                             </div>
-                                            <div className="flex flex-col">
-                                                <span className="text-slate-900 dark:text-white font-semibold">
-                                                    {item.technicianName || "Unassigned"}
-                                                </span>
-                                                {!item.assignedTechnicianId && (
-                                                    <span className="text-[11px] text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        Click to assign
+                                        )
+                                    },
+                                    {
+                                        header: "Priority",
+                                        render: (item) => (
+                                            <div className="flex items-center gap-3">
+                                                <MaintenanceBadge kind="priority" value={item.priority} />
+                                                <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <select
+                                                        className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-bold"
+                                                        value={priorityDrafts[item.id] || item.priority}
+                                                        onChange={(e) => setPriorityDrafts((prev) => ({ ...prev, [item.id]: e.target.value }))}
+                                                    >
+                                                        <option value="LOW">Low</option>
+                                                        <option value="MEDIUM">Medium</option>
+                                                        <option value="HIGH">High</option>
+                                                        <option value="EMERGENCY">Emergency</option>
+                                                    </select>
+                                                    <button onClick={() => savePriority(item.id)} className="p-1 rounded-lg bg-slate-900 text-white hover:bg-emerald-600 transition-colors">
+                                                        <span className="material-symbols-outlined text-[14px]">done</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )
+                                    },
+                                    {
+                                        header: "Status",
+                                        render: (item) => <MaintenanceBadge value={item.status} />
+                                    },
+                                    {
+                                        header: "Technician",
+                                        render: (item) => (
+                                            <div className="relative group/tech min-w-[160px]">
+                                                <div className="flex items-center gap-2 py-1 px-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-transparent group-hover/tech:border-slate-200 transition-all">
+                                                    <div className="w-7 h-7 rounded-lg bg-white dark:bg-slate-700 flex items-center justify-center text-slate-500">
+                                                        <span className="material-symbols-outlined text-[16px]">engineering</span>
+                                                    </div>
+                                                    <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                                                        {item.technicianName || "Unassigned"}
                                                     </span>
-                                                )}
-                                            </div>
-                                            {!item.assignedTechnicianId && (
+                                                </div>
                                                 <select
                                                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                                                     value={""}
-                                                    onChange={(e) => {
+                                                    onChange={async (e) => {
                                                         const val = e.target.value;
                                                         if (val) {
-                                                            runAction(() => assignMaintenanceTechnician(item.id, { technicianId: val }), "Unable to assign technician.");
+                                                            try {
+                                                                await assignMaintenanceTechnician(item.id, { technicianId: val });
+                                                                load();
+                                                            } catch (err) {
+                                                                setActionError(err?.response?.data?.message || "Failed to assign.");
+                                                            }
                                                         }
                                                     }}
-                                                    title="Assign Technician"
                                                 >
-                                                    <option value="">Assign tech...</option>
+                                                    <option value="">Choose technician...</option>
                                                     {techs.map((tech) => (
                                                         <option key={tech.id} value={tech.id}>{tech.fullName}</option>
                                                     ))}
                                                 </select>
-                                            )}
-                                        </div>
-                                    )
-                                },
-                                {
-                                    header: "",
-                                    className: "text-right w-48",
-                                    render: (item) => (
-                                        <div className="flex items-center justify-end">
-                                            {item.status === "RESOLVED" && (
-                                                <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <input
-                                                        className="w-32 rounded-lg bg-slate-100 dark:bg-slate-800 border-none px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-slate-200 dark:focus:ring-slate-700 transition-all"
-                                                        placeholder="Closure note..."
-                                                        value={closeNotes[item.id] || ""}
-                                                        onChange={(e) => setCloseNotes((prev) => ({ ...prev, [item.id]: e.target.value }))}
-                                                    />
-                                                    <button
-                                                        className="rounded-lg bg-slate-900 dark:bg-white px-3 py-1.5 text-xs font-semibold text-white dark:text-slate-900 hover:opacity-90 transition-opacity"
-                                                        onClick={() => closeRequest(item.id)}
-                                                    >
-                                                        Close
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )
-                                }
-                            ]}
-                        />
+                                            </div>
+                                        )
+                                    },
+                                    {
+                                        header: "Control",
+                                        render: (item) => (
+                                            <div className="flex items-center gap-2">
+                                                {item.status === "RESOLVED" ? (
+                                                    <div className="flex items-center gap-1">
+                                                        <input
+                                                            className="w-32 rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-xs font-medium"
+                                                            placeholder="Closure note..."
+                                                            value={closeNotes[item.id] || ""}
+                                                            onChange={(e) => setCloseNotes((prev) => ({ ...prev, [item.id]: e.target.value }))}
+                                                        />
+                                                        <button onClick={() => closeRequest(item.id)} className="h-8 px-3 rounded-lg bg-emerald-600 text-white text-xs font-black uppercase tracking-wider hover:bg-emerald-700 transition-colors">
+                                                            Close
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-[10px] font-black text-slate-300 tracking-widest uppercase italic">Auto-Monitoring</span>
+                                                )}
+                                            </div>
+                                        )
+                                    }
+                                ]}
+                            />
+                        </div>
                     </MaintenanceSectionCard>
 
                     <MaintenanceSectionCard 
-                        eyebrow="Technicians" 
+                        eyebrow="Staff" 
                         title="Available technicians" 
                         description="Current staff available for assignment."
                         action={
@@ -453,11 +402,23 @@ export default function AdminMaintenanceDashboard() {
                     >
                         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                             {techs.map((tech) => (
-                                <div key={tech.id} className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-5">
-                                    <p className="text-sm font-bold text-slate-900 dark:text-white">{tech.fullName}</p>
-                                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{tech.email}</p>
-                                    <p className="mt-4 text-xs font-bold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">Assigned requests</p>
-                                    <p className="mt-1 text-2xl font-black text-slate-900 dark:text-white">{technicianAssignments.get(tech.id) || 0}</p>
+                                <div key={tech.id} className="rounded-3xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 group hover:border-emerald-500/50 transition-all shadow-sm">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                            <span className="material-symbols-outlined text-[24px]">engineering</span>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Assignments</p>
+                                            <p className="text-2xl font-black text-slate-900 dark:text-white">{technicianAssignments.get(tech.id) || 0}</p>
+                                        </div>
+                                    </div>
+                                    <p className="text-lg font-black text-slate-900 dark:text-white tracking-tight">{tech.fullName}</p>
+                                    <p className="text-sm text-slate-500 font-medium mb-4">{tech.email}</p>
+                                    <div className="h-px bg-slate-100 dark:bg-slate-800 w-full mb-4" />
+                                    <div className="flex items-center gap-2 text-emerald-600">
+                                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Active Status</span>
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -466,101 +427,119 @@ export default function AdminMaintenanceDashboard() {
             </main>
 
             {/* Create Technician Modal */}
-            {showCreateModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-                    <div className="bg-white dark:bg-slate-900 w-full max-w-md rounded-3xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in duration-200">
-                        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/20">
-                            <div>
-                                <h3 className="text-xl font-black tracking-tight text-slate-900 dark:text-white">New Technician</h3>
-                                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">Provision a new staff account.</p>
-                            </div>
-                            <button 
-                                onClick={() => setShowCreateModal(false)}
-                                className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                            >
-                                <span className="material-symbols-outlined text-[18px]">close</span>
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleCreateTechnician} className="p-6 space-y-5">
-                            {createError && (
-                                <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm font-medium">
-                                    {createError}
+            <AnimatePresence>
+                {showCreateModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                        <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setShowCreateModal(false)}
+                            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+                        />
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                            className="bg-white dark:bg-slate-900 w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-100 dark:border-slate-800 relative z-10"
+                        >
+                            <div className="p-8 border-b border-slate-50 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/20 flex justify-between items-center">
+                                <div>
+                                    <h3 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">New Technician</h3>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-1">Provision a new staff account.</p>
                                 </div>
-                            )}
-
-                            <div>
-                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Full Name</label>
-                                <input
-                                    required
-                                    type="text"
-                                    placeholder="John Doe"
-                                    value={createForm.fullName}
-                                    onChange={(e) => setCreateForm({ ...createForm, fullName: e.target.value })}
-                                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Email Address</label>
-                                <input
-                                    required
-                                    type="email"
-                                    placeholder="john@rentease.com"
-                                    value={createForm.email}
-                                    onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
-                                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Phone Number</label>
-                                <input
-                                    type="tel"
-                                    placeholder="+1 234 567 8900"
-                                    value={createForm.phone}
-                                    onChange={(e) => setCreateForm({ ...createForm, phone: e.target.value })}
-                                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">Password</label>
-                                <input
-                                    required
-                                    minLength={8}
-                                    type="password"
-                                    placeholder="Minimum 8 characters"
-                                    value={createForm.password}
-                                    onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
-                                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all"
-                                />
-                            </div>
-
-                            <div className="pt-2 flex gap-3">
-                                <button
-                                    type="button"
+                                <button 
                                     onClick={() => setShowCreateModal(false)}
-                                    className="flex-1 px-4 py-3 font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors"
+                                    className="w-10 h-10 flex items-center justify-center rounded-2xl bg-white dark:bg-slate-800 text-slate-500 hover:text-red-500 transition-colors shadow-sm"
                                 >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={createLoading}
-                                    className="flex-1 px-4 py-3 font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-xl shadow-lg shadow-emerald-500/20 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center"
-                                >
-                                    {createLoading ? (
-                                        <span className="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
-                                    ) : (
-                                        "Create Account"
-                                    )}
+                                    <span className="material-symbols-outlined text-[20px]">close</span>
                                 </button>
                             </div>
-                        </form>
+
+                            <form onSubmit={handleCreateTechnician} className="p-8 space-y-6">
+                                {createError && (
+                                    <div className="p-4 bg-red-50 border border-red-100 text-red-600 rounded-2xl text-sm font-bold flex items-center gap-3">
+                                        <span className="material-symbols-outlined text-[18px]">error</span>
+                                        {createError}
+                                    </div>
+                                )}
+
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 pl-1">Full Name</label>
+                                        <input
+                                            required
+                                            type="text"
+                                            placeholder="e.g. Michael Chen"
+                                            value={createForm.fullName}
+                                            onChange={(e) => setCreateForm({ ...createForm, fullName: e.target.value })}
+                                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl px-5 py-4 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder:text-slate-300"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 pl-1">Email Address</label>
+                                        <input
+                                            required
+                                            type="email"
+                                            placeholder="michael@rentease.com"
+                                            value={createForm.email}
+                                            onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
+                                            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl px-5 py-4 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder:text-slate-300"
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 pl-1">Phone</label>
+                                            <input
+                                                type="tel"
+                                                placeholder="+94..."
+                                                value={createForm.phone}
+                                                onChange={(e) => setCreateForm({ ...createForm, phone: e.target.value })}
+                                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl px-5 py-4 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder:text-slate-300"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 pl-1">Password</label>
+                                            <input
+                                                required
+                                                minLength={8}
+                                                type="password"
+                                                placeholder="••••••••"
+                                                value={createForm.password}
+                                                onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })}
+                                                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl px-5 py-4 text-sm font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-none transition-all placeholder:text-slate-300"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="pt-4 flex gap-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowCreateModal(false)}
+                                        className="flex-1 px-6 py-4 font-black text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-2xl transition-colors text-sm uppercase tracking-widest"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={createLoading}
+                                        className="flex-1 px-6 py-4 font-black text-white bg-emerald-600 hover:bg-emerald-700 rounded-2xl shadow-xl shadow-emerald-600/20 transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center text-sm uppercase tracking-widest"
+                                    >
+                                        {createLoading ? (
+                                            <span className="material-symbols-outlined animate-spin text-[20px]">progress_activity</span>
+                                        ) : (
+                                            "Provision Account"
+                                        )}
+                                    </button>
+                                </div>
+                            </form>
+                        </motion.div>
                     </div>
-                </div>
-            )}
+                )}
+            </AnimatePresence>
         </div>
     );
 }

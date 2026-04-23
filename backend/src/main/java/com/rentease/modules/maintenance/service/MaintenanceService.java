@@ -209,11 +209,7 @@ public class MaintenanceService {
             .stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
-    public List<MaintenanceResponse> getAdminQueue(MaintenanceStatus status, String priority, String technicianId) {
-        boolean hasStatus = status != null;
-        boolean hasPriority = priority != null && !priority.isBlank();
-        boolean hasTechnician = technicianId != null && !technicianId.isBlank();
-
+    public List<MaintenanceResponse> getAdminQueue(MaintenanceStatus status, String priority, String technicianId, String propertyId) {
         List<MaintenanceRequest> queue;
         if (hasTechnician && hasStatus && hasPriority) {
             queue = maintenanceRepository.findByAssignedTechnicianIdAndStatusAndPriorityIgnoreCaseOrderByCreatedAtDesc(
@@ -234,6 +230,18 @@ public class MaintenanceService {
         } else {
             queue = maintenanceRepository.findAll().stream()
                     .sorted((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()))
+                    .collect(Collectors.toList());
+        }
+
+        if (technicianId != null && !technicianId.isBlank()) {
+            queue = queue.stream()
+                    .filter(r -> technicianId.equals(r.getAssignedTechnicianId()))
+                    .collect(Collectors.toList());
+        }
+
+        if (propertyId != null && !propertyId.isBlank()) {
+            queue = queue.stream()
+                    .filter(r -> propertyId.equals(r.getPropertyId()))
                     .collect(Collectors.toList());
         }
 

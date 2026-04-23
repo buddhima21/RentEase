@@ -249,6 +249,7 @@ export const getAllBookingsForAdmin = (statuses = []) => {
  * @returns {Promise} Axios response
  */
 export const getPropertyReviews = (propertyId) => API.get(`/api/v1/reviews/property/${propertyId}?onlyApproved=true`);
+export const getAllReviews = () => API.get("/api/v1/reviews");
 export const submitReview = (data) => API.post("/api/v1/reviews", data);
 export const getPendingReviews = () => API.get(`/api/v1/reviews/status/PENDING`);
 export const getOwnerReviews = () => API.get(`/api/v1/reviews/owner`);
@@ -256,6 +257,7 @@ export const updateReviewStatus = (reviewId, status) => API.put(`/api/v1/reviews
 export const replyToReview = (reviewId, replyText) => API.put(`/api/v1/reviews/${reviewId}/reply`, { replyText });
 export const updateReview = (reviewId, reviewData) => API.put(`/api/v1/reviews/${reviewId}`, reviewData);
 export const deleteReview = (reviewId) => API.delete(`/api/v1/reviews/${reviewId}`);
+export const toggleReviewHelpful = (reviewId) => API.post(`/api/v1/reviews/${reviewId}/helpful`);
 
 // ── System Analytics ────────────────────────────────────
 export const getSystemAnalytics = () => API.get("/api/v1/analytics/overview");

@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
-import Sidebar from "../components/owner/dashboard/Sidebar";
-import UserDropdown from "../components/UserDropdown";
-import { useAuth } from "../context/AuthContext";
-import { getOwnerProperties, getAllProperties, getOwnerPropertyById, getOwnerReviews, updateReviewStatus, replyToReview } from "../services/api";
+import AdminSidebar from "../components/admin/dashboard/AdminSidebar";
+import AdminProfileDropdown from "../components/admin/dashboard/AdminProfileDropdown";
+import { getAllPropertiesForAdmin, getPendingProperties, getAllProperties, getAvailableProperties, getAdminPropertyById, getAllReviews, updateReviewStatus, replyToReview } from "../services/api";
 import { motion, AnimatePresence } from "framer-motion";
-import { ownerProfile } from "../data/ownerDashboardData";
+import { useNavigate } from "react-router-dom";
 
-export default function OwnerReviews() {
-    const { user, logout } = useAuth();
+export default function AdminReviews() {
+    const navigate = useNavigate();
+    const [adminUser, setAdminUser] = useState(null);
     const [activeTab, setActiveTab] = useState("PENDING");
     const [reviews, setReviews] = useState([]);
     const [properties, setProperties] = useState({});
@@ -24,21 +24,49 @@ export default function OwnerReviews() {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
-        if (user) fetchReviews();
-    }, [user]);
+        const checkAuthAndFetch = async () => {
+            let isAdmin = false;
+            try {
+                const token = localStorage.getItem("adminToken");
+                const stored = localStorage.getItem("adminUser");
+                if (token && stored) {
+                    const parsed = JSON.parse(stored);
+                    if (parsed.role === "ADMIN") {
+                        setAdminUser(parsed);
+                        isAdmin = true;
+                    }
+                }
+            } catch {
+                localStorage.removeItem("adminToken");
+                localStorage.removeItem("adminUser");
+            }
+
+            if (isAdmin) {
+                fetchReviews();
+            } else {
+                navigate("/admin/login");
+            }
+        };
+
+        checkAuthAndFetch();
+    }, [navigate]);
 
     const fetchReviews = async () => {
         setLoading(true);
         try {
-            // Fetch from both owner list and public list to maximize mapping coverage
-            const [ownerPropsRes, publicPropsRes] = await Promise.all([
-                getOwnerProperties(user.id).catch(() => ({ data: { data: [] } })),
-                getAllProperties().catch(() => ({ data: { data: [] } }))
+            // Fetch from every possible source to ensure 100% mapping coverage
+            const [allPropsRes, pendingPropsRes, publicPropsRes, availPropsRes] = await Promise.all([
+                getAllPropertiesForAdmin().catch(() => ({ data: { data: [] } })),
+                getPendingProperties().catch(() => ({ data: { data: [] } })),
+                getAllProperties().catch(() => ({ data: { data: [] } })),
+                getAvailableProperties().catch(() => ({ data: { data: [] } }))
             ]);
             
             const propsList = [
-                ...(ownerPropsRes.data?.data || []),
-                ...(publicPropsRes.data?.data || [])
+                ...(allPropsRes.data?.data || []), 
+                ...(pendingPropsRes.data?.data || []),
+                ...(publicPropsRes.data?.data || []),
+                ...(availPropsRes.data?.data || [])
             ];
             
             const propsMap = {};
@@ -55,10 +83,11 @@ export default function OwnerReviews() {
                     });
                 }
             });
-            // Fetch all reviews for this owner
-            const reviewsRes = await getOwnerReviews();
-            const allReviews = reviewsRes.data.data;
             
+            // Fetch all platform reviews
+            const reviewsRes = await getAllReviews();
+            const allReviews = reviewsRes.data.data;
+
             // Intelligent Data Recovery: Fetch missing property names by ID if they aren't in our map
             const uniquePIds = [...new Set(allReviews.map(r => 
                 (r.propertyId?._id || r.propertyId || r.property_id || r.listingId?._id || r.listingId || r.listing_id || "").toString().toLowerCase()
@@ -67,9 +96,9 @@ export default function OwnerReviews() {
             if (uniquePIds.length > 0) {
                 await Promise.all(uniquePIds.map(async (id) => {
                     try {
-                        // Try Owner endpoint first
-                        let res = await getOwnerPropertyById(id).catch(() => null);
-                        // If owner endpoint fails, try public endpoint
+                        // Try Admin endpoint first
+                        let res = await getAdminPropertyById(id).catch(() => null);
+                        // If admin fails, try public endpoint
                         if (!res) res = await getAllProperties().catch(() => null);
                         
                         const found = res?.data?.data || res?.data;
@@ -85,7 +114,7 @@ export default function OwnerReviews() {
                     }
                 }));
             }
-
+            
             setProperties(propsMap);
             
             // Enrich reviews with property titles for immediate display
@@ -162,8 +191,8 @@ export default function OwnerReviews() {
             });
         }
 
-        // Apply Sort
-        filtered.sort((a, b) => {
+        const sorted = [...filtered];
+        sorted.sort((a, b) => {
             if (sortBy === "newest") return new Date(b.createdAt) - new Date(a.createdAt);
             if (sortBy === "oldest") return new Date(a.createdAt) - new Date(b.createdAt);
             if (sortBy === "highest") return b.rating - a.rating;
@@ -172,8 +201,7 @@ export default function OwnerReviews() {
             if (sortBy === "za") return (properties[b.propertyId] || "").localeCompare(properties[a.propertyId] || "");
             return 0;
         });
-
-        return filtered;
+        return sorted;
     };
 
     const allFilteredReviews = getSortedReviews(reviews.filter(r => r.status === activeTab));
@@ -212,20 +240,20 @@ export default function OwnerReviews() {
 
     return (
         <div className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-emerald-950/20" style={{ "--color-primary": "#10b981" }}>
-            <Sidebar />
+            <AdminSidebar />
 
             <main className="flex-1 flex flex-col min-w-0 font-sans">
                 {/* Header */}
                 <header className="sticky top-0 z-30 h-[88px] border-b border-slate-100/80 dark:border-slate-700/80 bg-white/70 dark:bg-slate-900/70 backdrop-blur-3xl px-8 lg:px-12 flex items-center justify-between gap-4 shrink-0">
                     <div>
-                        <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">Property <span className="text-emerald-500">Reviews</span></h2>
+                        <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">System <span className="text-emerald-500">Reviews</span></h2>
                     </div>
                     <div className="flex items-center gap-4">
                         <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-emerald-50 rounded-xl border border-emerald-100">
-                           <span className="material-symbols-outlined text-[18px] text-emerald-600">verified</span>
-                           <span className="text-[11px] font-black text-emerald-700 uppercase tracking-widest">Community Verified</span>
+                           <span className="material-symbols-outlined text-[18px] text-emerald-600">admin_panel_settings</span>
+                           <span className="text-[11px] font-black text-emerald-700 uppercase tracking-widest">Global Moderation</span>
                         </div>
-                        {user && <UserDropdown user={user} onLogout={logout} />}
+                        {adminUser && <AdminProfileDropdown adminUser={adminUser} />}
                     </div>
                 </header>
 
@@ -316,7 +344,7 @@ export default function OwnerReviews() {
                     {loading ? (
                         <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-12 border border-slate-100 dark:border-slate-700/50 shadow-[0_8px_30px_rgb(0,0,0,0.03)] flex flex-col items-center justify-center min-h-[400px]">
                             <div className="w-10 h-10 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin mb-4"></div>
-                            <p className="text-slate-500 dark:text-slate-400 font-medium">Fetching your property reviews...</p>
+                            <p className="text-slate-500 dark:text-slate-400 font-medium">Fetching platform reviews...</p>
                         </div>
                     ) : filteredReviews.length === 0 ? (
                         <motion.div
@@ -332,7 +360,7 @@ export default function OwnerReviews() {
                             <h3 className="text-xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight mb-2">
                                 {activeTab === 'PENDING' ? 'Queue is empty' : 'No published reviews yet'}
                             </h3>
-                            <p className="text-slate-500 dark:text-slate-400 font-medium text-[15px]">You are all caught up on your property feedback.</p>
+                            <p className="text-slate-500 dark:text-slate-400 font-medium text-[15px]">You are all caught up on platform feedback.</p>
                         </motion.div>
                     ) : (
                         <div className="flex flex-col gap-5">
@@ -375,13 +403,13 @@ export default function OwnerReviews() {
                                                     "{review.comment}"
                                                 </p>
 
-                                                {/* Owner Reply Box */}
+                                                {/* Owner/Admin Reply Box */}
                                                 {review.ownerReply && (
                                                     <div className="mt-5 bg-emerald-50/60 border border-emerald-100/60 p-5 rounded-2xl relative overflow-hidden">
                                                         <div className="absolute top-0 left-0 w-1.5 h-full bg-emerald-400 rounded-l-2xl"></div>
                                                         <div className="flex items-center gap-2 mb-1.5">
                                                             <span className="material-symbols-outlined text-[16px] text-emerald-600">forum</span>
-                                                            <p className="text-[11px] font-black text-emerald-700 uppercase tracking-widest pl-1">Your Context</p>
+                                                            <p className="text-[11px] font-black text-emerald-700 uppercase tracking-widest pl-1">Admin/Owner Response</p>
                                                         </div>
                                                         <p className="text-slate-700 dark:text-slate-200 text-[14px] font-medium leading-relaxed pl-6 italic">"{review.ownerReply}"</p>
                                                     </div>
@@ -486,7 +514,7 @@ export default function OwnerReviews() {
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none translate-x-10 -translate-y-10"></div>
                                 <h3 className="font-black text-[22px] text-slate-900 dark:text-white flex items-center gap-3">
                                     <span className="material-symbols-outlined text-emerald-500 bg-white dark:bg-slate-900 p-1.5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700/50">forum</span> 
-                                    Tenant Response
+                                    Admin Response
                                 </h3>
                                 <button onClick={() => { setReplyingTo(null); setReplyText(""); }} className="text-slate-400 hover:text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:bg-slate-800 p-1.5 rounded-full transition-colors border border-slate-100 dark:border-slate-700/50">
                                     <span className="material-symbols-outlined text-[18px]">close</span>
@@ -510,7 +538,7 @@ export default function OwnerReviews() {
                                     <textarea 
                                         value={replyText}
                                         onChange={(e) => setReplyText(e.target.value)}
-                                        placeholder="Add more specific details to let future tenants know how you manage properties..."
+                                        placeholder="Add an administrative response to this review..."
                                         className="w-full min-h-[140px] p-4 bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-700/50 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none text-[15px] font-medium resize-none transition-all placeholder:text-slate-300"
                                     />
                                 </div>
