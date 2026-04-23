@@ -71,9 +71,17 @@ export default function TechnicianJobDetails() {
             const stored = localStorage.getItem(getCompletionDraftKey(jobId));
             if (stored) {
                 const parsed = JSON.parse(stored);
-                if (Array.isArray(parsed)) {
+                if (parsed.completionImages && Array.isArray(parsed.completionImages)) {
+                    setCompletionImages(parsed.completionImages.slice(0, MAX_MAINTENANCE_IMAGES));
+                } else if (Array.isArray(parsed)) {
+                    // Backward compatibility for old drafts
                     setCompletionImages(parsed.slice(0, MAX_MAINTENANCE_IMAGES));
                 }
+                
+                if (parsed.summary) setSummary(parsed.summary);
+                if (parsed.notes) setNotes(parsed.notes);
+                if (parsed.partsUsed) setPartsUsed(parsed.partsUsed);
+                if (parsed.checklist && Array.isArray(parsed.checklist)) setChecklist(parsed.checklist);
             }
         } catch {
             // Ignore malformed local draft payloads.
@@ -82,8 +90,14 @@ export default function TechnicianJobDetails() {
 
     useEffect(() => {
         if (!jobId) return;
-        localStorage.setItem(getCompletionDraftKey(jobId), JSON.stringify(completionImages));
-    }, [jobId, completionImages]);
+        localStorage.setItem(getCompletionDraftKey(jobId), JSON.stringify({
+            completionImages,
+            summary,
+            notes,
+            partsUsed,
+            checklist
+        }));
+    }, [jobId, completionImages, summary, notes, partsUsed, checklist]);
 
     const runAction = async (action, fallbackMessage, reloadAfter = true) => {
         setBusy(true);
