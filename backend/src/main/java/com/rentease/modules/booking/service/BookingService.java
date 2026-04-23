@@ -16,6 +16,7 @@ import com.rentease.modules.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
@@ -109,6 +110,7 @@ public class BookingService {
         return mapToResponse(saved);
     }
 
+    @CacheEvict(value = "approvedProperties", allEntries = true)
     public BookingResponse approveBooking(String id, String requestingOwnerId) {
         Booking booking = findBookingOrThrow(id);
 

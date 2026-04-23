@@ -223,12 +223,18 @@ public class PropertyService {
     // ══════════════════════════════════════════════════════
 
     /**
-     * Public: Get all approved properties.
+     * Public: Get all listable properties (approved + booked).
+     * Booked properties remain visible so tenants can still see them
+     * (the UI shows a "Fully Booked" badge when no slots remain).
      */
     @Cacheable("approvedProperties")
     public List<PropertyResponse> getApprovedProperties() {
-        log.debug("Cache miss — fetching approved properties from MongoDB");
-        List<Property> props = propertyRepository.findByStatus(PropertyStatus.APPROVED);
+        log.debug("Cache miss — fetching listable properties from MongoDB");
+        List<PropertyStatus> listableStatuses = Arrays.asList(
+                PropertyStatus.APPROVED,
+                PropertyStatus.BOOKED
+        );
+        List<Property> props = propertyRepository.findByStatusIn(listableStatuses);
         return mapToResponseList(props);
     }
 
@@ -239,7 +245,16 @@ public class PropertyService {
         Property property = propertyRepository.findById(propertyId)
                 .orElseThrow(() -> new ResourceNotFoundException("Property", "id", propertyId));
 
-        if (property.getStatus() != PropertyStatus.APPROVED) {
+        // Allow public viewing for active/confirmed properties, but hide internal/rejected/deleted ones
+        List<PropertyStatus> publicStatuses = Arrays.asList(
+                PropertyStatus.APPROVED,
+                PropertyStatus.BOOKED,
+                PropertyStatus.RENTED,
+                PropertyStatus.AVAILABLE,
+                PropertyStatus.UNDER_MAINTENANCE
+        );
+
+        if (!publicStatuses.contains(property.getStatus())) {
             throw new ResourceNotFoundException("Property", "id", propertyId);
         }
         return mapToResponse(property);
