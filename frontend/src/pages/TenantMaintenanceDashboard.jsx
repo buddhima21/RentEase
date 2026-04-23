@@ -3,9 +3,12 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getTenantMaintenance } from "../services/api";
 import MaintenanceBadge from "../components/maintenance/MaintenanceBadge";
+import MaintenanceQueueTable from "../components/maintenance/MaintenanceQueueTable";
 import MaintenanceSectionCard from "../components/maintenance/MaintenanceSectionCard";
 import MaintenanceStatCard from "../components/maintenance/MaintenanceStatCard";
 import { formatMaintenanceDate } from "../constants/maintenance";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 export default function TenantMaintenanceDashboard() {
     const { user } = useAuth();
@@ -19,8 +22,9 @@ export default function TenantMaintenanceDashboard() {
     }, [user?.id]);
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 p-6 md:p-10">
-            <div className="mx-auto max-w-7xl space-y-6">
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 flex flex-col">
+            <Navbar />
+            <div className="flex-1 w-full mx-auto max-w-7xl p-6 md:p-10 space-y-6">
                 <div className="flex flex-wrap items-center justify-between gap-4">
                     <div>
                         <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">Tenant Maintenance Dashboard</h1>
@@ -44,41 +48,54 @@ export default function TenantMaintenanceDashboard() {
                 </div>
 
                 <MaintenanceSectionCard eyebrow="Requests" title="Maintenance requests" description="Open each request to follow the live status timeline.">
-                    <div className="overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-700">
-                        <table className="w-full text-sm">
-                            <thead className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200">
-                                <tr>
-                                    <th className="text-left p-3">Title</th>
-                                    <th className="text-left p-3">Service</th>
-                                    <th className="text-left p-3">Priority</th>
-                                    <th className="text-left p-3">Status</th>
-                                    <th className="text-left p-3">Scheduled</th>
-                                    <th className="text-left p-3">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white dark:bg-slate-900">
-                                {items.map((item) => (
-                                    <tr key={item.id} className="border-t border-slate-200 dark:border-slate-700">
-                                        <td className="p-3 font-medium text-slate-900 dark:text-white">{item.title}</td>
-                                        <td className="p-3 text-slate-600 dark:text-slate-300">{item.serviceType}</td>
-                                        <td className="p-3"><MaintenanceBadge kind="priority" value={item.priority} /></td>
-                                        <td className="p-3"><MaintenanceBadge value={item.status} /></td>
-                                        <td className="p-3 text-slate-600 dark:text-slate-300">{formatMaintenanceDate(item.scheduledAt)}</td>
-                                        <td className="p-3">
-                                            <Link className="font-semibold text-emerald-700 hover:text-emerald-800" to={`/tenant/maintenance/track/${item.id}`}>
-                                                Track
-                                            </Link>
-                                        </td>
-                                    </tr>
-                                ))}
-                                {items.length === 0 && (
-                                    <tr><td className="p-6 text-center text-slate-500 dark:text-slate-400" colSpan={6}>No maintenance requests yet.</td></tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
+                    <MaintenanceQueueTable
+                        data={items}
+                        emptyMessage="No maintenance requests yet."
+                        columns={[
+                            {
+                                header: "Title",
+                                sortable: true,
+                                sortKey: "title",
+                                render: (item) => <span className="font-medium text-slate-900 dark:text-white">{item.title}</span>
+                            },
+                            {
+                                header: "Service",
+                                sortable: true,
+                                sortKey: "serviceType",
+                                render: (item) => <span className="text-slate-600 dark:text-slate-300">{item.serviceType}</span>
+                            },
+                            {
+                                header: "Priority",
+                                sortable: true,
+                                sortKey: "priority",
+                                render: (item) => <MaintenanceBadge kind="priority" value={item.priority} />
+                            },
+                            {
+                                header: "Status",
+                                sortable: true,
+                                sortKey: "status",
+                                render: (item) => <MaintenanceBadge value={item.status} />
+                            },
+                            {
+                                header: "Scheduled",
+                                render: (item) => <span className="text-slate-600 dark:text-slate-300">{formatMaintenanceDate(item.scheduledAt)}</span>
+                            },
+                            {
+                                header: "",
+                                className: "text-right",
+                                render: (item) => (
+                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex justify-end">
+                                        <Link className="rounded-lg bg-slate-100 dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" to={`/tenant/maintenance/track/${item.id}`}>
+                                            Track Status
+                                        </Link>
+                                    </div>
+                                )
+                            }
+                        ]}
+                    />
                 </MaintenanceSectionCard>
             </div>
+            <Footer />
         </div>
     );
 }

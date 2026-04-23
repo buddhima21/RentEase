@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 let requestInterceptor;
+let responseRejectedInterceptor;
 
 const mockApi = {
     get: vi.fn(),
@@ -12,6 +13,11 @@ const mockApi = {
         request: {
             use: vi.fn((fn) => {
                 requestInterceptor = fn;
+            }),
+        },
+        response: {
+            use: vi.fn((_, onRejected) => {
+                responseRejectedInterceptor = onRejected;
             }),
         },
     },
@@ -54,6 +60,28 @@ describe("api request interceptor", () => {
         expect(req.headers.Authorization).toBe("Bearer admin-token-123");
     });
 
+    it("uses adminToken for admin maintenance queue endpoint", () => {
+        localStorage.setItem("adminToken", "admin-maint-token");
+
+        const req = requestInterceptor({
+            url: "/api/v1/maintenance/admin/queue",
+            headers: {},
+        });
+
+        expect(req.headers.Authorization).toBe("Bearer admin-maint-token");
+    });
+
+    it("uses adminToken for maintenance technicians endpoint", () => {
+        localStorage.setItem("adminToken", "admin-tech-token");
+
+        const req = requestInterceptor({
+            url: "/api/v1/maintenance/technicians",
+            headers: {},
+        });
+
+        expect(req.headers.Authorization).toBe("Bearer admin-tech-token");
+    });
+
     it("uses user.token for non-admin endpoints", () => {
         localStorage.setItem(
             "user",
@@ -68,7 +96,7 @@ describe("api request interceptor", () => {
         expect(req.headers.Authorization).toBe("Bearer tenant-token-abc");
     });
 
-    it("falls back to token when user object has no token", () => {
+    it("does not fall back to shared token for admin maintenance endpoints", () => {
         localStorage.setItem("user", JSON.stringify({ id: "tenant-1" }));
         localStorage.setItem("token", "legacy-token-xyz");
 
@@ -77,7 +105,43 @@ describe("api request interceptor", () => {
             headers: {},
         });
 
-        expect(req.headers.Authorization).toBe("Bearer legacy-token-xyz");
+        expect(req.headers.Authorization).toBeUndefined();
+    });
+});
+
+describe("api response interceptor", () => {
+    beforeEach(() => {
+        localStorage.clear();
+        vi.clearAllMocks();
+    });
+
+    it("clears admin session and redirects on 403 for admin requests", async () => {
+        localStorage.setItem("adminToken", "admin-token");
+        localStorage.setItem("adminUser", JSON.stringify({ id: "admin-1", role: "ADMIN" }));
+
+        await expect(
+            responseRejectedInterceptor({
+                config: { url: "/api/v1/maintenance/admin/queue" },
+                response: { status: 403 },
+            })
+        ).rejects.toBeTruthy();
+
+        expect(localStorage.getItem("adminToken")).toBeNull();
+        expect(localStorage.getItem("adminUser")).toBeNull();
+    });
+
+    it("does not clear admin session for non-admin requests", async () => {
+        localStorage.setItem("adminToken", "admin-token");
+        localStorage.setItem("adminUser", JSON.stringify({ id: "admin-1", role: "ADMIN" }));
+
+        await expect(
+            responseRejectedInterceptor({
+                config: { url: "/api/v1/maintenance/tenant/t1" },
+                response: { status: 403 },
+            })
+        ).rejects.toBeTruthy();
+
+        expect(localStorage.getItem("adminToken")).toBe("admin-token");
     });
 });
 
