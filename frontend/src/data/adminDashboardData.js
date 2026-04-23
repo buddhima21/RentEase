@@ -15,8 +15,8 @@ export const adminProfile = {
 // ── Sidebar Navigation ────────────────────────────────────────
 export const adminSidebarLinks = [
   { label: "Dashboard", icon: "dashboard", path: "/admin/dashboard" },
+  { label: "Users", icon: "group", path: "/admin/users", badge: 24 },
   { label: "Listing Moderation", icon: "fact_check", path: "/admin/listings" },
-  { label: "Maintenance", icon: "construction", path: "/admin/maintenance" },
   { label: "Reviews", icon: "reviews", path: "/admin/reviews", badge: 5 },
   { label: "Bookings", icon: "calendar_month", path: "/admin/bookings" },
   { label: "Maintenance", icon: "construction", path: "/admin/maintenance" },

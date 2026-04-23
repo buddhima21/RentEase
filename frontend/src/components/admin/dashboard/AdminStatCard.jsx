@@ -1,79 +1,39 @@
-import { motion } from "framer-motion";
-
-const itemVariants = {
-    hidden: { opacity: 0, y: 25, scale: 0.95 },
-    visible: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 80, damping: 15 } },
-};
-
-const THEME_MAP = {
-    red: {
-        containerHover: "hover:bg-red-50/30",
-        iconContainer: "bg-red-50 text-red-500 border-red-100/50",
-        valueText: "text-red-600",
-        button: "bg-red-600 hover:bg-red-700 shadow-[0_4px_14px_rgba(220,38,38,0.2)]",
-    },
-    emerald: {
-        containerHover: "hover:bg-emerald-50/30",
-        iconContainer: "bg-emerald-50 text-emerald-500 border-emerald-100/50",
-        valueText: "text-emerald-600",
-        button: "bg-emerald-600 hover:bg-emerald-700 shadow-[0_4px_14px_rgba(5,150,105,0.2)]",
-    },
-    primary: {
-        containerHover: "hover:bg-emerald-50/30",
-        iconContainer: "bg-emerald-50 text-emerald-600 border-emerald-200/50",
-        valueText: "text-emerald-600",
-        button: "bg-emerald-600 hover:bg-emerald-700 shadow-[0_4px_14px_rgba(5,150,105,0.2)]",
-    },
-    blue: {
-        containerHover: "hover:bg-blue-50/30",
-        iconContainer: "bg-blue-50 text-blue-600 border-blue-100/50",
-        valueText: "text-blue-600",
-        button: "bg-blue-600 hover:bg-blue-700 shadow-[0_4px_14px_rgba(37,99,235,0.2)]",
-    }
-};
-
+/**
+ * AdminStatCard — Reusable KPI card for the admin dashboard overview.
+ * Same pattern as the owner StatCard but scoped to the admin namespace.
+ *
+ * Props: icon, iconBg, iconColor, label, value, badge, badgeBg, badgeColor
+ */
 export default function AdminStatCard({
-    title,
-    value,
-    subtitle,
     icon,
-    colorTheme = "primary",
-    actionText,
-    onActionClick,
+    iconBg=bg-red-100,
+    iconColor=text-red-500,
+    label,
+    value,
+    badge,
+    badgeBg,
+    badgeColor,
 }) {
-    const theme = THEME_MAP[colorTheme] || THEME_MAP.primary;
-
     return (
-        <motion.div
-            variants={itemVariants}
-            className={`bg-white/80 backdrop-blur-xl rounded-[2.5rem] border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.03)] p-8 flex flex-col items-center justify-between flex-1 text-center group transition-colors duration-500 ${theme.containerHover}`}
-        >
-            <div className={`w-16 h-16 rounded-3xl flex flex-col items-center justify-center mb-6 border ${theme.iconContainer}`}>
-                <span className="material-symbols-outlined text-[28px] group-hover:scale-110 transition-transform duration-300">
+        <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-100 dark:border-slate-700/50 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 flex flex-col min-h-[140px]">
+            {/* Top row: icon + badge */}
+            <div className="flex items-center justify-between mb-4">
+                <span
+                    className={`material-symbols-outlined p-2.5 rounded-xl text-xl ${iconBg} ${iconColor}`}
+                >
                     {icon}
                 </span>
+                {badge && (
+                    <span
+                        className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${badgeBg} ${badgeColor}`}
+                    >
+                        {badge}
+                    </span>
+                )}
             </div>
-            
-            <div className="mb-8">
-                <h3 className="text-[11px] font-bold tracking-widest uppercase text-slate-400 mb-2">
-                    {title}
-                </h3>
-                <div className={`text-[48px] font-black leading-none ${theme.valueText}`}>
-                    {value}
-                </div>
-                <p className="text-sm font-medium text-slate-500 mt-2">{subtitle}</p>
-            </div>
-            
-            {actionText ? (
-                <button
-                    onClick={onActionClick}
-                    className={`w-full text-white font-bold py-3.5 rounded-full shadow-md transition-all active:scale-[0.98] ${theme.button}`}
-                >
-                    {actionText}
-                </button>
-            ) : (
-                <div className="w-full h-[52px] bg-slate-50/50 rounded-full border border-slate-100/50 mt-auto"></div>
-            )}
-        </motion.div>
+            {/* Label + Value */}
+            <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">{label}</p>
+            <h3 className="text-3xl font-extrabold mt-1 tracking-tight">{value}</h3>
+        </div>
     );
 }

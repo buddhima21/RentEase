@@ -3,7 +3,6 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getPropertyById, getPropertyAvailableSlots, createBookingRequest, getTenantBookings } from "../services/api";
 import Navbar from "../components/Navbar";
-import { motion, AnimatePresence } from "framer-motion";
 
 const AMENITY_DETAILS = {
     WiFi: { icon: "wifi", label: "High-speed Wi-Fi" },
@@ -34,31 +33,19 @@ function BookingModal({ property, onClose, onSubmit, submitting, error }) {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-            <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" 
-                onClick={onClose} 
-            />
-            <motion.div 
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                className="relative bg-white rounded-[2rem] shadow-2xl w-full max-w-md p-8 z-10"
-            >
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-black text-slate-900">Request Booking</h2>
-                    <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100 transition-colors text-slate-400">
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+            <div className="relative bg-white dark:bg-slate-900 rounded-2xl shadow-2xl w-full max-w-md p-6 z-10 animate-fade-in">
+                <div className="flex items-center justify-between mb-5">
+                    <h2 className="text-xl font-black text-slate-900 dark:text-white">Request Booking</h2>
+                    <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100 dark:bg-slate-800 transition-colors text-slate-400">
                         <span className="material-symbols-outlined">close</span>
                     </button>
                 </div>
 
                 {/* Property Summary */}
-                <div className="bg-slate-50 rounded-xl p-4 mb-5 border border-slate-200">
-                    <h3 className="font-bold text-slate-900 mb-1 line-clamp-1">{property.title}</h3>
-                    <p className="text-sm text-slate-500 flex items-center gap-1 mb-2">
+                <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4 mb-5 border border-slate-200 dark:border-slate-700">
+                    <h3 className="font-bold text-slate-900 dark:text-white mb-1 line-clamp-1">{property.title}</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 flex items-center gap-1 mb-2">
                         <span className="material-symbols-outlined text-sm text-primary">location_on</span>
                         {property.address}, {property.city}
                     </p>
@@ -67,7 +54,7 @@ function BookingModal({ property, onClose, onSubmit, submitting, error }) {
                             LKR {new Intl.NumberFormat("en-LK").format(property.price)}
                             <span className="text-slate-400 font-normal text-xs">/mo</span>
                         </span>
-                        <span className="flex items-center gap-1 text-slate-500">
+                        <span className="flex items-center gap-1 text-slate-500 dark:text-slate-400">
                             <span className="material-symbols-outlined text-sm">bed</span>
                             {property.bedrooms} Bedroom{property.bedrooms > 1 ? "s" : ""}
                         </span>
@@ -76,7 +63,7 @@ function BookingModal({ property, onClose, onSubmit, submitting, error }) {
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                        <label className="block text-sm font-bold text-slate-700 mb-1.5">
+                        <label className="block text-sm font-bold text-slate-700 dark:text-slate-200 mb-1.5">
                             Requested Move-in Date
                         </label>
                         <input
@@ -85,7 +72,7 @@ function BookingModal({ property, onClose, onSubmit, submitting, error }) {
                             min={today}
                             onChange={(e) => setStartDate(e.target.value)}
                             required
-                            className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+                            className="w-full border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
                         />
                     </div>
 
@@ -107,7 +94,7 @@ function BookingModal({ property, onClose, onSubmit, submitting, error }) {
                         <button
                             type="button"
                             onClick={onClose}
-                            className="flex-1 bg-slate-100 text-slate-700 font-bold py-3 rounded-xl hover:bg-slate-200 transition-all text-sm"
+                            className="flex-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold py-3 rounded-xl hover:bg-slate-200 transition-all text-sm"
                         >
                             Cancel
                         </button>
@@ -125,15 +112,17 @@ function BookingModal({ property, onClose, onSubmit, submitting, error }) {
                         </button>
                     </div>
                 </form>
-            </motion.div>
+            </div>
         </div>
     );
 }
 
 export default function ListingDetails() {
     const { id } = useParams();
-    const { user } = useAuth();
+    const { user, toggleFavorite } = useAuth();
     const navigate = useNavigate();
+
+    const isFavorite = user?.favoritePropertyIds?.includes(id);
 
     const [property, setProperty] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -215,58 +204,12 @@ export default function ListingDetails() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-background-light flex flex-col">
+            <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 flex flex-col">
                 <Navbar />
-                <div className="max-w-7xl mx-auto w-full px-4 md:px-20 py-6">
-                    {/* Skeleton Banner */}
-                    <div className="h-6 w-32 bg-slate-200 rounded animate-pulse mb-6" />
-                    
-                    {/* Skeleton Gallery (Bento Layout) */}
-                    <div className="grid grid-cols-4 grid-rows-2 gap-3 h-[300px] md:h-[500px] rounded-2xl overflow-hidden mb-8">
-                        <div className="col-span-4 md:col-span-2 row-span-2 bg-slate-200 animate-pulse" />
-                        <div className="hidden md:block col-span-1 row-span-1 bg-slate-200 animate-pulse" />
-                        <div className="hidden md:block col-span-1 row-span-1 bg-slate-200 animate-pulse" />
-                        <div className="hidden md:block col-span-1 row-span-1 bg-slate-200 animate-pulse" />
-                        <div className="hidden md:block col-span-1 row-span-1 bg-slate-200 animate-pulse" />
-                    </div>
-
-                    <div className="flex flex-col lg:flex-row gap-12">
-                        {/* Skeleton Left Pane */}
-                        <div className="flex-1 space-y-8">
-                            <div>
-                                <div className="h-10 w-2/3 bg-slate-200 rounded animate-pulse mb-3" />
-                                <div className="h-5 w-1/2 bg-slate-200 rounded animate-pulse" />
-                            </div>
-                            <div className="flex gap-4 border-y border-slate-100 py-6">
-                                <div className="h-10 w-24 bg-slate-200 rounded-xl animate-pulse" />
-                                <div className="h-10 w-24 bg-slate-200 rounded-xl animate-pulse" />
-                                <div className="h-10 w-24 bg-slate-200 rounded-xl animate-pulse" />
-                            </div>
-                            <div className="space-y-3">
-                                <div className="h-4 w-full bg-slate-200 rounded animate-pulse" />
-                                <div className="h-4 w-5/6 bg-slate-200 rounded animate-pulse" />
-                                <div className="h-4 w-4/6 bg-slate-200 rounded animate-pulse" />
-                            </div>
-                        </div>
-
-                        {/* Skeleton Sidebar Panel */}
-                        <div className="lg:w-80 shrink-0">
-                            <div className="bg-white rounded-2xl border border-slate-100 p-6 space-y-4 shadow-sm animate-pulse">
-                                <div className="h-8 w-2/3 bg-slate-200 rounded mb-2" />
-                                <div className="h-4 w-1/2 bg-slate-200 rounded mb-6" />
-                                <div className="h-[1px] w-full bg-slate-100 my-4" />
-                                <div className="flex justify-between">
-                                    <div className="h-4 w-24 bg-slate-200 rounded" />
-                                    <div className="h-4 w-16 bg-slate-200 rounded" />
-                                </div>
-                                <div className="flex justify-between">
-                                    <div className="h-4 w-24 bg-slate-200 rounded" />
-                                    <div className="h-4 w-16 bg-slate-200 rounded" />
-                                </div>
-                                <div className="h-[1px] w-full bg-slate-100 my-4" />
-                                <div className="h-12 w-full bg-slate-200 rounded-xl" />
-                            </div>
-                        </div>
+                <div className="flex-1 flex items-center justify-center">
+                    <div className="flex flex-col items-center gap-4">
+                        <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                        <p className="text-slate-500 dark:text-slate-400">Loading property...</p>
                     </div>
                 </div>
             </div>
@@ -275,12 +218,12 @@ export default function ListingDetails() {
 
     if (!property) {
         return (
-            <div className="min-h-screen bg-slate-50 flex flex-col">
+            <div className="min-h-screen bg-slate-50 dark:bg-slate-800/50 flex flex-col">
                 <Navbar />
                 <div className="flex-1 flex flex-col items-center justify-center px-6 text-center">
                     <span className="material-symbols-outlined text-7xl text-slate-300 mb-4">home_work</span>
-                    <h1 className="text-2xl font-bold text-slate-700 mb-2">Property Not Found</h1>
-                    <p className="text-slate-500 mb-8 max-w-md">
+                    <h1 className="text-2xl font-bold text-slate-700 dark:text-slate-200 mb-2">Property Not Found</h1>
+                    <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-md">
                         The property you are looking for does not exist or may have been removed.
                     </p>
                     <Link
@@ -346,40 +289,46 @@ export default function ListingDetails() {
     };
 
     return (
-        <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
-            className="min-h-screen bg-background-light"
-        >
+        <div className="min-h-screen bg-background-light dark:bg-slate-900">
             {/* Booking Modal */}
-            <AnimatePresence>
-                {showModal && (
-                    <BookingModal
-                        property={property}
-                        onClose={() => { setShowModal(false); setBookingError(null); }}
-                        onSubmit={handleBookingSubmit}
-                        submitting={submitting}
-                        error={bookingError}
-                    />
-                )}
-            </AnimatePresence>
+            {showModal && (
+                <BookingModal
+                    property={property}
+                    onClose={() => { setShowModal(false); setBookingError(null); }}
+                    onSubmit={handleBookingSubmit}
+                    submitting={submitting}
+                    error={bookingError}
+                />
+            )}
 
-            <header className="sticky top-0 z-40 w-full border-b border-slate-200 bg-background-light/80 backdrop-blur-md px-4 md:px-20 py-3">
+            <header className="sticky top-0 z-40 w-full border-b border-slate-200 dark:border-slate-700 bg-background-light/80 dark:bg-slate-900/80 backdrop-blur-md px-4 md:px-20 py-3">
                 <div className="max-w-7xl mx-auto flex items-center justify-between">
                     <div className="flex items-center gap-8">
                         <Link to="/" className="flex items-center gap-2 text-primary">
                             <span className="material-symbols-outlined text-3xl font-bold">diamond</span>
-                            <h2 className="text-xl font-bold leading-tight tracking-tight text-slate-900">RentEase</h2>
+                            <h2 className="text-xl font-bold leading-tight tracking-tight text-slate-900 dark:text-white">RentEase</h2>
                         </Link>
                     </div>
                     <div className="flex items-center gap-4">
                         <button className="flex items-center justify-center p-2 rounded-xl bg-slate-200/50 hover:bg-slate-200 transition-colors">
                             <span className="material-symbols-outlined text-xl">share</span>
                         </button>
-                        <button className="flex items-center justify-center p-2 rounded-xl bg-slate-200/50 hover:bg-slate-200 transition-colors">
-                            <span className="material-symbols-outlined text-xl">favorite</span>
+                        <button 
+                            onClick={(e) => {
+                                e.preventDefault();
+                                if (!user) {
+                                    navigate("/login");
+                                    return;
+                                }
+                                toggleFavorite(id);
+                            }}
+                            className={`flex items-center justify-center p-2 rounded-xl transition-colors ${
+                                isFavorite 
+                                    ? "bg-rose-50 text-rose-500 hover:bg-rose-100" 
+                                    : "bg-slate-200/50 text-slate-500 hover:bg-slate-200"
+                            }`}
+                        >
+                            <span className="material-symbols-outlined text-xl" style={{ fontVariationSettings: isFavorite ? "'FILL' 1" : "'FILL' 0" }}>favorite</span>
                         </button>
                         <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden border-2 border-primary">
                             <span className="material-symbols-outlined text-primary">person</span>
@@ -391,7 +340,7 @@ export default function ListingDetails() {
             <main className="max-w-7xl mx-auto px-4 md:px-20 py-6">
                 <Link
                     to="/listings"
-                    className="inline-flex items-center gap-1 text-sm font-semibold text-slate-500 hover:text-primary transition-colors mb-6"
+                    className="inline-flex items-center gap-1 text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-primary transition-colors mb-6"
                 >
                     <span className="material-symbols-outlined text-lg">arrow_back</span>
                     Back to Listings
@@ -416,17 +365,17 @@ export default function ListingDetails() {
                             <img
                                 className="relative z-10 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 text-transparent"
                                 src={galleryImages[0]}
-                                fetchPriority="high"
                                 alt={property.title}
                                 onError={(e) => { e.target.style.display = 'none'; }}
                             />
                         )}
                         {property.status && property.status !== "AVAILABLE" && (
                             <div className="absolute z-20 top-3 left-3">
-                                <span className={`px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg ${property.status === "BOOKED" ? "bg-amber-500 text-white" :
-                                        property.status === "UNDER_MAINTENANCE" ? "bg-orange-500 text-white" :
-                                            "bg-slate-500 text-white"
-                                    }`}>
+                                <span className={`px-3 py-1.5 rounded-lg text-xs font-bold shadow-lg ${
+                                    property.status === "BOOKED" ? "bg-amber-500 text-white" :
+                                    property.status === "UNDER_MAINTENANCE" ? "bg-orange-500 text-white" :
+                                    "bg-slate-50 dark:bg-slate-800/500 text-white"
+                                }`}>
                                     {property.status.replace("_", " ")}
                                 </span>
                             </div>
@@ -440,7 +389,6 @@ export default function ListingDetails() {
                                     className="relative z-10 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 text-transparent"
                                     src={img}
                                     alt={`${property.title} view ${i + 2}`}
-                                    loading="lazy"
                                     onError={(e) => { e.target.style.display = 'none'; }}
                                 />
                             )}
@@ -460,33 +408,33 @@ export default function ListingDetails() {
                             <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
                                 <div>
                                     <h1 className="text-3xl md:text-4xl font-black tracking-tight mb-2">{property.title}</h1>
-                                    <p className="text-slate-500 flex items-center gap-1">
+                                    <p className="text-slate-500 dark:text-slate-400 flex items-center gap-1">
                                         <span className="material-symbols-outlined text-primary text-lg">location_on</span>
                                         {property.address}, {property.city}
                                     </p>
                                 </div>
                                 <div className="text-right shrink-0">
                                     <span className="text-3xl font-bold text-primary">LKR {formattedPrice}</span>
-                                    <span className="text-slate-500">/mo</span>
+                                    <span className="text-slate-500 dark:text-slate-400">/mo</span>
                                 </div>
                             </div>
-                            <div className="flex flex-wrap gap-4 border-y border-slate-200 py-6">
-                                <div className="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-xl">
+                            <div className="flex flex-wrap gap-4 border-y border-slate-200 dark:border-slate-700 py-6">
+                                <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-xl">
                                     <span className="material-symbols-outlined text-primary">bed</span>
                                     <span className="font-medium">{property.bedrooms} Bedroom{property.bedrooms > 1 ? "s" : ""}</span>
                                 </div>
-                                <div className="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-xl">
+                                <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-xl">
                                     <span className="material-symbols-outlined text-primary">bathtub</span>
                                     <span className="font-medium">{property.bathrooms} Bathroom{property.bathrooms > 1 ? "s" : ""}</span>
                                 </div>
                                 {property.area > 0 && (
-                                    <div className="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-xl">
+                                    <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-xl">
                                         <span className="material-symbols-outlined text-primary">square_foot</span>
                                         <span className="font-medium">{property.area} sq ft</span>
                                     </div>
                                 )}
                                 {property.propertyType && (
-                                    <div className="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-xl">
+                                    <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800 px-4 py-2 rounded-xl">
                                         <span className="material-symbols-outlined text-primary">home</span>
                                         <span className="font-medium">{property.propertyType}</span>
                                     </div>
@@ -495,10 +443,11 @@ export default function ListingDetails() {
 
                             {/* Availability Info */}
                             {isTenant && availableSlots !== null && (
-                                <div className={`mt-4 p-4 rounded-xl border flex items-center gap-3 ${isFullyBooked
+                                <div className={`mt-4 p-4 rounded-xl border flex items-center gap-3 ${
+                                    isFullyBooked
                                         ? "bg-red-50 border-red-200"
                                         : "bg-emerald-50 border-emerald-200"
-                                    }`}>
+                                }`}>
                                     <span className={`material-symbols-outlined ${isFullyBooked ? "text-red-500" : "text-emerald-600"}`}>
                                         {isFullyBooked ? "bed_off" : "bed"}
                                     </span>
@@ -530,18 +479,18 @@ export default function ListingDetails() {
                                 <span className="material-symbols-outlined text-primary">payments</span> Rent Breakdown
                             </h3>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                <div className="p-3 bg-white rounded-xl shadow-sm">
-                                    <p className="text-xs text-slate-500 uppercase font-bold tracking-wider">Security Deposit</p>
+                                <div className="p-3 bg-white dark:bg-slate-900 rounded-xl shadow-sm">
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider">Security Deposit</p>
                                     <p className="text-lg font-bold">LKR {new Intl.NumberFormat("en-LK").format(property.price * 2)}</p>
                                     <p className="text-[10px] text-slate-400">Refundable at end of stay</p>
                                 </div>
-                                <div className="p-3 bg-white rounded-xl shadow-sm">
-                                    <p className="text-xs text-slate-500 uppercase font-bold tracking-wider">Utilities</p>
+                                <div className="p-3 bg-white dark:bg-slate-900 rounded-xl shadow-sm">
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider">Utilities</p>
                                     <p className="text-lg font-bold">LKR 5,000</p>
                                     <p className="text-[10px] text-slate-400">Average monthly estimate</p>
                                 </div>
-                                <div className="p-3 bg-white rounded-xl shadow-sm">
-                                    <p className="text-xs text-slate-500 uppercase font-bold tracking-wider">Broker Fee</p>
+                                <div className="p-3 bg-white dark:bg-slate-900 rounded-xl shadow-sm">
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 uppercase font-bold tracking-wider">Broker Fee</p>
                                     <p className="text-lg font-bold">LKR 0</p>
                                     <p className="text-[10px] text-slate-400">Directly from owner</p>
                                 </div>
@@ -550,7 +499,7 @@ export default function ListingDetails() {
 
                         <section>
                             <h3 className="text-xl font-bold mb-4">Description</h3>
-                            <p className="text-slate-600 leading-relaxed">{property.description}</p>
+                            <p className="text-slate-600 dark:text-slate-300 leading-relaxed">{property.description}</p>
                         </section>
 
                         {property.amenities && property.amenities.length > 0 && (
@@ -561,7 +510,7 @@ export default function ListingDetails() {
                                         const detail = AMENITY_DETAILS[amenity] || { icon: "check_circle", label: amenity };
                                         return (
                                             <div key={amenity} className="flex items-center gap-3">
-                                                <span className="material-symbols-outlined text-slate-500">{detail.icon}</span>
+                                                <span className="material-symbols-outlined text-slate-500 dark:text-slate-400">{detail.icon}</span>
                                                 <span>{detail.label}</span>
                                             </div>
                                         );
@@ -574,7 +523,7 @@ export default function ListingDetails() {
                             <h3 className="text-xl font-bold mb-4">House Rules</h3>
                             <ul className="space-y-3">
                                 {HOUSE_RULES.map((rule) => (
-                                    <li key={rule.icon} className="flex items-center gap-3 text-slate-600">
+                                    <li key={rule.icon} className="flex items-center gap-3 text-slate-600 dark:text-slate-300">
                                         <span className="material-symbols-outlined text-sm">{rule.icon}</span>
                                         {rule.text}
                                     </li>
@@ -582,7 +531,7 @@ export default function ListingDetails() {
                             </ul>
                         </section>
 
-                        <section className="flex flex-col md:flex-row gap-6 items-center p-8 bg-slate-100 rounded-2xl border border-slate-200">
+                        <section className="flex flex-col md:flex-row gap-6 items-center p-8 bg-slate-100 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
                             <div className="relative">
                                 <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center border-4 border-white shadow-xl">
                                     <span className="material-symbols-outlined text-primary text-4xl">person</span>
@@ -593,8 +542,8 @@ export default function ListingDetails() {
                             </div>
                             <div className="flex-1 text-center md:text-left">
                                 <h4 className="text-xl font-bold">Property Owner</h4>
-                                <p className="text-slate-500 text-sm">Verified Owner</p>
-                                <p className="mt-2 text-slate-600 text-sm italic">
+                                <p className="text-slate-500 dark:text-slate-400 text-sm">Verified Owner</p>
+                                <p className="mt-2 text-slate-600 dark:text-slate-300 text-sm italic">
                                     "Looking for long-term tenants who respect the space."
                                 </p>
                             </div>
@@ -603,26 +552,27 @@ export default function ListingDetails() {
 
                     {/* Sidebar Booking Panel */}
                     <div className="lg:w-80 shrink-0">
-                        <div className="sticky top-24 bg-white rounded-2xl border border-slate-200 shadow-lg p-6 space-y-5">
+                        <div className="sticky top-24 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-lg p-6 space-y-5">
                             <div>
                                 <p className="text-3xl font-black text-primary">LKR {formattedPrice}<span className="text-base font-normal text-slate-400">/mo</span></p>
-                                <p className="text-sm text-slate-500 mt-1">{property.propertyType} · {property.bedrooms} Bed · {property.bathrooms} Bath</p>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{property.propertyType} · {property.bedrooms} Bed · {property.bathrooms} Bath</p>
                             </div>
 
-                            <div className="border-t border-slate-100 pt-4 space-y-3">
+                            <div className="border-t border-slate-100 dark:border-slate-700/50 pt-4 space-y-3">
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-slate-600">Security Deposit</span>
+                                    <span className="text-slate-600 dark:text-slate-300">Security Deposit</span>
                                     <span className="font-bold">LKR {new Intl.NumberFormat("en-LK").format(property.price * 2)}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
-                                    <span className="text-slate-600">Est. Utilities</span>
+                                    <span className="text-slate-600 dark:text-slate-300">Est. Utilities</span>
                                     <span className="font-bold">LKR 5,000</span>
                                 </div>
                             </div>
 
                             {isTenant && availableSlots !== null && (
-                                <div className={`flex items-center gap-2 p-3 rounded-xl text-sm font-medium ${isFullyBooked ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-700"
-                                    }`}>
+                                <div className={`flex items-center gap-2 p-3 rounded-xl text-sm font-medium ${
+                                    isFullyBooked ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-700"
+                                }`}>
                                     <span className="material-symbols-outlined text-lg">
                                         {isFullyBooked ? "bed_off" : "meeting_room"}
                                     </span>
@@ -632,50 +582,44 @@ export default function ListingDetails() {
                                 </div>
                             )}
 
-                            <div className="border-t border-slate-100 pt-4">
+                            <div className="border-t border-slate-100 dark:border-slate-700/50 pt-4">
                                 {isTenant ? (
                                     renderBookingButton()
                                 ) : !user ? (
                                     <Link
                                         to="/login"
-                                        className="block w-full text-center bg-primary text-white font-bold py-3 rounded-xl hover:bg-primary/90 transition-all text-sm shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                                        className="block w-full text-center bg-primary text-white font-bold py-3 rounded-xl hover:bg-primary/90 transition-all text-sm"
                                     >
                                         Login to Book
                                     </Link>
                                 ) : (
-                                    <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl relative group">
-                                        <div className="flex items-center gap-2 text-slate-500 text-sm font-bold justify-center">
-                                            <span className="material-symbols-outlined text-[18px]">lock</span>
-                                            Booking is for tenants
-                                        </div>
-                                        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-48 bg-slate-800 text-white text-xs p-2 rounded-xl text-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                                            Only users with a Tenant account can request bookings.
-                                        </div>
+                                    <div className="text-center text-slate-500 dark:text-slate-400 text-sm py-2">
+                                        Booking is for tenants only.
                                     </div>
                                 )}
                             </div>
 
-                            <p className="text-center text-[11px] font-bold tracking-widest uppercase text-slate-400">No fees charged until confirmed</p>
+                            <p className="text-center text-xs text-slate-400">No fees charged until confirmed</p>
                         </div>
                     </div>
                 </div>
             </main>
 
-            <footer className="mt-20 border-t border-slate-200 bg-white py-12 px-4 md:px-20">
+            <footer className="mt-20 border-t border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 py-12 px-4 md:px-20">
                 <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between gap-10">
                     <div className="max-w-xs">
                         <Link to="/" className="flex items-center gap-2 text-primary mb-4">
                             <span className="material-symbols-outlined text-3xl font-bold">diamond</span>
-                            <h2 className="text-xl font-bold leading-tight tracking-tight text-slate-900">RentEase</h2>
+                            <h2 className="text-xl font-bold leading-tight tracking-tight text-slate-900 dark:text-white">RentEase</h2>
                         </Link>
-                        <p className="text-slate-500 text-sm">Find your perfect home. RentEase connects verified property owners with tenants.</p>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm">Find your perfect home. RentEase connects verified property owners with tenants.</p>
                     </div>
                 </div>
-                <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-slate-100 flex justify-center items-center text-[11px] text-slate-400 uppercase tracking-[0.2em] font-black">
-                    <p>© {new Date().getFullYear()} RentEase Lanka (PVT) LTD. All Rights Reserved.</p>
+                <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-slate-100 dark:border-slate-700/50 flex justify-center items-center text-xs text-slate-400 uppercase tracking-widest font-bold">
+                    <p>© 2025 RentEase Lanka (PVT) LTD. All Rights Reserved.</p>
                 </div>
             </footer>
-        </motion.div>
+        </div>
     );
 }
 

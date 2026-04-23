@@ -98,6 +98,7 @@ describe("TechnicianJobDetails", () => {
 
     fireEvent.change(screen.getByPlaceholderText("Completion summary"), { target: { value: "Issue fixed" } });
     fireEvent.change(screen.getByPlaceholderText("Technician notes"), { target: { value: "Compressor replaced" } });
+    fireEvent.change(screen.getByPlaceholderText("Parts used (optional)"), { target: { value: "Compressor, Wiring" } });
 
     fireEvent.click(screen.getByRole("button", { name: "Resolve Request" }));
 
@@ -109,6 +110,7 @@ describe("TechnicianJobDetails", () => {
       "req-1",
       expect.objectContaining({
         completionSummary: "Issue fixed",
+        partsUsed: ["Compressor", "Wiring"],
       })
     );
     expect(mockNavigate).toHaveBeenCalledWith("/technician/dashboard");

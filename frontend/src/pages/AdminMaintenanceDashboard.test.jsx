@@ -5,12 +5,14 @@ import { NotificationsProvider } from "../context/NotificationsContext";
 import AdminMaintenanceDashboard from "./AdminMaintenanceDashboard";
 
 const mockAssignMaintenanceTechnician = vi.fn();
+const mockCloseMaintenance = vi.fn();
 const mockGetAdminMaintenanceQueue = vi.fn();
 const mockGetMaintenanceTechnicians = vi.fn();
 const mockUpdateMaintenancePriority = vi.fn();
 
 vi.mock("../services/api", () => ({
   assignMaintenanceTechnician: (...args) => mockAssignMaintenanceTechnician(...args),
+  closeMaintenance: (...args) => mockCloseMaintenance(...args),
   getAdminMaintenanceQueue: (...args) => mockGetAdminMaintenanceQueue(...args),
   getMaintenanceTechnicians: (...args) => mockGetMaintenanceTechnicians(...args),
   updateMaintenancePriority: (...args) => mockUpdateMaintenancePriority(...args),
@@ -40,6 +42,7 @@ describe("AdminMaintenanceDashboard", () => {
     }));
 
     mockAssignMaintenanceTechnician.mockReset();
+    mockCloseMaintenance.mockReset();
     mockGetAdminMaintenanceQueue.mockReset();
     mockGetMaintenanceTechnicians.mockReset();
     mockUpdateMaintenancePriority.mockReset();
@@ -47,7 +50,28 @@ describe("AdminMaintenanceDashboard", () => {
     mockGetAdminMaintenanceQueue.mockResolvedValue({
       data: {
         data: [
-          { id: "req-1", title: "AC breakdown", priority: "HIGH", status: "REPORTED", assignedTechnicianId: "" },
+          {
+            id: "req-1",
+            propertyId: "prop-1",
+            tenantId: "tenant-1",
+            title: "AC breakdown",
+            priority: "HIGH",
+            status: "REPORTED",
+            assignedTechnicianId: "",
+            technicianName: null,
+            technicianEmail: null,
+          },
+          {
+            id: "req-2",
+            propertyId: "prop-2",
+            tenantId: "tenant-2",
+            title: "Pipe leak",
+            priority: "MEDIUM",
+            status: "RESOLVED",
+            assignedTechnicianId: "tech-1",
+            technicianName: "Tech One",
+            technicianEmail: "tech1@example.com",
+          },
         ],
       },
     });
@@ -60,6 +84,7 @@ describe("AdminMaintenanceDashboard", () => {
       },
     });
     mockAssignMaintenanceTechnician.mockResolvedValue({ data: { success: true } });
+    mockCloseMaintenance.mockResolvedValue({ data: { success: true } });
     mockUpdateMaintenancePriority.mockResolvedValue({ data: { success: true } });
   });
 
@@ -73,6 +98,7 @@ describe("AdminMaintenanceDashboard", () => {
 
     await waitFor(() => {
       expect(screen.getByText("AC breakdown")).toBeInTheDocument();
+      expect(screen.getByText("Pipe leak")).toBeInTheDocument();
       expect(screen.getAllByText("Tech One").length).toBeGreaterThan(0);
     });
 
@@ -91,13 +117,28 @@ describe("AdminMaintenanceDashboard", () => {
     const assignmentSelect = selects[4];
     fireEvent.change(assignmentSelect, { target: { value: "tech-1" } });
 
-    fireEvent.click(screen.getByRole("button", { name: "Assign" }));
+    fireEvent.click(screen.getAllByRole("button", { name: "Assign" })[0]);
 
     await waitFor(() => {
       expect(mockAssignMaintenanceTechnician).toHaveBeenCalledWith("req-1", { technicianId: "tech-1" });
     });
 
     expect(mockGetAdminMaintenanceQueue).toHaveBeenCalledTimes(2);
+  });
+
+  it("closes resolved request with optional note", async () => {
+    renderWithRouter(<AdminMaintenanceDashboard />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Pipe leak")).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByPlaceholderText("Closure note"), { target: { value: "Verified by admin" } });
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+
+    await waitFor(() => {
+      expect(mockCloseMaintenance).toHaveBeenCalledWith("req-2", "Verified by admin");
+    });
   });
 
   it("saves priority changes", async () => {
@@ -111,7 +152,7 @@ describe("AdminMaintenanceDashboard", () => {
     const prioritySelect = selects[3];
     fireEvent.change(prioritySelect, { target: { value: "EMERGENCY" } });
 
-    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+    fireEvent.click(screen.getAllByRole("button", { name: "Save" })[0]);
 
     await waitFor(() => {
       expect(mockUpdateMaintenancePriority).toHaveBeenCalledWith("req-1", "EMERGENCY");
@@ -125,7 +166,7 @@ describe("AdminMaintenanceDashboard", () => {
       expect(screen.getByText("AC breakdown")).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByRole("button", { name: "Assign" }));
+    fireEvent.click(screen.getAllByRole("button", { name: "Assign" })[0]);
 
     expect(mockAssignMaintenanceTechnician).not.toHaveBeenCalled();
   });
@@ -157,7 +198,7 @@ describe("AdminMaintenanceDashboard", () => {
     renderWithRouter(<AdminMaintenanceDashboard />);
 
     await waitFor(() => {
-      expect(screen.getByText("No requests in queue.")).toBeInTheDocument();
+      expect(screen.getByText("Unable to load queue.")).toBeInTheDocument();
     });
   });
 });

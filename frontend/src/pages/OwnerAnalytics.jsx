@@ -42,13 +42,13 @@ const weeklyBookings = [
 const KPIStatCard = ({ title, value, icon, trend, iconBg, trendColor }) => (
   <motion.div
     whileHover={{ y: -5 }}
-    className="bg-white rounded-[2rem] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-50 flex flex-col justify-between hover:shadow-[0_20px_40px_rgb(0,0,0,0.06)] transition-all duration-500 relative overflow-hidden group"
+    className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-50 flex flex-col justify-between hover:shadow-[0_20px_40px_rgb(0,0,0,0.06)] transition-all duration-500 relative overflow-hidden group"
   >
     <div className="absolute top-0 right-0 w-24 h-24 bg-slate-50/50 rounded-full -mr-10 -mt-10 group-hover:scale-110 transition-transform duration-700"></div>
     
     <div className="flex justify-between items-start mb-6 relative z-10">
       <div className={`w-12 h-12 rounded-2xl ${iconBg} flex items-center justify-center shadow-sm`}>
-        <span className="material-symbols-outlined text-[24px] text-slate-700" style={{ fontVariationSettings: "'FILL' 0" }}>
+        <span className="material-symbols-outlined text-[24px] text-slate-700 dark:text-slate-200" style={{ fontVariationSettings: "'FILL' 0" }}>
           {icon}
         </span>
       </div>
@@ -61,8 +61,8 @@ const KPIStatCard = ({ title, value, icon, trend, iconBg, trendColor }) => (
     </div>
     
     <div className="relative z-10">
-      <h3 className="text-slate-500 font-bold text-sm mb-1">{title}</h3>
-      <div className="text-[28px] font-black text-slate-900 tracking-tight leading-none">
+      <h3 className="text-slate-500 dark:text-slate-400 font-bold text-sm mb-1">{title}</h3>
+      <div className="text-[28px] font-black text-slate-900 dark:text-white tracking-tight leading-none">
         {value}
       </div>
     </div>
@@ -70,9 +70,9 @@ const KPIStatCard = ({ title, value, icon, trend, iconBg, trendColor }) => (
 );
 
 const ChartContainer = ({ title, subtitle, children, className = "" }) => (
-  <div className={`bg-white rounded-[2.5rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-50 ${className}`}>
+  <div className={`bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-50 ${className}`}>
     <div className="mb-8">
-      <h3 className="text-xl font-black text-slate-900 mb-1">{title}</h3>
+      <h3 className="text-xl font-black text-slate-900 dark:text-white mb-1">{title}</h3>
       <p className="text-sm text-slate-400 font-medium">{subtitle}</p>
     </div>
     <div className="h-[300px] w-full">
@@ -92,9 +92,9 @@ const MilestoneCard = ({ milestone, index }) => (
     {/* Animated background glow */}
     <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-teal-400 rounded-3xl opacity-0 group-hover:opacity-10 blur-xl transition-all duration-500"></div>
     
-    <div className="relative h-full bg-white rounded-[2rem] p-8 border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex flex-col justify-between overflow-hidden">
+    <div className="relative h-full bg-white dark:bg-slate-900 rounded-[2rem] p-8 border border-slate-100 dark:border-slate-700/50 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex flex-col justify-between overflow-hidden">
       {/* Decorative background shape */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full -mr-16 -mt-16 group-hover:bg-emerald-50 transition-colors duration-700"></div>
+      <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 dark:bg-slate-800/50 rounded-full -mr-16 -mt-16 group-hover:bg-emerald-50 transition-colors duration-700"></div>
 
       <div className="relative z-10 flex flex-col h-full">
         <div className="flex justify-between items-start mb-6">
@@ -107,17 +107,17 @@ const MilestoneCard = ({ milestone, index }) => (
           </div>
         </div>
 
-        <h3 className="text-xl font-black text-slate-900 mb-3 group-hover:text-emerald-600 transition-colors">{milestone.title}</h3>
-        <p className="text-sm text-slate-500 font-medium leading-relaxed mb-6">
+        <h3 className="text-xl font-black text-slate-900 dark:text-white mb-3 group-hover:text-emerald-600 transition-colors">{milestone.title}</h3>
+        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed mb-6">
           {milestone.description}
         </p>
 
         <div className="mt-auto space-y-3">
           <div className="flex justify-between items-center text-[11px] font-black uppercase tracking-wider text-slate-400">
             <span>Progress Efficiency</span>
-            <span className="text-slate-900">{milestone.progress}%</span>
+            <span className="text-slate-900 dark:text-white">{milestone.progress}%</span>
           </div>
-          <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+          <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
             <motion.div 
               initial={{ width: 0 }}
               animate={{ width: `${milestone.progress}%` }}
@@ -222,7 +222,7 @@ export default function OwnerAnalytics() {
   ];
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 font-sans selection:bg-emerald-100" style={{ "--color-primary": "#26C289" }}>
+    <div className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-emerald-950/20 relative">
       {/* Toast Notification */}
       <AnimatePresence>
         {isExported && (
@@ -248,15 +248,9 @@ export default function OwnerAnalytics() {
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 font-sans">
         {/* Header */}
-        <motion.header 
-          initial={{ opacity: 0, y: -10 }} 
-          animate={{ opacity: 1, y: 0 }} 
-          transition={{ duration: 0.4 }}
-          className="sticky top-0 z-30 h-[88px] border-b border-slate-100/80 bg-white/70 backdrop-blur-3xl px-8 lg:px-12 flex items-center justify-between gap-4 shrink-0"
-        >
+        <header className="sticky top-0 z-30 h-[88px] border-b border-slate-100/80 dark:border-slate-700/80 bg-white/70 dark:bg-slate-900/70 backdrop-blur-3xl px-8 lg:px-12 flex items-center justify-between gap-4 shrink-0">
           <div>
-            <h2 className="text-2xl font-black tracking-tight text-slate-900">System <span className="text-emerald-500">Analytics</span></h2>
-            <p className="text-sm text-slate-400 font-bold">Monitor your platform's performance and growth.</p>
+            <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">System <span className="text-emerald-500">Analytics</span></h2>
           </div>
 
           <div className="flex items-center gap-4 ml-auto">
@@ -264,7 +258,7 @@ export default function OwnerAnalytics() {
             <div className="relative">
               <div 
                 onClick={() => setIsPeriodOpen(!isPeriodOpen)}
-                className={`bg-white border ${isPeriodOpen ? 'border-emerald-500 ring-4 ring-emerald-50' : 'border-slate-200'} px-4 py-2.5 rounded-xl flex items-center gap-3 text-sm font-black text-slate-700 shadow-sm cursor-pointer hover:border-slate-300 transition-all active:scale-95`}
+                className={`bg-white dark:bg-slate-900 border ${isPeriodOpen ? 'border-emerald-500 ring-4 ring-emerald-50' : 'border-slate-200 dark:border-slate-700'} px-4 py-2.5 rounded-xl flex items-center gap-3 text-sm font-black text-slate-700 dark:text-slate-200 shadow-sm cursor-pointer hover:border-slate-300 dark:border-slate-600 transition-all active:scale-95`}
               >
                 <span className={`material-symbols-outlined ${isPeriodOpen ? 'text-emerald-500' : 'text-slate-400'}`}>calendar_today</span>
                 {period}
@@ -286,14 +280,14 @@ export default function OwnerAnalytics() {
                       initial={{ opacity: 0, y: 10, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                      className="absolute top-full right-0 mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-slate-100 p-2 z-50 overflow-hidden"
+                      className="absolute top-full right-0 mt-2 w-48 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700/50 p-2 z-50 overflow-hidden"
                     >
                       {["This Month", "Last 6 Months", "This Year"].map((opt) => (
                         <div
                           key={opt}
                           onClick={() => { setPeriod(opt); setIsPeriodOpen(false); }}
                           className={`px-4 py-3 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-between group ${
-                            period === opt ? 'bg-emerald-50 text-emerald-600' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                            period === opt ? 'bg-emerald-50 text-emerald-600' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:bg-slate-800/50 hover:text-slate-900 dark:text-white'
                           }`}
                         >
                           {opt}
@@ -325,15 +319,10 @@ export default function OwnerAnalytics() {
             <div className="h-8 w-px bg-slate-200" />
             {user && <UserDropdown user={user} onLogout={logout} />}
           </div>
-        </motion.header>
+        </header>
 
         {/* Dashboard Body */}
-        <motion.div 
-          className="flex-1 overflow-y-auto p-8 lg:p-12 space-y-10 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-        >
+        <div className="flex-1 overflow-y-auto p-8 lg:p-12 space-y-10 scrollbar-thin scrollbar-thumb-slate-200 scrollbar-track-transparent">
           
           {/* KPI Stat Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
@@ -365,7 +354,7 @@ export default function OwnerAnalytics() {
               title="Total Properties" 
               value={realStats ? realStats.totalProperties : "12"} 
               icon="apartment" 
-              iconBg="bg-slate-50"
+              iconBg="bg-slate-50 dark:bg-slate-800/50"
             />
           </div>
 
@@ -439,7 +428,7 @@ export default function OwnerAnalytics() {
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="absolute flex flex-col items-center">
-                  <span className="text-[36px] font-black text-slate-900 leading-none">{occupancyPercentage}%</span>
+                  <span className="text-[36px] font-black text-slate-900 dark:text-white leading-none">{occupancyPercentage}%</span>
                   <span className="text-sm font-bold text-slate-400">Occupied</span>
                 </div>
               </div>
@@ -471,9 +460,9 @@ export default function OwnerAnalytics() {
             </ChartContainer>
 
             {/* System Alerts */}
-            <div className="bg-white rounded-[2.5rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-50 flex flex-col">
+            <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] border border-slate-50 flex flex-col">
               <div className="mb-8 flex items-center justify-between">
-                <h3 className="text-xl font-black text-slate-900">System <span className="text-emerald-500">Alerts</span></h3>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white">System <span className="text-emerald-500">Alerts</span></h3>
                 <span className="material-symbols-outlined text-slate-300">notifications</span>
               </div>
               
@@ -505,14 +494,14 @@ export default function OwnerAnalytics() {
                 </div>
               </div>
 
-              <button className="mt-8 text-sm font-black text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-[0.2em] flex items-center justify-center gap-2">
+              <button className="mt-8 text-sm font-black text-slate-400 hover:text-slate-600 dark:text-slate-300 transition-colors uppercase tracking-[0.2em] flex items-center justify-center gap-2">
                 View All Alerts
                 <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
               </button>
             </div>
           </div>
 
-        </motion.div>
+        </div>
       </main>
     </div>
   );

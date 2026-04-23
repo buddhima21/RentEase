@@ -122,13 +122,17 @@ export default function ReviewSection({ propertyId, reviews, rating }) {
     }
 
     return (
-        <section className="bg-white rounded-[2.5rem] p-0 md:p-6 lg:p-8 relative overflow-hidden">
+        <section className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-0 md:p-6 lg:p-8 relative overflow-hidden">
             
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6 border-b border-slate-100 pb-8">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-6 border-b border-slate-100 dark:border-slate-700/50 pb-8">
                 <div>
-                    <h2 className="text-[32px] md:text-[40px] font-black text-slate-900 tracking-tight leading-none">
-                        Verified Reviews
+                    <h2 className="text-[32px] md:text-[40px] font-black text-slate-900 dark:text-white tracking-tight leading-none">
+                        Resident <span className="text-emerald-500">Reviews</span>
                     </h2>
+                    <p className="text-slate-500 dark:text-slate-400 font-bold text-sm mt-3 flex items-center gap-2">
+                        <span className="material-symbols-outlined text-emerald-500 text-[18px]">verified</span>
+                        Verified feedback from actual property residents
+                    </p>
                 </div>
                 {user && user.role === "TENANT" && (
                     <button
@@ -141,12 +145,43 @@ export default function ReviewSection({ propertyId, reviews, rating }) {
                 )}
             </div>
 
+            {/* Detailed Categories Averages (Real-World System Style) */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12 bg-slate-50/50 dark:bg-slate-800/30 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-700/50">
+                {[
+                    { label: "Cleanliness", key: "cleanliness", icon: "cleaning_services" },
+                    { label: "Safety", key: "safety", icon: "security" },
+                    { label: "Wi-Fi Speed", key: "wifi", icon: "wifi" },
+                    { label: "Water", key: "water", icon: "water_drop" }
+                ].map((cat) => {
+                    const avg = allReviews.length > 0 
+                        ? (allReviews.reduce((acc, r) => acc + (r.detailedRating?.[cat.key] || 5), 0) / allReviews.length).toFixed(1)
+                        : "5.0";
+                    return (
+                        <div key={cat.key} className="flex flex-col gap-2">
+                            <div className="flex justify-between items-center px-1">
+                                <span className="text-[11px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1.5">
+                                    <span className="material-symbols-outlined text-[14px] text-emerald-500">{cat.icon}</span>
+                                    {cat.label}
+                                </span>
+                                <span className="text-xs font-black text-slate-900 dark:text-white">{avg}</span>
+                            </div>
+                            <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                <div 
+                                    className="h-full bg-slate-900 dark:bg-emerald-500 rounded-full transition-all duration-1000"
+                                    style={{ width: `${(avg / 5) * 100}%` }}
+                                ></div>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+
             {/* Sorting Header */}
-            <div className="flex justify-end items-center border-b border-slate-100 pb-4 mb-8">
+            <div className="flex justify-end items-center border-b border-slate-100 dark:border-slate-700/50 pb-4 mb-8">
                 <div className="relative">
                     <button 
                         onClick={() => setIsSortOpen(!isSortOpen)}
-                        className="flex items-center gap-2 text-slate-500 text-sm font-bold hover:text-slate-800 transition-colors bg-slate-50 px-4 py-2 rounded-xl border border-slate-100"
+                        className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm font-bold hover:text-slate-800 dark:text-slate-100 transition-colors bg-slate-50 dark:bg-slate-800/50 px-4 py-2 rounded-xl border border-slate-100 dark:border-slate-700/50"
                     >
                         <span className="material-symbols-outlined text-[18px]">filter_list</span>
                         <span>Sort: {sortOptions.find(o => o.value === sortBy)?.label}</span>
@@ -154,7 +189,7 @@ export default function ReviewSection({ propertyId, reviews, rating }) {
                     </button>
 
                     {isSortOpen && (
-                        <div className="absolute right-0 top-12 w-56 bg-white rounded-2xl shadow-2xl border border-slate-50 py-2 z-[50] animate-in fade-in zoom-in-95 duration-200">
+                        <div className="absolute right-0 top-12 w-56 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-50 py-2 z-[50] animate-in fade-in zoom-in-95 duration-200">
                             {sortOptions.map((option) => (
                                 <button
                                     key={option.value}
@@ -165,7 +200,7 @@ export default function ReviewSection({ propertyId, reviews, rating }) {
                                     className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold transition-all ${
                                         sortBy === option.value 
                                         ? 'text-emerald-600 bg-emerald-50' 
-                                        : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                                        : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:bg-slate-800/50 hover:text-slate-900 dark:text-white'
                                     }`}
                                 >
                                     <span className="material-symbols-outlined text-[18px]">{option.icon}</span>
@@ -207,10 +242,10 @@ export default function ReviewSection({ propertyId, reviews, rating }) {
                             />
                         ))
                     ) : (
-                        <div className="col-span-full bg-slate-50 border-2 border-dashed border-slate-200 rounded-[2rem] p-12 text-center flex flex-col items-center justify-center">
+                        <div className="col-span-full bg-slate-50 dark:bg-slate-800/50 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-[2rem] p-12 text-center flex flex-col items-center justify-center">
                             <span className="material-symbols-outlined text-5xl text-slate-300 mb-4">rate_review</span>
-                            <h3 className="text-xl font-bold text-slate-700 mb-2">No reviews yet</h3>
-                            <p className="text-slate-500 font-medium">Be the first to leave a review for this property!</p>
+                            <h3 className="text-xl font-bold text-slate-700 dark:text-slate-200 mb-2">No reviews yet</h3>
+                            <p className="text-slate-500 dark:text-slate-400 font-medium">Be the first to leave a review for this property!</p>
                         </div>
                     )}
                 </div>

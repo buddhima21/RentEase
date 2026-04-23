@@ -23,13 +23,13 @@ export default function Sidebar() {
                         whileHover={{ scale: 1.05 }}
                     >
                         <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M4 10L12 4L20 10V18C20 19.1046 19.1046 20 18 20H6C4.89543 20 4 19.1046 4 18V10Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-900"/>
+                            <path d="M4 10L12 4L20 10V18C20 19.1046 19.1046 20 18 20H6C4.89543 20 4 19.1046 4 18V10Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-900 dark:text-white"/>
                             <path d="M12 14C13.1046 14 14 13.1046 14 12C14 10.8954 13.1046 10 12 10C10.8954 10 10 10.8954 10 12C10 13.1046 10.8954 14 12 14Z" fill="currentColor" className="text-emerald-500"/>
                             <path d="M12 14V17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-emerald-500"/>
                         </svg>
                     </motion.div>
                     <div>
-                        <h1 className="text-xl font-extrabold tracking-tight text-slate-900 leading-none">
+                        <h1 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white leading-none">
                             Rent<span className="text-emerald-500">Ease</span>
                         </h1>
                         <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-[0.2em] mt-1">Owner Portal</p>
@@ -66,8 +66,8 @@ export default function Sidebar() {
                                 transition={{ delay: index * 0.05 }}
                                 className={`relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all duration-200
                                     ${isActive
-                                        ? "text-emerald-700 font-bold"
-                                        : "text-slate-500 font-medium group-hover:text-emerald-600 group-hover:bg-slate-50/70"
+                                        ? "text-emerald-700 dark:text-emerald-400 font-bold"
+                                        : "text-slate-500 dark:text-slate-400 font-medium group-hover:text-emerald-600 dark:group-hover:text-emerald-400 group-hover:bg-slate-50/70 dark:group-hover:bg-slate-800/50"
                                     }`}
                             >
                                 <motion.span
@@ -122,7 +122,7 @@ export default function Sidebar() {
             {/* ── Mobile Hamburger ────────────────────────────── */}
             <motion.button
                 onClick={() => setOpen(true)}
-                className="lg:hidden fixed top-4 left-4 z-50 p-2.5 bg-white/90 backdrop-blur-md rounded-xl shadow-lg border border-slate-100 text-slate-700 hover:text-emerald-600 transition-colors"
+                className="lg:hidden fixed top-4 left-4 z-50 p-2.5 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md rounded-xl shadow-lg border border-slate-100 dark:border-slate-700/50 text-slate-700 dark:text-slate-200 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
                 aria-label="Open sidebar"
                 whileTap={{ scale: 0.9 }}
             >
@@ -146,8 +146,8 @@ export default function Sidebar() {
             <aside
                 className={`
                     fixed lg:static inset-y-0 left-0 z-50
-                    w-[270px] bg-white/95 backdrop-blur-xl flex flex-col shrink-0 
-                    border-r border-slate-100/80 shadow-2xl lg:shadow-none
+                    w-[270px] bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl flex flex-col shrink-0 
+                    border-r border-slate-100/80 dark:border-slate-800/80 shadow-2xl lg:shadow-none
                     transform transition-transform duration-300 ease-in-out
                     ${open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
                 `}
@@ -155,7 +155,7 @@ export default function Sidebar() {
                 {/* Mobile close button */}
                 <motion.button
                     onClick={() => setOpen(false)}
-                    className="lg:hidden absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-100"
+                    className="lg:hidden absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:text-slate-300 p-1 rounded-lg hover:bg-slate-100 dark:bg-slate-800"
                     aria-label="Close sidebar"
                     whileTap={{ scale: 0.9 }}
                 >

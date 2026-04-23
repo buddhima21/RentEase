@@ -129,4 +129,13 @@ public class ReviewController {
         reviewService.deleteReview(reviewId, userDetails.getId());
         return ResponseEntity.ok(ApiResponse.success(null, "Review deleted successfully"));
     }
+
+    @PostMapping("/{reviewId}/helpful")
+    public ResponseEntity<ApiResponse<ReviewResponse>> toggleHelpful(
+            @PathVariable String reviewId,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        
+        ReviewResponse response = reviewService.toggleHelpful(reviewId, userDetails.getId());
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
 }
