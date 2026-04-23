@@ -54,6 +54,58 @@ export const MAX_MAINTENANCE_IMAGES = 5;
 
 export const MAINTENANCE_STATUSES = ["REPORTED", "ASSIGNED", "SCHEDULED", "DECLINED", "IN_PROGRESS", "PAUSED", "RESOLVED", "CANCELLED", "CLOSED"];
 
+/**
+ * Linear forward-progression steps for the visual tracker stepper.
+ * DECLINED, CANCELLED, PAUSED are intentionally excluded — they are
+ * terminal or branch states handled separately.
+ */
+export const MAINTENANCE_STEPS = [
+    {
+        key: "REPORTED",
+        label: "Submitted",
+        icon: "assignment",
+        description: "Your request has been received and is in the admin queue.",
+    },
+    {
+        key: "ASSIGNED",
+        label: "Assigned",
+        icon: "person_add",
+        description: "A technician has been assigned and will be in touch soon.",
+    },
+    {
+        key: "SCHEDULED",
+        label: "Scheduled",
+        icon: "calendar_month",
+        description: "A visit time has been confirmed. Check the dispatch details below.",
+    },
+    {
+        key: "IN_PROGRESS",
+        label: "In Progress",
+        icon: "construction",
+        description: "Your technician is actively working on the issue.",
+    },
+    {
+        key: "RESOLVED",
+        label: "Resolved",
+        icon: "check_circle",
+        description: "Work is complete. The request will be formally closed shortly.",
+    },
+    {
+        key: "CLOSED",
+        label: "Closed",
+        icon: "lock",
+        description: "This request has been fully closed and archived.",
+    },
+];
+
+/** Terminal / branch states that break the linear stepper flow. */
+export const MAINTENANCE_TERMINAL_STATES = {
+    DECLINED:  { label: "Declined",   icon: "cancel",        color: "red",    description: "This request was declined by the admin. Check the admin notes for details." },
+    CANCELLED: { label: "Cancelled",  icon: "do_not_disturb", color: "slate",  description: "This request was cancelled." },
+    PAUSED:    { label: "Paused",     icon: "pause_circle",  color: "amber",  description: "Work has been paused. It will resume once the issue is resolved." },
+};
+
+/** @deprecated Use MAINTENANCE_STEPS instead */
 export const MAINTENANCE_TIMELINE = [
     { key: "REPORTED", label: "Submitted" },
     { key: "ASSIGNED", label: "Assigned" },
@@ -65,6 +117,7 @@ export const MAINTENANCE_TIMELINE = [
     { key: "CANCELLED", label: "Cancelled" },
     { key: "CLOSED", label: "Closed" },
 ];
+
 
 export const MAINTENANCE_PRIORITY_META = {
     LOW: { label: "Low", tone: "slate" },
