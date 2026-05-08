@@ -87,6 +87,12 @@
 			<artifactId>spring-boot-starter-mail</artifactId>
 		</dependency>
 
+		<!-- AOP — enables @Aspect intercept in maintenance module for welcome emails -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-aop</artifactId>
+		</dependency>
+
 		<!-- PDF generation for agreements -->
 		<dependency>
 			<groupId>com.github.librepdf</groupId>

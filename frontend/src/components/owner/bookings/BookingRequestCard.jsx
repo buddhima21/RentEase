@@ -4,7 +4,7 @@ const BookingRequestCard = ({ booking }) => {
     const isApproved = booking.status === "Approved";
 
     return (
-        <div className={`bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow p-6 ${isApproved ? "opacity-90 grayscale-[0.3]" : ""}`}>
+        <div className={`bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-700/50 shadow-sm hover:shadow-md transition-shadow p-6 ${isApproved ? "opacity-90 grayscale-[0.3]" : ""}`}>
             <div className="flex flex-col lg:flex-row gap-6">
                 
                 {/* Left: Tenant & Status */}
@@ -15,7 +15,7 @@ const BookingRequestCard = ({ booking }) => {
                         src={booking.tenant.avatar}
                     />
                     <div>
-                        <h4 className="font-bold text-slate-900 text-lg">{booking.tenant.name}</h4>
+                        <h4 className="font-bold text-slate-900 dark:text-white text-lg">{booking.tenant.name}</h4>
                         <div className="flex items-center gap-1 text-primary">
                             <span className="material-symbols-outlined text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
                             <span className="text-xs font-bold">{booking.tenant.rating.toFixed(1)}</span>
@@ -30,7 +30,7 @@ const BookingRequestCard = ({ booking }) => {
                 </div>
 
                 {/* Center: Property & Dates */}
-                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 lg:border-x lg:px-6 border-slate-100">
+                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 lg:border-x lg:px-6 border-slate-100 dark:border-slate-700/50">
                     <div className="flex gap-4">
                         <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0">
                             <img 
@@ -41,18 +41,18 @@ const BookingRequestCard = ({ booking }) => {
                         </div>
                         <div>
                             <p className="text-xs text-slate-400 font-semibold uppercase">Property</p>
-                            <h5 className="font-bold text-slate-800">{booking.property.name}</h5>
-                            <p className="text-sm text-slate-500">{booking.property.location}</p>
+                            <h5 className="font-bold text-slate-800 dark:text-slate-100">{booking.property.name}</h5>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">{booking.property.location}</p>
                         </div>
                     </div>
                     <div className="flex gap-4">
-                        <div className={`p-3 rounded-xl flex items-center justify-center ${isApproved ? "bg-slate-50 text-slate-400" : "bg-slate-50 text-primary"}`}>
+                        <div className={`p-3 rounded-xl flex items-center justify-center ${isApproved ? "bg-slate-50 dark:bg-slate-800/50 text-slate-400" : "bg-slate-50 dark:bg-slate-800/50 text-primary"}`}>
                             <span className="material-symbols-outlined">calendar_today</span>
                         </div>
                         <div>
                             <p className="text-xs text-slate-400 font-semibold uppercase">Stay Dates</p>
-                            <h5 className="font-bold text-slate-800">{booking.stay.dateRange}</h5>
-                            <p className="text-sm text-slate-500">{booking.stay.durationStr}</p>
+                            <h5 className="font-bold text-slate-800 dark:text-slate-100">{booking.stay.dateRange}</h5>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">{booking.stay.durationStr}</p>
                         </div>
                     </div>
                 </div>
@@ -65,21 +65,21 @@ const BookingRequestCard = ({ booking }) => {
                                 <button className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold py-2.5 rounded-xl transition-all shadow-sm shadow-primary/30">
                                     Approve
                                 </button>
-                                <button className="flex-1 border border-slate-200 hover:bg-red-50 text-slate-600 hover:text-red-600 font-bold py-2.5 rounded-xl transition-all">
+                                <button className="flex-1 border border-slate-200 dark:border-slate-700 hover:bg-red-50 text-slate-600 dark:text-slate-300 hover:text-red-600 font-bold py-2.5 rounded-xl transition-all">
                                     Reject
                                 </button>
                             </div>
-                            <button className="w-full flex items-center justify-center gap-2 py-2 text-sm font-semibold text-slate-500 hover:text-primary transition-all border border-transparent hover:border-primary/20 rounded-xl">
+                            <button className="w-full flex items-center justify-center gap-2 py-2 text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-primary transition-all border border-transparent hover:border-primary/20 rounded-xl">
                                 <span className="material-symbols-outlined text-lg">chat_bubble</span>
                                 Message Tenant
                             </button>
                         </>
                     ) : (
                         <>
-                            <button className="w-full bg-slate-100 text-slate-600 font-bold py-2.5 rounded-xl cursor-not-allowed">
+                            <button className="w-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold py-2.5 rounded-xl cursor-not-allowed">
                                 Already Approved
                             </button>
-                            <button className="w-full flex items-center justify-center gap-2 py-2 text-sm font-semibold text-slate-500 hover:text-primary transition-all border border-transparent hover:border-primary/20 rounded-xl">
+                            <button className="w-full flex items-center justify-center gap-2 py-2 text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-primary transition-all border border-transparent hover:border-primary/20 rounded-xl">
                                 <span className="material-symbols-outlined text-lg">description</span>
                                 View Agreement
                             </button>

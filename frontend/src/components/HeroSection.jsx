@@ -44,7 +44,7 @@ export default function HeroSection() {
                             Find Your Perfect Stay in{" "}
                             <span className="text-primary">Colombo &amp; Malabe</span>
                         </h1>
-                        <p className="text-lg text-slate-600 mb-8 max-w-lg">
+                        <p className="text-lg text-slate-600 dark:text-slate-300 mb-8 max-w-lg">
                             Affordable rooms, annexes, and apartments tailored for students
                             and professionals. Near SLIIT, CINEC, and HORIZON.
                         </p>
@@ -66,13 +66,13 @@ export default function HeroSection() {
                         </div>
 
                         {/* Verified Badge */}
-                        <div className="absolute -bottom-6 -left-6 bg-white p-4 rounded-2xl shadow-xl flex items-center gap-4 -rotate-3 border border-slate-100">
+                        <div className="absolute -bottom-6 -left-6 bg-white dark:bg-slate-900 p-4 rounded-2xl shadow-xl flex items-center gap-4 -rotate-3 border border-slate-100 dark:border-slate-700/50">
                             <div className="bg-primary/10 p-3 rounded-full text-primary">
                                 <span className="material-symbols-outlined">verified_user</span>
                             </div>
                             <div>
                                 <p className="text-sm font-bold">100% Verified</p>
-                                <p className="text-xs text-slate-500">Safe listings for students</p>
+                                <p className="text-xs text-slate-500 dark:text-slate-400">Safe listings for students</p>
                             </div>
                         </div>
                     </div>

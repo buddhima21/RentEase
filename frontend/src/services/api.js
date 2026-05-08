@@ -11,35 +11,48 @@ const API = axios.create({
     },
 });
 
+const ADMIN_MAINTENANCE_PATHS = [
+    "/api/v1/maintenance/admin/",
+    "/api/v1/maintenance/technicians",
+    "/assign",
+    "/schedule",
+    "/priority",
+    "/close",
+    "/status",
+];
+
+const isAdminEndpoint = (url = "") => {
+    if (!url) {
+        return false;
+    }
+    if (url.includes("/api/v1/admin/")) {
+        return true;
+    }
+    if (!url.includes("/api/v1/maintenance")) {
+        return false;
+    }
+    return ADMIN_MAINTENANCE_PATHS.some((path) => url.includes(path));
+};
+
+const clearAdminSession = () => {
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("adminUser");
+};
+
 API.interceptors.request.use((req) => {
     let token = null;
-    const isAdminRequest = req.url && req.url.includes('/api/v1/admin');
+    const isAdminRequest = isAdminEndpoint(req.url);
 
     // For admin endpoints, use admin token only
     if (isAdminRequest) {
-        token = localStorage.getItem('adminToken');
-        if (!token) {
-            try {
-                const adminUserStr = localStorage.getItem('adminUser');
-                if (adminUserStr) {
-                    const adminUser = JSON.parse(adminUserStr);
-                    token = adminUser?.token;
-                }
-            } catch (e) {
-                console.error("Error parsing admin user token", e);
-            }
-        }
-        // Final admin fallback in case token exists only in shared auth key.
-        if (!token) {
-            token = localStorage.getItem('token');
-        }
+        token = localStorage.getItem("adminToken");
     }
 
     // For non-admin endpoints, prefer normal user token
     if (!isAdminRequest) {
         // Prefer token stored in the 'user' object (Owner/Tenant login path)
         try {
-            const userStr = localStorage.getItem('user');
+            const userStr = localStorage.getItem("user");
             if (userStr) {
                 const userObj = JSON.parse(userStr);
                 token = userObj?.token;
@@ -50,7 +63,7 @@ API.interceptors.request.use((req) => {
 
         // Fallback (older auth flows)
         if (!token) {
-            token = localStorage.getItem('token');
+            token = localStorage.getItem("token");
         }
     }
 
@@ -59,6 +72,23 @@ API.interceptors.request.use((req) => {
     }
     return req;
 });
+
+API.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        const status = error?.response?.status;
+        const isAdminRequest = isAdminEndpoint(error?.config?.url);
+
+        if (isAdminRequest && (status === 401 || status === 403)) {
+            clearAdminSession();
+            if (typeof window !== "undefined" && window.location.pathname.startsWith("/admin")) {
+                window.location.assign("/admin/login");
+            }
+        }
+
+        return Promise.reject(error);
+    }
+);
 
 // ── Auth ──────────────────────────────────────────────
 export const signupUser = (data) => API.post("/api/v1/auth/signup", data);
@@ -72,6 +102,11 @@ export const loginUser = (data) => API.post("/api/v1/auth/login", data);
  * @returns {Promise} Axios response
  */
 export const updateUser = (userId, userData) => API.put(`/api/v1/users/${userId}`, userData);
+
+// ── Favorites ─────────────────────────────────────────
+export const addFavorite = (userId, propertyId) => API.post(`/api/v1/users/${userId}/favorites/${propertyId}`);
+export const removeFavorite = (userId, propertyId) => API.delete(`/api/v1/users/${userId}/favorites/${propertyId}`);
+export const getFavorites = (userId) => API.get(`/api/v1/users/${userId}/favorites`);
 
 // ── Properties (Public) ───────────────────────────────
 /**
@@ -167,6 +202,7 @@ export const getAdminPropertyById = (propertyId) => API.get(`/api/v1/admin/prope
  * @returns {Promise} Axios response
  */
 export const moderateProperty = (propertyId, data) => API.patch(`/api/v1/admin/properties/${propertyId}/moderate`, data);
+export const createTechnicianAccount = (data) => API.post("/api/v1/admin/users/technicians", data);
 
 // ── Bookings ──────────────────────────────────────────
 /** Tenant creates a booking request */
@@ -197,6 +233,15 @@ export const hardDeleteBooking = (bookingId) => API.delete(`/api/v1/bookings/${b
 export const getPropertyAvailableSlots = (propertyId) =>
     API.get(`/api/v1/bookings/property/${propertyId}/available-slots`);
 
+/** Admin gets bookings with optional status filtering */
+export const getAllBookingsForAdmin = (statuses = []) => {
+    const params = new URLSearchParams();
+    if (statuses && statuses.length > 0) {
+        statuses.forEach(s => params.append("status", s));
+    }
+    return API.get("/api/v1/bookings/admin/all", { params });
+};
+
 // ── Reviews ───────────────────────────────────────────
 /**
  * Fetch approved reviews for a specific property.
@@ -222,10 +267,48 @@ export const getOwnerAgreements = (ownerId) => API.get(`/api/v1/agreements/owner
 export const getEligibleAgreementBookings = (tenantId) =>
     API.get(`/api/v1/agreements/eligible-bookings/${tenantId}`);
 export const getAgreementById = (id) => API.get(`/api/v1/agreements/${id}`);
+/** Fetch the agreement linked to a specific booking (used on owner booking list) */
+export const getAgreementByBookingId = (bookingId) => API.get(`/api/v1/agreements/booking/${bookingId}`);
 /** Returns axios response with blob data — use responseType blob */
 export const downloadAgreementPdf = (id) =>
     API.get(`/api/v1/agreements/${id}/pdf`, { responseType: "blob" });
 export const terminateAgreementEarly = (id, data) =>
     API.patch(`/api/v1/agreements/${id}/terminate`, data ?? {});
+/** Owner accepts a tenant's early termination request */
+export const acceptEarlyTermination = (id) => API.patch(`/api/v1/agreements/${id}/terminate/accept`);
+/** Owner rejects a tenant's early termination request */
+export const rejectEarlyTermination = (id) => API.patch(`/api/v1/agreements/${id}/terminate/reject`);
+/** Tenant accepts a PENDING agreement → status becomes ACTIVE */
+export const acceptAgreement = (id) => API.patch(`/api/v1/agreements/${id}/accept`);
+/** Tenant rejects a PENDING agreement → status becomes CANCELLED */
+export const rejectAgreement = (id) => API.patch(`/api/v1/agreements/${id}/reject`);
+
+// ── Maintenance ─────────────────────────────────────────
+export const createMaintenanceRequest = (data) => API.post("/api/v1/maintenance", data);
+export const getMaintenanceById = (id) => API.get(`/api/v1/maintenance/${id}`);
+export const getMaintenanceByProperty = (propertyId) => API.get(`/api/v1/maintenance/property/${propertyId}`);
+export const getTenantMaintenance = (tenantId) => API.get(`/api/v1/maintenance/tenant/${tenantId}`);
+export const getTechnicianMaintenance = (technicianId, status) =>
+    API.get(`/api/v1/maintenance/technician/${technicianId}`, { params: status ? { status } : undefined });
+export const getOwnerMaintenance = (ownerId) => API.get(`/api/v1/maintenance/owner/${ownerId}`);
+export const getAdminMaintenanceQueue = (params) => API.get("/api/v1/maintenance/admin/queue", { params });
+export const assignMaintenanceTechnician = (requestId, data) =>
+    API.patch(`/api/v1/maintenance/${requestId}/assign`, data);
+export const updateMaintenancePriority = (requestId, priority) =>
+    API.patch(`/api/v1/maintenance/${requestId}/priority`, null, { params: { priority } });
+export const scheduleMaintenance = (requestId, data) =>
+    API.patch(`/api/v1/maintenance/${requestId}/schedule`, data);
+export const acceptMaintenance = (requestId) => API.patch(`/api/v1/maintenance/${requestId}/accept`);
+// Backward-compatible alias: start now follows the same transition path as accept.
+export const startMaintenance = (requestId) => API.patch(`/api/v1/maintenance/${requestId}/accept`);
+export const cancelMaintenance = (requestId) => API.patch(`/api/v1/maintenance/${requestId}/cancel`);
+export const declineMaintenance = (requestId, reason) =>
+    API.patch(`/api/v1/maintenance/${requestId}/decline`, null, { params: reason ? { reason } : undefined });
+export const pauseMaintenance = (requestId) => API.patch(`/api/v1/maintenance/${requestId}/pause`);
+export const resumeMaintenance = (requestId) => API.patch(`/api/v1/maintenance/${requestId}/resume`);
+export const resolveMaintenance = (requestId, data) => API.patch(`/api/v1/maintenance/${requestId}/resolve`, data);
+export const closeMaintenance = (requestId, adminNote) =>
+    API.patch(`/api/v1/maintenance/${requestId}/close`, null, { params: adminNote ? { adminNote } : undefined });
+export const getMaintenanceTechnicians = () => API.get("/api/v1/maintenance/technicians");
 
 export default API;

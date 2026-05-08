@@ -5,7 +5,7 @@ import { adminRecentActivity } from "../../../data/adminDashboardData";
  */
 export default function AdminActivityList() {
     return (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-700/50 shadow-sm p-6">
             <h3 className="font-bold text-lg mb-5 flex items-center gap-2">
                 <span className="material-symbols-outlined text-emerald-600 text-xl">
                     history
@@ -40,12 +40,12 @@ export default function AdminActivityList() {
 
                         {/* Text */}
                         <div className="flex-1 min-w-0">
-                            <p className="text-sm text-slate-700 leading-relaxed">
+                            <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
                                 {item.text.split(item.highlight).map((part, i, arr) =>
                                     i < arr.length - 1 ? (
                                         <span key={i}>
                                             {part}
-                                            <span className="font-semibold text-slate-900">
+                                            <span className="font-semibold text-slate-900 dark:text-white">
                                                 {item.highlight}
                                             </span>
                                         </span>

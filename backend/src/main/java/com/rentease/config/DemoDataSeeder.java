@@ -82,6 +82,28 @@ public class DemoDataSeeder {
                         .build();
                 userRepository.save(tenant);
 
+                User technicianOne = User.builder()
+                        .fullName("Ravindu Silva")
+                        .email("tech1@gmail.com")
+                        .password(passwordEncoder.encode("password"))
+                        .phone("0751112233")
+                        .role(UserRole.TECHNICIAN)
+                        .bio("Electrical and HVAC maintenance technician")
+                        .location("Colombo")
+                        .build();
+                userRepository.save(technicianOne);
+
+                User technicianTwo = User.builder()
+                        .fullName("Sahan Wickramasinghe")
+                        .email("tech2@gmail.com")
+                        .password(passwordEncoder.encode("password"))
+                        .phone("0764445566")
+                        .role(UserRole.TECHNICIAN)
+                        .bio("General plumbing and appliance maintenance technician")
+                        .location("Kandy")
+                        .build();
+                userRepository.save(technicianTwo);
+
                 // Add 1 more owner to get realistic data
                 User owner2 = User.builder()
                         .fullName("Kamal Perera")
@@ -94,7 +116,7 @@ public class DemoDataSeeder {
                         .build();
                 userRepository.save(owner2);
 
-                System.out.println("====== Seeded Users: tenant@gmail.com | owner@gmail.com (Password: password) ======");
+                System.out.println("====== Seeded Users: tenant@gmail.com | owner@gmail.com | tech1@gmail.com | tech2@gmail.com (Password: password) ======");
 
                 // Properties
                 Property prop1 = Property.builder()

@@ -25,6 +25,49 @@ public class AgreementEmailService {
     @Value("${rentease.mail.from:}")
     private String fromAddress;
 
+    public void sendAgreementCreatedEmail(User owner, User tenant, Agreement agreement, byte[] pdfBytes) {
+        JavaMailSender sender = mailSenderProvider.getIfAvailable();
+        if (sender == null) {
+            log.warn("Mail not configured (JavaMailSender is null); skipping agreement creation email for {}", agreement.getAgreementNumber());
+            return;
+        }
+        if (tenant == null || tenant.getEmail() == null || tenant.getEmail().isBlank()) {
+            log.warn("Tenant has no email; cannot send agreement {}", agreement.getAgreementNumber());
+            return;
+        }
+        if (owner == null || owner.getEmail() == null || owner.getEmail().isBlank()) {
+            log.warn("Owner has no email; cannot use as sender for agreement {}", agreement.getAgreementNumber());
+            return;
+        }
+        try {
+            MimeMessage message = sender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            
+            // Set sender as owner's email and receiver as tenant's email
+            // (Note: This relies on SMTP server allowing arbitrary 'From' addresses)
+            String senderFormatted = String.format("%s <%s>", owner.getFullName(), owner.getEmail());
+            helper.setFrom(senderFormatted);
+            helper.setTo(tenant.getEmail());
+            
+            helper.setSubject("New Rental Agreement Created: " + agreement.getAgreementNumber());
+            helper.setText("Hello " + tenant.getFullName() + ",\n\n"
+                    + "I have approved your booking request and a rental agreement has been automatically generated.\n\n"
+                    + "Please review the attached digital agreement PDF. Log into your RentEase dashboard to Accept or Reject it.\n\n"
+                    + "Agreement number: " + agreement.getAgreementNumber() + "\n\n"
+                    + "Best regards,\n"
+                    + owner.getFullName(), false);
+                    
+            helper.addAttachment(
+                    "agreement-" + agreement.getAgreementNumber() + ".pdf",
+                    new ByteArrayResource(pdfBytes));
+                    
+            sender.send(message);
+            log.info("Agreement creation email sent to {} from {} for {}", tenant.getEmail(), owner.getEmail(), agreement.getAgreementNumber());
+        } catch (Exception e) {
+            log.error("Failed to send agreement creation email for {}: {}", agreement.getAgreementNumber(), e.getMessage());
+        }
+    }
+
     public void sendAgreementPdfAttachment(User tenant, Agreement agreement, byte[] pdfBytes) {
         JavaMailSender sender = mailSenderProvider.getIfAvailable();
         if (sender == null || fromAddress == null || fromAddress.isBlank()) {

@@ -71,6 +71,9 @@ public class SecurityConfig {
                         // ── Rental agreements (JWT required) ──
                         .requestMatchers("/api/v1/agreements/**").authenticated()
 
+                        // ── Maintenance endpoints (JWT required) ──
+                        .requestMatchers("/api/v1/maintenance/**").authenticated()
+
                         // ── All other requests ──
                         .anyRequest().permitAll())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

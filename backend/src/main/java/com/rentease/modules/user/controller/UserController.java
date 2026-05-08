@@ -53,4 +53,19 @@ public class UserController {
         UserResponse response = userService.updateUser(id, request);
         return ResponseEntity.ok(ApiResponse.success(response, "User updated successfully"));
     }
+
+    @PostMapping("/{id}/favorites/{propertyId}")
+    public ResponseEntity<ApiResponse<UserResponse>> addFavorite(@PathVariable String id, @PathVariable String propertyId) {
+        return ResponseEntity.ok(ApiResponse.success(userService.addFavorite(id, propertyId), "Added to favorites"));
+    }
+
+    @DeleteMapping("/{id}/favorites/{propertyId}")
+    public ResponseEntity<ApiResponse<UserResponse>> removeFavorite(@PathVariable String id, @PathVariable String propertyId) {
+        return ResponseEntity.ok(ApiResponse.success(userService.removeFavorite(id, propertyId), "Removed from favorites"));
+    }
+
+    @GetMapping("/{id}/favorites")
+    public ResponseEntity<ApiResponse<java.util.List<com.rentease.modules.property.model.Property>>> getFavorites(@PathVariable String id) {
+        return ResponseEntity.ok(ApiResponse.success(userService.getFavoriteProperties(id)));
+    }
 }

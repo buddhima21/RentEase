@@ -98,6 +98,14 @@ public class BookingController {
         return ResponseEntity.ok(ApiResponse.success(bookings));
     }
 
+    /** Admin gets bookings with optional status filtering */
+    @GetMapping("/admin/all")
+    public ResponseEntity<ApiResponse<List<BookingResponse>>> getAdminBookings(
+            @RequestParam(value = "status", required = false) List<BookingStatus> statuses) {
+        List<BookingResponse> bookings = bookingService.getAdminBookings(statuses);
+        return ResponseEntity.ok(ApiResponse.success(bookings));
+    }
+
     /** Get available bedroom slots for a property */
     @GetMapping("/property/{propertyId}/available-slots")
     public ResponseEntity<ApiResponse<Map<String, Integer>>> getAvailableSlots(

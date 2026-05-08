@@ -50,7 +50,7 @@ export default function TestimonialsSection() {
                 {/* Section Header */}
                 <div ref={headerRef} className="text-center mb-16">
                     <h2 className="text-3xl font-bold mb-4">What Our Students Say</h2>
-                    <p className="text-slate-500">
+                    <p className="text-slate-500 dark:text-slate-400">
                         Real experiences from students who found their home with us
                     </p>
                 </div>

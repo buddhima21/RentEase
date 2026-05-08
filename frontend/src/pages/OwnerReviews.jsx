@@ -95,14 +95,14 @@ export default function OwnerReviews() {
     const filteredReviews = reviews.filter(r => r.status === activeTab);
 
     return (
-        <div className="flex h-screen overflow-hidden bg-[#FBFDFF]" style={{ "--color-primary": "#10b981" }}>
+        <div className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-emerald-950/20" style={{ "--color-primary": "#10b981" }}>
             <Sidebar />
 
             <main className="flex-1 flex flex-col min-w-0 font-sans">
                 {/* Header */}
-                <header className="sticky top-0 z-30 h-[88px] border-b border-slate-100/80 bg-white/70 backdrop-blur-3xl px-8 lg:px-12 flex items-center justify-between gap-4 shrink-0">
+                <header className="sticky top-0 z-30 h-[88px] border-b border-slate-100/80 dark:border-slate-700/80 bg-white/70 dark:bg-slate-900/70 backdrop-blur-3xl px-8 lg:px-12 flex items-center justify-between gap-4 shrink-0">
                     <div>
-                        <h2 className="text-2xl font-black tracking-tight text-slate-900">Property <span className="text-emerald-500">Reviews</span></h2>
+                        <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">Property <span className="text-emerald-500">Reviews</span></h2>
                         <p className="text-sm text-slate-400 font-bold">Manage feedback and build tenant trust.</p>
                     </div>
                     <div className="flex items-center gap-4">
@@ -117,7 +117,7 @@ export default function OwnerReviews() {
                 <div className="flex-1 overflow-y-auto p-5 lg:p-8">
                     
                     {/* Modern Top Stats / Info header */}
-                    <div className="bg-white rounded-[2rem] p-6 lg:p-8 border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.03)] mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden">
+                    <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 lg:p-8 border border-slate-100 dark:border-slate-700/50 shadow-[0_8px_30px_rgb(0,0,0,0.03)] mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-full h-full bg-gradient-to-bl from-emerald-50 via-transparent to-transparent pointer-events-none opacity-60"></div>
                         
                         <div className="flex items-center gap-4 relative z-10">
@@ -125,19 +125,19 @@ export default function OwnerReviews() {
                                 <span className="material-symbols-outlined text-[24px]">gavel</span>
                             </div>
                             <div>
-                                <h1 className="text-2xl font-black text-slate-900 tracking-tight">Review Management</h1>
-                                <p className="text-slate-500 text-sm font-medium mt-0.5">Moderate property reviews and reply to tenants.</p>
+                                <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Review Management</h1>
+                                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium mt-0.5">Moderate property reviews and reply to tenants.</p>
                             </div>
                         </div>
 
                         {/* Animated pill-tabs */}
-                        <div className="flex bg-slate-50 p-1.5 rounded-full relative z-10 w-full sm:w-auto">
+                        <div className="flex bg-slate-50 dark:bg-slate-800/50 p-1.5 rounded-full relative z-10 w-full sm:w-auto">
                             <button
                                 onClick={() => setActiveTab('PENDING')}
                                 className={`flex-1 sm:flex-none flex justify-center items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold transition-all ${
                                     activeTab === 'PENDING' 
                                     ? 'bg-[#0F172A] text-white shadow-sm' 
-                                    : 'text-slate-500 hover:text-slate-700'
+                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-200'
                                 }`}
                             >
                                 <span className="material-symbols-outlined text-[16px]">pending_actions</span>
@@ -148,7 +148,7 @@ export default function OwnerReviews() {
                                 className={`flex-1 sm:flex-none flex justify-center items-center gap-2 px-6 py-2.5 rounded-full text-sm font-bold transition-all ${
                                     activeTab === 'APPROVED' 
                                     ? 'bg-[#0F172A] text-white shadow-sm' 
-                                    : 'text-slate-500 hover:text-slate-700'
+                                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-200'
                                 }`}
                             >
                                 <span className="material-symbols-outlined text-[16px]">check_circle</span>
@@ -159,25 +159,25 @@ export default function OwnerReviews() {
 
                     {/* Review List */}
                     {loading ? (
-                        <div className="bg-white rounded-[2.5rem] p-12 border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.03)] flex flex-col items-center justify-center min-h-[400px]">
+                        <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-12 border border-slate-100 dark:border-slate-700/50 shadow-[0_8px_30px_rgb(0,0,0,0.03)] flex flex-col items-center justify-center min-h-[400px]">
                             <div className="w-10 h-10 border-4 border-emerald-200 border-t-emerald-600 rounded-full animate-spin mb-4"></div>
-                            <p className="text-slate-500 font-medium">Fetching your property reviews...</p>
+                            <p className="text-slate-500 dark:text-slate-400 font-medium">Fetching your property reviews...</p>
                         </div>
                     ) : filteredReviews.length === 0 ? (
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="bg-slate-50/50 border border-dashed border-slate-200 rounded-[2rem] p-16 text-center flex flex-col items-center justify-center"
+                            className="bg-slate-50/50 border border-dashed border-slate-200 dark:border-slate-700 rounded-[2rem] p-16 text-center flex flex-col items-center justify-center"
                         >
-                            <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center mb-6 shadow-sm border border-slate-100">
+                            <div className="w-20 h-20 bg-white dark:bg-slate-900 rounded-3xl flex items-center justify-center mb-6 shadow-sm border border-slate-100 dark:border-slate-700/50">
                                 <span className="material-symbols-outlined text-4xl text-emerald-500" style={{ fontVariationSettings: "'FILL' 1" }}>
                                     {activeTab === 'PENDING' ? 'task_alt' : 'rate_review'}
                                 </span>
                             </div>
-                            <h3 className="text-xl font-extrabold text-slate-800 tracking-tight mb-2">
+                            <h3 className="text-xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight mb-2">
                                 {activeTab === 'PENDING' ? 'Queue is empty' : 'No published reviews yet'}
                             </h3>
-                            <p className="text-slate-500 font-medium text-[15px]">You are all caught up on your property feedback.</p>
+                            <p className="text-slate-500 dark:text-slate-400 font-medium text-[15px]">You are all caught up on your property feedback.</p>
                         </motion.div>
                     ) : (
                         <div className="flex flex-col gap-5">
@@ -188,14 +188,14 @@ export default function OwnerReviews() {
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, scale: 0.98, x: -10 }}
                                         key={review.id} 
-                                        className="bg-white rounded-[1.5rem] border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.03)] p-6 lg:p-8 flex flex-col gap-5 transition-all hover:border-slate-200"
+                                        className="bg-white dark:bg-slate-900 rounded-[1.5rem] border border-slate-100 dark:border-slate-700/50 shadow-[0_8px_30px_rgb(0,0,0,0.03)] p-6 lg:p-8 flex flex-col gap-5 transition-all hover:border-slate-200 dark:border-slate-700"
                                     >
                                         <div className="flex flex-col md:flex-row justify-between items-start gap-5">
                                             {/* Content side */}
                                             <div className="flex-1 w-full">
                                                 {/* Header tags */}
                                                 <div className="flex flex-wrap items-center gap-3 mb-4">
-                                                    <span className="bg-slate-100 text-slate-700 text-xs font-black px-3 py-1.5 rounded-lg border border-slate-200 uppercase tracking-wide">
+                                                    <span className="bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-black px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 uppercase tracking-wide">
                                                         {properties[review.propertyId] || "Property"}
                                                     </span>
                                                     <span className="bg-blue-50 text-blue-700 text-xs font-black px-3 py-1.5 rounded-lg border border-blue-100 uppercase tracking-wide">
@@ -215,7 +215,7 @@ export default function OwnerReviews() {
                                                 </div>
                                                 
                                                 {/* Review Comment */}
-                                                <p className="text-slate-700 leading-relaxed font-medium text-[15px] max-w-3xl">
+                                                <p className="text-slate-700 dark:text-slate-200 leading-relaxed font-medium text-[15px] max-w-3xl">
                                                     "{review.comment}"
                                                 </p>
 
@@ -227,7 +227,7 @@ export default function OwnerReviews() {
                                                             <span className="material-symbols-outlined text-[16px] text-emerald-600">forum</span>
                                                             <p className="text-[11px] font-black text-emerald-700 uppercase tracking-widest pl-1">Your Context</p>
                                                         </div>
-                                                        <p className="text-slate-700 text-[14px] font-medium leading-relaxed pl-6 italic">"{review.ownerReply}"</p>
+                                                        <p className="text-slate-700 dark:text-slate-200 text-[14px] font-medium leading-relaxed pl-6 italic">"{review.ownerReply}"</p>
                                                     </div>
                                                 )}
                                             </div>
@@ -245,7 +245,7 @@ export default function OwnerReviews() {
                                                 
                                                 <button 
                                                     onClick={() => handleDelete(review.id)}
-                                                    className={`flex-1 md:flex-none flex items-center justify-center gap-2 font-bold px-6 py-2.5 rounded-xl transition-all active:scale-95 ${activeTab === 'PENDING' ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-100' : 'bg-slate-50 hover:bg-slate-100 text-slate-500 hover:text-slate-700 border border-slate-200'}`}
+                                                    className={`flex-1 md:flex-none flex items-center justify-center gap-2 font-bold px-6 py-2.5 rounded-xl transition-all active:scale-95 ${activeTab === 'PENDING' ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-100' : 'bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700'}`}
                                                 >
                                                     <span className="material-symbols-outlined text-[16px]">close</span> {activeTab === "PENDING" ? "Reject" : "Delete"}
                                                 </button>
@@ -253,7 +253,7 @@ export default function OwnerReviews() {
                                                 {activeTab === "APPROVED" && !review.ownerReply && (
                                                     <button 
                                                         onClick={() => setReplyingTo(review)}
-                                                        className="flex-1 md:flex-none flex items-center justify-center gap-2 border border-slate-200 hover:border-slate-300 bg-white text-slate-700 font-bold px-6 py-2.5 rounded-xl transition-all active:scale-95 shadow-[0_2px_10px_rgb(0,0,0,0.02)]"
+                                                        className="flex-1 md:flex-none flex items-center justify-center gap-2 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 font-bold px-6 py-2.5 rounded-xl transition-all active:scale-95 shadow-[0_2px_10px_rgb(0,0,0,0.02)]"
                                                     >
                                                         <span className="material-symbols-outlined text-[16px]">reply</span> Reply
                                                     </button>
@@ -284,15 +284,15 @@ export default function OwnerReviews() {
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 10 }}
                             transition={{ type: "spring", stiffness: 300, damping: 25 }}
-                            className="bg-white rounded-[2rem] shadow-2xl max-w-lg w-full relative z-10 overflow-hidden border border-slate-100"
+                            className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl max-w-lg w-full relative z-10 overflow-hidden border border-slate-100 dark:border-slate-700/50"
                         >
-                            <div className="p-8 pb-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center relative">
+                            <div className="p-8 pb-6 border-b border-slate-100 dark:border-slate-700/50 bg-slate-50/50 flex justify-between items-center relative">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none translate-x-10 -translate-y-10"></div>
-                                <h3 className="font-black text-[22px] text-slate-900 flex items-center gap-3">
-                                    <span className="material-symbols-outlined text-emerald-500 bg-white p-1.5 rounded-xl shadow-sm border border-slate-100">forum</span> 
+                                <h3 className="font-black text-[22px] text-slate-900 dark:text-white flex items-center gap-3">
+                                    <span className="material-symbols-outlined text-emerald-500 bg-white dark:bg-slate-900 p-1.5 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700/50">forum</span> 
                                     Tenant Response
                                 </h3>
-                                <button onClick={() => { setReplyingTo(null); setReplyText(""); }} className="text-slate-400 hover:text-slate-600 bg-white hover:bg-slate-100 p-1.5 rounded-full transition-colors border border-slate-100">
+                                <button onClick={() => { setReplyingTo(null); setReplyText(""); }} className="text-slate-400 hover:text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:bg-slate-800 p-1.5 rounded-full transition-colors border border-slate-100 dark:border-slate-700/50">
                                     <span className="material-symbols-outlined text-[18px]">close</span>
                                 </button>
                             </div>
@@ -302,8 +302,8 @@ export default function OwnerReviews() {
                                     <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                                         <span className="material-symbols-outlined text-[14px]">format_quote</span> Review content
                                     </p>
-                                    <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                                        <p className="text-[14px] text-slate-600 font-medium italic">"{replyingTo.comment}"</p>
+                                    <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700/50">
+                                        <p className="text-[14px] text-slate-600 dark:text-slate-300 font-medium italic">"{replyingTo.comment}"</p>
                                     </div>
                                 </div>
 
@@ -315,7 +315,7 @@ export default function OwnerReviews() {
                                         value={replyText}
                                         onChange={(e) => setReplyText(e.target.value)}
                                         placeholder="Add more specific details to let future tenants know how you manage properties..."
-                                        className="w-full min-h-[140px] p-4 bg-white border-2 border-slate-100 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none text-[15px] font-medium resize-none transition-all placeholder:text-slate-300"
+                                        className="w-full min-h-[140px] p-4 bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-700/50 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none text-[15px] font-medium resize-none transition-all placeholder:text-slate-300"
                                     />
                                 </div>
 

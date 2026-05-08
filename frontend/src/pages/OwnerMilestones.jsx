@@ -16,9 +16,9 @@ const MilestoneCard = ({ milestone, index }) => (
     {/* Animated background glow */}
     <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-teal-400 rounded-3xl opacity-0 group-hover:opacity-10 blur-xl transition-all duration-500"></div>
     
-    <div className="relative h-full bg-white rounded-[2rem] p-8 border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex flex-col justify-between overflow-hidden">
+    <div className="relative h-full bg-white dark:bg-slate-900 rounded-[2rem] p-8 border border-slate-100 dark:border-slate-700/50 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex flex-col justify-between overflow-hidden">
       {/* Decorative background shape */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full -mr-16 -mt-16 group-hover:bg-emerald-50 transition-colors duration-700"></div>
+      <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 dark:bg-slate-800/50 rounded-full -mr-16 -mt-16 group-hover:bg-emerald-50 transition-colors duration-700"></div>
 
       <div className="relative z-10 flex flex-col h-full">
         <div className="flex justify-between items-start mb-6">
@@ -31,17 +31,17 @@ const MilestoneCard = ({ milestone, index }) => (
           </div>
         </div>
 
-        <h3 className="text-xl font-black text-slate-900 mb-3 group-hover:text-emerald-600 transition-colors">{milestone.title}</h3>
-        <p className="text-sm text-slate-500 font-medium leading-relaxed mb-6">
+        <h3 className="text-xl font-black text-slate-900 dark:text-white mb-3 group-hover:text-emerald-600 transition-colors">{milestone.title}</h3>
+        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium leading-relaxed mb-6">
           {milestone.description}
         </p>
 
         <div className="mt-auto space-y-3">
           <div className="flex justify-between items-center text-[11px] font-black uppercase tracking-wider text-slate-400">
             <span>Progress Efficiency</span>
-            <span className="text-slate-900">{milestone.progress}%</span>
+            <span className="text-slate-900 dark:text-white">{milestone.progress}%</span>
           </div>
-          <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+          <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
             <motion.div 
               initial={{ width: 0 }}
               animate={{ width: `${milestone.progress}%` }}
@@ -60,20 +60,20 @@ export default function OwnerMilestones() {
   const [activeTab, setActiveTab] = React.useState(0);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#FBFDFF]">
+    <div className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-white to-emerald-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-emerald-950/20">
       <Sidebar />
 
       <main className="flex-1 flex flex-col min-w-0 font-sans">
         {/* Header */}
-        <header className="sticky top-0 z-30 h-[88px] border-b border-slate-100/80 bg-white/70 backdrop-blur-3xl px-8 lg:px-12 flex items-center justify-between shrink-0">
+        <header className="sticky top-0 z-30 h-[88px] border-b border-slate-100/80 dark:border-slate-700/80 bg-white/70 dark:bg-slate-900/70 backdrop-blur-3xl px-8 lg:px-12 flex items-center justify-between shrink-0">
           <div>
-            <h2 className="text-2xl font-black tracking-tight text-slate-900">System <span className="text-[#F97316]">Milestones</span></h2>
+            <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">System <span className="text-[#F97316]">Milestones</span></h2>
             <p className="text-sm text-slate-400 font-bold italic">2026 Core Platform Achievements</p>
           </div>
           <div className="flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-xl border border-slate-100">
+            <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700/50">
               <span className="material-symbols-outlined text-[18px] text-[#F97316]">verified_user</span>
-              <span className="text-[12px] font-black text-slate-600 uppercase tracking-widest">Industry Standard Compliance</span>
+              <span className="text-[12px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-widest">Industry Standard Compliance</span>
             </div>
             {user && <UserDropdown user={user} onLogout={logout} />}
           </div>
@@ -83,13 +83,13 @@ export default function OwnerMilestones() {
         <div className="flex-1 overflow-y-auto p-8 lg:p-12 space-y-12">
           
           {/* Animated Tab Switcher */}
-          <div className="flex flex-wrap gap-4 border-b border-slate-100 pb-2">
+          <div className="flex flex-wrap gap-4 border-b border-slate-100 dark:border-slate-700/50 pb-2">
             {milestonesData.map((category, idx) => (
               <button
                 key={idx}
                 onClick={() => setActiveTab(idx)}
                 className={`px-6 py-3 text-sm font-black transition-all relative ${
-                  activeTab === idx ? "text-[#F97316]" : "text-slate-400 hover:text-slate-600"
+                  activeTab === idx ? "text-[#F97316]" : "text-slate-400 hover:text-slate-600 dark:text-slate-300"
                 }`}
               >
                 {category.category}
@@ -133,12 +133,12 @@ export default function OwnerMilestones() {
               <div className="flex items-center gap-8">
                 <div className="text-center">
                   <div className="text-4xl font-black text-white mb-1">100%</div>
-                  <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Uptime Design</div>
+                  <div className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Uptime Design</div>
                 </div>
                 <div className="w-px h-12 bg-slate-700/50"></div>
                 <div className="text-center">
                   <div className="text-4xl font-black text-orange-400">95%</div>
-                  <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Code Coverage</div>
+                  <div className="text-[10px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Code Coverage</div>
                 </div>
               </div>
             </div>

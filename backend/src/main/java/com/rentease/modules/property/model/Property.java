@@ -47,6 +47,7 @@ public class Property {
     private String ownerEmail;
 
     // ── Moderation ──────────────────────────────────────
+    @Indexed
     @Builder.Default
     private PropertyStatus status = PropertyStatus.PENDING_APPROVAL;
 

@@ -110,13 +110,13 @@ export default function Signup() {
                     {/* ── Mobile Header ── */}
                     <div className="lg:hidden flex items-center gap-2 mb-8">
                         <span className="material-symbols-outlined text-[#13ec6d] text-3xl">home_work</span>
-                        <h2 className="text-slate-900 text-2xl font-bold">RentEase</h2>
+                        <h2 className="text-slate-900 dark:text-white text-2xl font-bold">RentEase</h2>
                     </div>
 
                     {/* ── Heading ── */}
                     <div className="space-y-2">
-                        <h2 className="text-3xl font-black text-slate-900">Create account</h2>
-                        <p className="text-slate-500">Join thousands of users managing properties today.</p>
+                        <h2 className="text-3xl font-black text-slate-900 dark:text-white">Create account</h2>
+                        <p className="text-slate-500 dark:text-slate-400">Join thousands of users managing properties today.</p>
                     </div>
 
                     {/* ── Success / Error Messages ── */}
@@ -137,7 +137,7 @@ export default function Signup() {
                     <div className="relative flex h-14 w-full items-center rounded-2xl bg-slate-200/50 p-1.5 ring-1 ring-slate-200" role="radiogroup" aria-label="Account type">
                         {/* Sliding Background */}
                         <motion.div
-                            className="absolute top-1.5 bottom-1.5 left-1.5 rounded-xl bg-white shadow-sm border border-slate-100"
+                            className="absolute top-1.5 bottom-1.5 left-1.5 rounded-xl bg-white dark:bg-slate-900 shadow-sm border border-slate-100 dark:border-slate-700/50"
                             initial={false}
                             animate={{
                                 x: role === "TENANT" ? "0%" : "100%"
@@ -153,7 +153,7 @@ export default function Signup() {
                             aria-checked={role === "TENANT"}
                             onClick={() => setRole("TENANT")}
                             className={`relative z-10 w-1/2 flex items-center justify-center gap-2 text-sm font-bold transition-colors duration-200 cursor-pointer ${
-                                role === "TENANT" ? "text-[#13ec6d]" : "text-slate-500 hover:text-slate-700"
+                                role === "TENANT" ? "text-[#13ec6d]" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-200"
                             }`}
                         >
                             <span className="material-symbols-outlined text-[20px]">person</span>
@@ -167,7 +167,7 @@ export default function Signup() {
                             aria-checked={role === "OWNER"}
                             onClick={() => setRole("OWNER")}
                             className={`relative z-10 w-1/2 flex items-center justify-center gap-2 text-sm font-bold transition-colors duration-200 cursor-pointer ${
-                                role === "OWNER" ? "text-blue-600" : "text-slate-500 hover:text-slate-700"
+                                role === "OWNER" ? "text-blue-600" : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-200"
                             }`}
                         >
                             <span className="material-symbols-outlined text-[20px]">real_estate_agent</span>
@@ -180,7 +180,7 @@ export default function Signup() {
                         <button
                             type="button"
                             onClick={() => console.log("Google signup clicked")}
-                            className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer"
+                            className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:bg-slate-800/50 transition-colors cursor-pointer"
                         >
                             <GoogleIcon />
                             <span className="text-sm font-semibold">Google</span>
@@ -188,7 +188,7 @@ export default function Signup() {
                         <button
                             type="button"
                             onClick={() => console.log("Apple signup clicked")}
-                            className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer"
+                            className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:bg-slate-800/50 transition-colors cursor-pointer"
                         >
                             <AppleIcon />
                             <span className="text-sm font-semibold">Apple</span>
@@ -197,11 +197,11 @@ export default function Signup() {
 
                     {/* ── Divider ── */}
                     <div className="relative flex py-4 items-center">
-                        <div className="flex-grow border-t border-slate-200" />
+                        <div className="flex-grow border-t border-slate-200 dark:border-slate-700" />
                         <span className="shrink mx-4 text-slate-400 text-xs uppercase tracking-widest font-bold">
                             Or with email
                         </span>
-                        <div className="flex-grow border-t border-slate-200" />
+                        <div className="flex-grow border-t border-slate-200 dark:border-slate-700" />
                     </div>
 
                     {/* ── Registration Form ── */}
@@ -209,7 +209,7 @@ export default function Signup() {
                         <div className="grid grid-cols-1 gap-4">
                             {/* Full Name */}
                             <div className="space-y-1">
-                                <label htmlFor="fullName" className="text-sm font-semibold text-slate-700 ml-1">
+                                <label htmlFor="fullName" className="text-sm font-semibold text-slate-700 dark:text-slate-200 ml-1">
                                     Full Name
                                 </label>
                                 <div className="relative">
@@ -223,7 +223,7 @@ export default function Signup() {
                                         placeholder="John Doe"
                                         value={formData.fullName}
                                         onChange={handleChange}
-                                        className={`w-full pl-10 pr-4 py-3 bg-white border rounded-xl outline-none transition-all focus:ring-2 focus:ring-[#13ec6d]/20 focus:border-[#13ec6d] ${submitted && errors.fullName ? "border-red-400" : "border-slate-200"
+                                        className={`w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-900 border rounded-xl outline-none transition-all focus:ring-2 focus:ring-[#13ec6d]/20 focus:border-[#13ec6d] ${submitted && errors.fullName ? "border-red-400" : "border-slate-200 dark:border-slate-700"
                                             }`}
                                     />
                                 </div>
@@ -234,7 +234,7 @@ export default function Signup() {
 
                             {/* Email */}
                             <div className="space-y-1">
-                                <label htmlFor="email" className="text-sm font-semibold text-slate-700 ml-1">
+                                <label htmlFor="email" className="text-sm font-semibold text-slate-700 dark:text-slate-200 ml-1">
                                     Email Address
                                 </label>
                                 <div className="relative">
@@ -248,7 +248,7 @@ export default function Signup() {
                                         placeholder="name@example.com"
                                         value={formData.email}
                                         onChange={handleChange}
-                                        className={`w-full pl-10 pr-4 py-3 bg-white border rounded-xl outline-none transition-all focus:ring-2 focus:ring-[#13ec6d]/20 focus:border-[#13ec6d] ${submitted && errors.email ? "border-red-400" : "border-slate-200"
+                                        className={`w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-900 border rounded-xl outline-none transition-all focus:ring-2 focus:ring-[#13ec6d]/20 focus:border-[#13ec6d] ${submitted && errors.email ? "border-red-400" : "border-slate-200 dark:border-slate-700"
                                             }`}
                                     />
                                 </div>
@@ -259,7 +259,7 @@ export default function Signup() {
 
                             {/* Phone */}
                             <div className="space-y-1">
-                                <label htmlFor="phone" className="text-sm font-semibold text-slate-700 ml-1">
+                                <label htmlFor="phone" className="text-sm font-semibold text-slate-700 dark:text-slate-200 ml-1">
                                     Phone Number
                                 </label>
                                 <div className="relative">
@@ -273,7 +273,7 @@ export default function Signup() {
                                         placeholder="+1 (555) 000-0000"
                                         value={formData.phone}
                                         onChange={handleChange}
-                                        className={`w-full pl-10 pr-4 py-3 bg-white border rounded-xl outline-none transition-all focus:ring-2 focus:ring-[#13ec6d]/20 focus:border-[#13ec6d] ${submitted && errors.phone ? "border-red-400" : "border-slate-200"
+                                        className={`w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-900 border rounded-xl outline-none transition-all focus:ring-2 focus:ring-[#13ec6d]/20 focus:border-[#13ec6d] ${submitted && errors.phone ? "border-red-400" : "border-slate-200 dark:border-slate-700"
                                             }`}
                                     />
                                 </div>
@@ -284,7 +284,7 @@ export default function Signup() {
 
                             {/* Password */}
                             <div className="space-y-1">
-                                <label htmlFor="password" className="text-sm font-semibold text-slate-700 ml-1">
+                                <label htmlFor="password" className="text-sm font-semibold text-slate-700 dark:text-slate-200 ml-1">
                                     Password
                                 </label>
                                 <div className="relative">
@@ -298,13 +298,13 @@ export default function Signup() {
                                         placeholder="••••••••"
                                         value={formData.password}
                                         onChange={handleChange}
-                                        className={`w-full pl-10 pr-12 py-3 bg-white border rounded-xl outline-none transition-all focus:ring-2 focus:ring-[#13ec6d]/20 focus:border-[#13ec6d] ${submitted && errors.password ? "border-red-400" : "border-slate-200"
+                                        className={`w-full pl-10 pr-12 py-3 bg-white dark:bg-slate-900 border rounded-xl outline-none transition-all focus:ring-2 focus:ring-[#13ec6d]/20 focus:border-[#13ec6d] ${submitted && errors.password ? "border-red-400" : "border-slate-200 dark:border-slate-700"
                                             }`}
                                     />
                                     <button
                                         type="button"
                                         onClick={() => setShowPassword((v) => !v)}
-                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:text-slate-300 cursor-pointer"
                                         aria-label={showPassword ? "Hide password" : "Show password"}
                                     >
                                         <span className="material-symbols-outlined text-lg">
@@ -328,9 +328,9 @@ export default function Signup() {
                                     setAgreeTerms(e.target.checked);
                                     if (submitted) setErrors((prev) => ({ ...prev, agreeTerms: "" }));
                                 }}
-                                className="mt-1 rounded text-[#13ec6d] focus:ring-[#13ec6d] border-slate-300 cursor-pointer"
+                                className="mt-1 rounded text-[#13ec6d] focus:ring-[#13ec6d] border-slate-300 dark:border-slate-600 cursor-pointer"
                             />
-                            <label htmlFor="terms" className="text-sm text-slate-500 leading-tight">
+                            <label htmlFor="terms" className="text-sm text-slate-500 dark:text-slate-400 leading-tight">
                                 I agree to the{" "}
                                 <a href="#" className="text-[#13ec6d] font-semibold hover:underline">
                                     Terms of Service
@@ -383,7 +383,7 @@ export default function Signup() {
                     </form>
 
                     {/* ── Login link ── */}
-                    <p className="text-center text-slate-500 pt-4">
+                    <p className="text-center text-slate-500 dark:text-slate-400 pt-4">
                         Already have an account?{" "}
                         <Link to="/login" className="text-[#13ec6d] font-bold hover:underline">
                             Log In

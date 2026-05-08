@@ -14,10 +14,10 @@ export default function ListingModerationCard({ listing, onModerate, onViewDetai
 
     return (
         <div
-            className={`bg-white rounded-xl border shadow-sm overflow-hidden flex flex-col lg:flex-row transition-all hover:shadow-md ${
+            className={`bg-white dark:bg-slate-900 rounded-xl border shadow-sm overflow-hidden flex flex-col lg:flex-row transition-all hover:shadow-md ${
                 isFlagged
                     ? "border-red-200 ring-1 ring-red-500/10"
-                    : "border-slate-200"
+                    : "border-slate-200 dark:border-slate-700"
             }`}
         >
             {/* Image */}
@@ -40,7 +40,7 @@ export default function ListingModerationCard({ listing, onModerate, onViewDetai
                             <span className="material-symbols-outlined text-sm">cancel</span> Rejected
                         </span>
                     ) : isDeleted ? (
-                        <span className="bg-slate-200 text-slate-700 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded flex items-center gap-1 backdrop-blur-sm">
+                        <span className="bg-slate-200 text-slate-700 dark:text-slate-200 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded flex items-center gap-1 backdrop-blur-sm">
                             <span className="material-symbols-outlined text-sm">delete</span> Deleted
                         </span>
                     ) : (
@@ -57,7 +57,7 @@ export default function ListingModerationCard({ listing, onModerate, onViewDetai
                     {/* Left info */}
                     <div>
                         <h3 className="text-lg font-bold mb-1">{listing.title}</h3>
-                        <div className="flex items-center gap-1.5 text-slate-500 text-sm mb-3">
+                        <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 text-sm mb-3">
                             <span className="material-symbols-outlined text-sm">location_on</span>
                             {listing.location}
                         </div>
@@ -99,16 +99,16 @@ export default function ListingModerationCard({ listing, onModerate, onViewDetai
                         ) : (
                             <div className="md:text-right">
                                 <p className="text-xs text-slate-400 uppercase font-bold tracking-widest mb-1">Listing Type</p>
-                                <span className="text-xs bg-slate-100 px-2 py-1 rounded font-medium">{listing.listingType}</span>
+                                <span className="text-xs bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded font-medium">{listing.listingType}</span>
                             </div>
                         )}
                     </div>
                 </div>
 
-                <div className="mt-6 pt-5 border-t border-slate-100 flex flex-wrap gap-3 justify-end">
+                <div className="mt-6 pt-5 border-t border-slate-100 dark:border-slate-700/50 flex flex-wrap gap-3 justify-end">
                     <button 
                         onClick={() => onViewDetails(listing.id)}
-                        className="px-4 py-2 text-sm font-semibold rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors flex items-center gap-2"
+                        className="px-4 py-2 text-sm font-semibold rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:bg-slate-800/50 transition-colors flex items-center gap-2"
                     >
                         <span className="material-symbols-outlined text-lg">visibility</span> View Details
                     </button>

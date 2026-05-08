@@ -18,6 +18,9 @@ public interface AgreementRepository extends MongoRepository<Agreement, String> 
 
     List<Agreement> findByOwnerIdOrderByCreatedAtDesc(String ownerId);
 
+    /** Check if ANY agreement (any status) exists for this booking — prevents duplicates on re-approval */
+    boolean existsByBookingId(String bookingId);
+
     boolean existsByBookingIdAndStatus(String bookingId, AgreementStatus status);
 
     Optional<Agreement> findByIdAndTenantId(String id, String tenantId);

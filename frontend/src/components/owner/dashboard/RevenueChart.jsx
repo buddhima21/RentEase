@@ -19,7 +19,7 @@ function CustomTooltip({ active, payload, label }) {
         <motion.div
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-slate-900/95 backdrop-blur-sm text-white px-4 py-3 rounded-xl shadow-2xl border border-white/10"
+            className="bg-slate-900/95 dark:bg-slate-800/95 backdrop-blur-sm text-white px-4 py-3 rounded-xl shadow-2xl border border-white/10 dark:border-slate-700"
         >
             <p className="text-[11px] text-slate-400 font-medium mb-1">{label}</p>
             <p className="text-lg font-bold">
@@ -40,12 +40,12 @@ export default function RevenueChart() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="bg-white/80 backdrop-blur-xl rounded-2xl border border-white/60 shadow-lg p-6 hover:shadow-xl transition-shadow duration-500"
+            className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl border border-white/60 dark:border-slate-700/60 shadow-lg dark:shadow-slate-900/20 p-6 hover:shadow-xl transition-shadow duration-500"
         >
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
+                    <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100 flex items-center gap-2">
                         <div className="p-2 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl text-white">
                             <span className="material-symbols-outlined text-lg">trending_up</span>
                         </div>
@@ -56,7 +56,7 @@ export default function RevenueChart() {
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-1.5">
                         <div className="w-3 h-3 rounded-full bg-gradient-to-r from-emerald-400 to-teal-500" />
-                        <span className="text-[11px] text-slate-500 font-medium">Revenue</span>
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Revenue</span>
                     </div>
                 </div>
             </div>
@@ -116,10 +116,10 @@ export default function RevenueChart() {
             </div>
 
             {/* Summary Footer */}
-            <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
+            <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-700/50 flex items-center justify-between">
                 <div>
                     <p className="text-xs text-slate-400 font-medium">Total Revenue (6 months)</p>
-                    <p className="text-xl font-extrabold text-slate-800 mt-0.5">
+                    <p className="text-xl font-extrabold text-slate-800 dark:text-slate-100 mt-0.5">
                         LKR {(totalRevenue / 1000).toFixed(0)}K
                     </p>
                 </div>
@@ -127,7 +127,7 @@ export default function RevenueChart() {
                     initial={{ opacity: 0, x: 10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.8 }}
-                    className="flex items-center gap-1.5 text-emerald-600 bg-emerald-50 px-4 py-2 rounded-full border border-emerald-100"
+                    className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-4 py-2 rounded-full border border-emerald-100 dark:border-emerald-800/50"
                 >
                     <span className="material-symbols-outlined text-[16px]">trending_up</span>
                     <span className="text-xs font-bold">+12.4% vs prior</span>

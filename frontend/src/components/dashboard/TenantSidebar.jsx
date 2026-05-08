@@ -16,7 +16,7 @@ export default function TenantSidebar() {
     const navContent = (
         <>
             <div className="px-6 py-5 border-b border-emerald-100 flex items-center gap-3">
-                <div className="bg-primary p-2 rounded-lg text-slate-900 shrink-0">
+                <div className="bg-primary p-2 rounded-lg text-slate-900 dark:text-white shrink-0">
                     <span className="material-symbols-outlined block text-xl">domain</span>
                 </div>
                 <div>
@@ -36,7 +36,7 @@ export default function TenantSidebar() {
                             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200
                 ${isActive
                                     ? "bg-primary/10 text-emerald-700 font-bold"
-                                    : "text-slate-600 font-medium hover:bg-emerald-50 hover:text-emerald-700"
+                                    : "text-slate-600 dark:text-slate-300 font-medium hover:bg-emerald-50 hover:text-emerald-700"
                                 }`}
                         >
                             <span className="material-symbols-outlined text-[22px]">{link.icon}</span>
@@ -52,7 +52,7 @@ export default function TenantSidebar() {
         <>
             <button
                 onClick={() => setOpen(true)}
-                className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-xl shadow-lg border border-emerald-100 text-slate-700 hover:text-emerald-600 transition-colors"
+                className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-emerald-100 text-slate-700 dark:text-slate-200 hover:text-emerald-600 transition-colors"
                 aria-label="Open sidebar"
             >
                 <span className="material-symbols-outlined">menu</span>
@@ -68,14 +68,14 @@ export default function TenantSidebar() {
             <aside
                 className={`
           fixed lg:static inset-y-0 left-0 z-50
-          w-64 bg-white flex flex-col shrink-0 border-r border-emerald-100
+          w-64 bg-white dark:bg-slate-900 flex flex-col shrink-0 border-r border-emerald-100
           transform transition-transform duration-300 ease-in-out
           ${open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
             >
                 <button
                     onClick={() => setOpen(false)}
-                    className="lg:hidden absolute top-4 right-4 text-slate-400 hover:text-slate-600"
+                    className="lg:hidden absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:text-slate-300"
                     aria-label="Close sidebar"
                 >
                     <span className="material-symbols-outlined">close</span>

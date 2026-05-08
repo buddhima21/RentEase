@@ -27,8 +27,8 @@ export default function RatingOverview({ rating, totalReviews }) {
                     ))}
                 </div>
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900/5 border border-slate-900/10">
-                    <span className="material-symbols-outlined text-sm text-slate-500">group</span>
-                    <span className="text-slate-600 font-bold text-xs uppercase tracking-wider">
+                    <span className="material-symbols-outlined text-sm text-slate-500 dark:text-slate-400">group</span>
+                    <span className="text-slate-600 dark:text-slate-300 font-bold text-xs uppercase tracking-wider">
                         {totalReviews} Verified Review{totalReviews !== 1 ? 's' : ''}
                     </span>
                 </div>
@@ -37,7 +37,7 @@ export default function RatingOverview({ rating, totalReviews }) {
             <div className="space-y-4 mt-auto relative z-10">
                 {distribution.map((item, index) => (
                     <div key={item.stars} className="flex items-center gap-4 text-sm group">
-                        <div className="flex items-center gap-1.5 w-12 text-slate-700 font-bold">
+                        <div className="flex items-center gap-1.5 w-12 text-slate-700 dark:text-slate-200 font-bold">
                             {item.stars} <span className="material-symbols-outlined text-[14px] text-[#f59e0b]">star</span>
                         </div>
                         <div className="flex-1 h-3 bg-slate-100/80 rounded-full overflow-hidden shadow-inner border border-slate-200/50">
@@ -49,7 +49,7 @@ export default function RatingOverview({ rating, totalReviews }) {
                                 <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-white/30 to-transparent"></div>
                             </div>
                         </div>
-                        <div className="w-10 text-right text-slate-500 font-bold text-xs tracking-wide">
+                        <div className="w-10 text-right text-slate-500 dark:text-slate-400 font-bold text-xs tracking-wide">
                             {item.percentage}%
                         </div>
                     </div>

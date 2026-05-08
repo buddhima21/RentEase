@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { addFavorite, removeFavorite } from "../services/api";
 
 const AuthContext = createContext(null);
 
@@ -21,8 +22,43 @@ export function AuthProvider({ children }) {
 
     /** Persist user to localStorage and update state */
     const login = (userData) => {
+        // Ensure favoritePropertyIds is an array
+        if (!userData.favoritePropertyIds) {
+            userData.favoritePropertyIds = [];
+        }
         localStorage.setItem("user", JSON.stringify(userData));
         setUser(userData);
+    };
+
+    /** Update user object in memory and local storage */
+    const updateUserData = (newData) => {
+        const updated = { ...user, ...newData };
+        localStorage.setItem("user", JSON.stringify(updated));
+        setUser(updated);
+    };
+
+    const toggleFavorite = async (propertyId) => {
+        if (!user) return;
+        const isFav = user.favoritePropertyIds?.includes(propertyId);
+        
+        // Optimistic UI update
+        const newFavs = isFav 
+            ? user.favoritePropertyIds.filter(id => id !== propertyId)
+            : [...(user.favoritePropertyIds || []), propertyId];
+            
+        updateUserData({ favoritePropertyIds: newFavs });
+
+        try {
+            if (isFav) {
+                await removeFavorite(user.id, propertyId);
+            } else {
+                await addFavorite(user.id, propertyId);
+            }
+        } catch (error) {
+            console.error("Failed to toggle favorite:", error);
+            // Revert on failure
+            updateUserData({ favoritePropertyIds: user.favoritePropertyIds });
+        }
     };
 
     /** Clear everything and reset state */
@@ -36,7 +72,7 @@ export function AuthProvider({ children }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout }}>
+        <AuthContext.Provider value={{ user, login, logout, toggleFavorite, updateUserData }}>
             {children}
         </AuthContext.Provider>
     );

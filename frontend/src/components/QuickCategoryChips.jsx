@@ -11,7 +11,7 @@ const categories = [
 
 export default function QuickCategoryChips({ activeCategory, onCategorySelect }) {
     return (
-        <section className="py-12 bg-white">
+        <section className="py-12 bg-white dark:bg-slate-900">
             <div className="max-w-7xl mx-auto px-4">
                 <div className="flex flex-wrap gap-4 justify-center">
                     {categories.map((cat) => (
@@ -22,7 +22,7 @@ export default function QuickCategoryChips({ activeCategory, onCategorySelect })
                             className={`px-6 py-3 rounded-full font-bold flex items-center gap-2 transition-all ${
                                 activeCategory === cat.label
                                     ? "bg-primary text-white shadow-lg shadow-primary/20"
-                                    : "bg-white border border-slate-200 hover:border-primary text-slate-600 hover:text-primary"
+                                    : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-primary text-slate-600 dark:text-slate-300 hover:text-primary"
                                 }`}
                         >
                             <span className="material-symbols-outlined text-xl">

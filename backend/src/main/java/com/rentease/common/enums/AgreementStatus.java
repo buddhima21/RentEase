@@ -4,10 +4,16 @@ package com.rentease.common.enums;
  * Lifecycle of a digital rental agreement.
  */
 public enum AgreementStatus {
-    /** Currently in force (end date not passed, not terminated). */
+    /** Auto-created when owner approves a booking; awaiting tenant Accept/Reject. */
+    PENDING,
+    /** Currently in force — tenant accepted and end date not yet passed. */
     ACTIVE,
+    /** Tenant rejected the agreement. */
+    CANCELLED,
     /** End date has passed (updated by scheduler or on read). */
     EXPIRED,
+    /** Tenant requested early termination, awaits owner approval. */
+    TERMINATION_REQUESTED,
     /** Ended before the scheduled end date (early termination). */
     TERMINATED
 }

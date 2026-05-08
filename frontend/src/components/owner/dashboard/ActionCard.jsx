@@ -17,9 +17,9 @@ export default function ActionCard({
         primary:
             "bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-md shadow-emerald-500/20 hover:shadow-lg hover:shadow-emerald-500/30",
         secondary:
-            "bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-800",
+            "bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 hover:text-slate-800 dark:hover:text-slate-100",
         outline:
-            "border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700",
+            "border border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-slate-700 dark:text-slate-200 hover:text-emerald-700 dark:hover:text-emerald-400",
     };
 
     // Icon mapping for action types
@@ -41,7 +41,7 @@ export default function ActionCard({
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.1, duration: 0.4, type: "spring", stiffness: 100 }}
             whileHover={{ scale: 1.01, x: 4 }}
-            className="p-4 bg-white/60 backdrop-blur-sm border border-slate-100 rounded-xl hover:border-emerald-200 hover:shadow-md transition-all duration-300 group relative overflow-hidden"
+            className="p-4 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm border border-slate-100 dark:border-slate-700/50 rounded-xl hover:border-emerald-200 dark:hover:border-emerald-700/50 hover:shadow-md dark:hover:shadow-slate-900/20 transition-all duration-300 group relative overflow-hidden"
         >
             {/* Left accent line */}
             <div className={`absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b ${iconGradientMap[type] || "from-emerald-500 to-teal-600"} rounded-l-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
@@ -63,8 +63,8 @@ export default function ActionCard({
             </div>
 
             {/* Content */}
-            <p className="text-sm font-semibold text-slate-800 leading-snug group-hover:text-slate-900 transition-colors">{title}</p>
-            <p className="text-xs text-slate-500 mt-1 leading-relaxed">{description}</p>
+            <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 leading-snug group-hover:text-slate-900 dark:text-white transition-colors">{title}</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">{description}</p>
 
             {/* Action Buttons */}
             {actions.length > 0 && (

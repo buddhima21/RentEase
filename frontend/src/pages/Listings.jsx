@@ -33,7 +33,6 @@ function normaliseProperty(p) {
         imageUrls: p.imageUrls || [],
         ownerId: p.ownerId,
         status: p.status,
-        // Defaults for fields not in backend
         distanceKm: 0,
         featured: false,
         verified: true,
@@ -42,6 +41,8 @@ function normaliseProperty(p) {
         genderPreference: "Any",
         availableFrom: p.createdAt || new Date().toISOString(),
         description: p.description || "",
+        lat: p.latitude || null,
+        lng: p.longitude || null,
     };
 }
 
@@ -52,6 +53,9 @@ export default function Listings() {
     const [filters, setFilters] = useState(INITIAL_FILTERS);
     const [sortBy, setSortBy] = useState("featured");
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [hoveredPropertyId, setHoveredPropertyId] = useState(null);
+    const [geocodedProps, setGeocodedProps] = useState([]);
+    const [geocoding, setGeocoding] = useState(false);
 
     const fetchProperties = useCallback(async () => {
         try {
@@ -76,6 +80,59 @@ export default function Listings() {
         fetchProperties();
     }, [fetchProperties]);
 
+    // Geocode properties progressively — pins appear one by one as they resolve.
+    // Cached addresses (localStorage) return instantly with no network delay.
+    useEffect(() => {
+        if (!allProperties.length) return;
+        let cancelled = false;
+
+        const geocodeAll = async () => {
+            setGeocoding(true);
+            const { geocodeAddress } = await import("../services/nominatim");
+
+            // First pass: resolve cached addresses instantly (no delay needed)
+            const withCoords = [];
+            const needsNetwork = [];
+
+            for (const p of allProperties) {
+                if (p.lat && p.lng) {
+                    withCoords.push(p);
+                    continue;
+                }
+                const cacheKey = `${p.address}, ${p.city}`.trim().toLowerCase();
+                const cached = JSON.parse(localStorage.getItem(`rentease_geo_${cacheKey}`) || "null");
+                if (cached && cached.lat) {
+                    withCoords.push({ ...p, lat: cached.lat, lng: cached.lng });
+                } else {
+                    needsNetwork.push(p);
+                }
+            }
+
+            // Show cached pins immediately
+            if (!cancelled) setGeocodedProps([...withCoords]);
+
+            // Second pass: fetch uncached properties one by one (1 req/sec)
+            for (const p of needsNetwork) {
+                if (cancelled) break;
+                const geo = await geocodeAddress(`${p.address}, ${p.city}`);
+                if (!cancelled) {
+                    const result = geo ? { ...p, lat: geo.lat, lng: geo.lng } : p;
+                    // Progressive update: add pin as soon as it resolves
+                    setGeocodedProps((prev) => [...prev, result]);
+                }
+                // Only delay if there are more uncached requests
+                if (needsNetwork.indexOf(p) < needsNetwork.length - 1) {
+                    await new Promise((r) => setTimeout(r, 1100));
+                }
+            }
+
+            if (!cancelled) setGeocoding(false);
+        };
+
+        geocodeAll();
+        return () => { cancelled = true; };
+    }, [allProperties]);
+
     const handleFilterChange = useCallback((key, value) => {
         setFilters((prev) => ({ ...prev, [key]: value }));
     }, []);
@@ -87,7 +144,6 @@ export default function Listings() {
     const filteredAndSorted = useMemo(() => {
         let result = allProperties.filter((p) => {
             const priceValue = Number(p.price) || 0;
-
             if (filters.search) {
                 const q = filters.search.toLowerCase();
                 const match =
@@ -96,25 +152,20 @@ export default function Listings() {
                     p.city.toLowerCase().includes(q);
                 if (!match) return false;
             }
-
             const min = filters.priceMin !== "" ? Number(filters.priceMin) : null;
             const max = filters.priceMax !== "" ? Number(filters.priceMax) : null;
             if (min !== null && !Number.isNaN(min) && priceValue < min) return false;
             if (max !== null && !Number.isNaN(max) && priceValue > max) return false;
-
             if (filters.types.length > 0) {
                 const normalizedType = String(p.type || "").trim().toLowerCase();
                 const selected = filters.types.map((t) => String(t).trim().toLowerCase());
                 if (!selected.includes(normalizedType)) return false;
             }
-
             if (filters.amenities.length > 0) {
                 const hasAll = filters.amenities.every((a) => p.amenities.includes(a));
                 if (!hasAll) return false;
             }
-
             if (filters.distance !== Infinity && p.distanceKm > filters.distance) return false;
-
             return true;
         });
 
@@ -137,21 +188,21 @@ export default function Listings() {
             default:
                 break;
         }
-
         return result;
     }, [filters, sortBy, allProperties]);
 
-    const mapPins = useMemo(() => {
-        return filteredAndSorted.slice(0, 12).map((p, i) => ({
-            id: p.id,
-            label: `${Math.round(p.price / 1000)}k`,
-            top: `${15 + ((i * 37 + 23) % 65)}%`,
-            left: `${10 + ((i * 47 + 13) % 75)}%`,
-        }));
-    }, [filteredAndSorted]);
+    // Merge geocoded coords into filtered list for the map
+    const filteredWithCoords = useMemo(() => {
+        const coordMap = new Map(
+            geocodedProps.filter((p) => p.lat && p.lng).map((p) => [p.id, { lat: p.lat, lng: p.lng }])
+        );
+        return filteredAndSorted
+            .map((p) => ({ ...p, ...(coordMap.get(p.id) || {}) }))
+            .filter((p) => p.lat && p.lng);
+    }, [filteredAndSorted, geocodedProps]);
 
     return (
-        <div className="flex flex-col h-screen w-full overflow-hidden bg-slate-50">
+        <div className="flex flex-col h-screen w-full overflow-hidden bg-slate-50 dark:bg-slate-800/50">
             <Navbar
                 showSearch
                 searchQuery={filters.search}
@@ -168,7 +219,8 @@ export default function Listings() {
                 />
 
                 <main className="flex-1 flex flex-col md:flex-row overflow-hidden">
-                    <div className="w-full md:w-[480px] lg:w-[560px] overflow-y-auto shrink-0 flex flex-col bg-slate-50">
+                    {/* Left — Property cards list */}
+                    <div className="w-full md:w-[480px] lg:w-[560px] overflow-y-auto shrink-0 flex flex-col bg-slate-50 dark:bg-slate-800/50">
                         <SortBar
                             count={filteredAndSorted.length}
                             sortBy={sortBy}
@@ -179,12 +231,12 @@ export default function Listings() {
                         {loading ? (
                             <div className="flex flex-col items-center justify-center py-24 gap-4">
                                 <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-                                <p className="text-slate-500 text-sm">Loading properties...</p>
+                                <p className="text-slate-500 dark:text-slate-400 text-sm">Loading properties...</p>
                             </div>
                         ) : fetchError ? (
                             <div className="flex flex-col items-center justify-center py-24 px-6 text-center">
                                 <span className="material-symbols-outlined text-5xl text-red-300 mb-3">wifi_off</span>
-                                <p className="text-slate-600 font-medium mb-4">{fetchError}</p>
+                                <p className="text-slate-600 dark:text-slate-300 font-medium mb-4">{fetchError}</p>
                                 <button
                                     onClick={fetchProperties}
                                     className="bg-primary text-white font-bold px-6 py-2.5 rounded-xl hover:bg-primary/90 transition-all text-sm"
@@ -195,15 +247,19 @@ export default function Listings() {
                         ) : filteredAndSorted.length > 0 ? (
                             <div className="p-6 space-y-6">
                                 {filteredAndSorted.map((property) => (
-                                    <PropertyCard key={property.id} property={property} />
+                                    <div
+                                        key={property.id}
+                                        onMouseEnter={() => setHoveredPropertyId(property.id)}
+                                        onMouseLeave={() => setHoveredPropertyId(null)}
+                                    >
+                                        <PropertyCard property={property} />
+                                    </div>
                                 ))}
                             </div>
                         ) : (
                             <div className="flex flex-col items-center justify-center py-24 px-6 text-center">
-                                <span className="material-symbols-outlined text-6xl text-slate-300 mb-4">
-                                    search_off
-                                </span>
-                                <h2 className="text-xl font-bold text-slate-600 mb-2">No properties found</h2>
+                                <span className="material-symbols-outlined text-6xl text-slate-300 mb-4">search_off</span>
+                                <h2 className="text-xl font-bold text-slate-600 dark:text-slate-300 mb-2">No properties found</h2>
                                 <p className="text-sm text-slate-400 mb-6 max-w-md">
                                     {allProperties.length === 0
                                         ? "No available properties right now. Check back soon!"
@@ -219,43 +275,61 @@ export default function Listings() {
                         )}
                     </div>
 
-                    {/* Map Preview */}
-                    <div className="hidden md:block flex-1 relative bg-slate-300 overflow-hidden">
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#e2e8f0,_#cbd5e1)]">
-                            <div
-                                className="absolute inset-0 opacity-10"
-                                style={{
-                                    backgroundImage: "radial-gradient(#1a2e25 1px, transparent 1px)",
-                                    backgroundSize: "20px 20px",
-                                }}
-                            />
-
-                            {mapPins.map((pin) => (
-                                <div
-                                    key={pin.id}
-                                    className="absolute flex flex-col items-center cursor-pointer group"
-                                    style={{ top: pin.top, left: pin.left }}
-                                >
-                                    <div className="bg-primary text-white text-[10px] font-bold px-2 py-0.5 rounded-full mb-1 shadow-lg group-hover:scale-110 transition-transform">
-                                        {pin.label}
-                                    </div>
-                                    <span
-                                        className="material-symbols-outlined text-primary text-3xl drop-shadow-md"
-                                        style={{ fontVariationSettings: "'FILL' 1" }}
-                                    >
-                                        location_on
-                                    </span>
-                                </div>
-                            ))}
-
-                            <div className="absolute bottom-6 right-6 bg-white/90 backdrop-blur px-4 py-2 rounded-xl shadow-xl border border-slate-200">
-                                <p className="text-xs font-bold text-slate-500 uppercase">Viewing Area</p>
-                                <p className="text-sm font-bold">Sri Lanka</p>
+                    {/* Right — Real Leaflet Map */}
+                    <div className="hidden md:block flex-1 relative overflow-hidden">
+                        {geocoding && (
+                            <div className="absolute top-3 left-1/2 -translate-x-1/2 z-[1000] bg-white/95 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg border border-slate-200 dark:border-slate-700 flex items-center gap-2">
+                                <div className="w-3.5 h-3.5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                                <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+                                    Locating {geocodedProps.filter((p) => p.lat).length}/{allProperties.length} properties…
+                                </span>
                             </div>
+                        )}
+
+                        <ListingsMap properties={filteredWithCoords} hoveredId={hoveredPropertyId} />
+
+                        <div className="absolute bottom-4 right-4 z-[1000] bg-white/95 backdrop-blur-sm px-4 py-2 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700">
+                            <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase">Map</p>
+                            <p className="text-sm font-bold">{filteredWithCoords.length} pins shown</p>
                         </div>
                     </div>
                 </main>
             </div>
         </div>
+    );
+}
+
+/** Lazy-loads Leaflet map components to avoid SSR/import issues */
+function ListingsMap({ properties, hoveredId }) {
+    const [MapComponents, setMapComponents] = useState(null);
+
+    useEffect(() => {
+        Promise.all([
+            import("../components/map/BaseMapContainer"),
+            import("../components/map/PropertyMapMarker"),
+            import("leaflet/dist/leaflet.css"),
+        ]).then(([bmc, pmm]) => {
+            setMapComponents({ BaseMapContainer: bmc.default, PropertyMapMarker: pmm.default });
+        });
+    }, []);
+
+    if (!MapComponents) {
+        return (
+            <div className="w-full h-full bg-slate-200 flex items-center justify-center">
+                <div className="flex flex-col items-center gap-3">
+                    <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                    <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Loading map…</p>
+                </div>
+            </div>
+        );
+    }
+
+    const { BaseMapContainer, PropertyMapMarker } = MapComponents;
+    return (
+        <BaseMapContainer center={[6.9271, 79.8612]} zoom={12} style={{ width: "100%", height: "100%" }}>
+            {properties.map((p) => (
+                <PropertyMapMarker key={p.id} property={p} highlighted={hoveredId === p.id} />
+            ))}
+        </BaseMapContainer>
     );
 }

@@ -92,12 +92,12 @@ export default function TenantWallet() {
 
     return (
         <>
-            <div className="bg-white rounded-2xl border border-emerald-100 shadow-sm p-6 lg:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-emerald-100 shadow-sm p-6 lg:p-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="flex justify-between items-center mb-8 pb-4 border-b border-emerald-100">
-                    <h3 className="font-bold text-xl text-slate-900">My Saved Cards</h3>
+                    <h3 className="font-bold text-xl text-slate-900 dark:text-white">My Saved Cards</h3>
                     <button
                         onClick={() => { setCardForm({ id: "", cardHolderName: "", cardNumber: "", expiryDate: "", cvv: "" }); setShowCardModal(true); }}
-                        className="bg-primary text-slate-900 px-6 py-2.5 rounded-xl font-bold text-sm hover:brightness-105 active:scale-95 transition-all flex items-center gap-2"
+                        className="bg-primary text-slate-900 dark:text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:brightness-105 active:scale-95 transition-all flex items-center gap-2"
                     >
                         <span className="material-symbols-outlined text-[20px]">add_card</span>
                         Add New Card
@@ -106,8 +106,8 @@ export default function TenantWallet() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     {cards.length === 0 ? (
-                        <div className="col-span-full py-12 text-center border-2 border-dashed border-slate-200 rounded-2xl bg-slate-50">
-                            <p className="text-slate-500 font-medium mb-2">No bank cards saved yet.</p>
+                        <div className="col-span-full py-12 text-center border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl bg-slate-50 dark:bg-slate-800/50">
+                            <p className="text-slate-500 dark:text-slate-400 font-medium mb-2">No bank cards saved yet.</p>
                             <p className="text-sm text-slate-400">Add a card to quickly pay rent.</p>
                         </div>
                     ) : (
@@ -134,7 +134,7 @@ export default function TenantWallet() {
                                 {/* Action Overlay */}
                                 <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center pb-4 z-20">
                                     <div className="flex gap-2">
-                                        <button onClick={() => { setCardForm(card); setShowCardModal(true); }} className="bg-white/20 hover:bg-white text-white hover:text-slate-900 p-2 rounded-lg backdrop-blur-md transition-all">
+                                        <button onClick={() => { setCardForm(card); setShowCardModal(true); }} className="bg-white/20 hover:bg-white dark:bg-slate-900 text-white hover:text-slate-900 dark:text-white p-2 rounded-lg backdrop-blur-md transition-all">
                                             <span className="material-symbols-outlined text-sm block">edit</span>
                                         </button>
                                         <button onClick={() => handleDeleteCard(card.id)} className="bg-red-500/80 hover:bg-red-500 text-white p-2 rounded-lg backdrop-blur-md transition-all">
@@ -154,13 +154,13 @@ export default function TenantWallet() {
             {/* Add/Edit Card Modal */}
             {showCardModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-                    <div className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
+                    <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 w-full max-w-md shadow-2xl animate-in zoom-in-95 duration-200">
                         <h3 className="text-xl font-bold mb-6">{cardForm.id ? "Edit Bank Card" : "Add Bank Card"}</h3>
                         <form onSubmit={handleSaveCard} noValidate className="space-y-4">
                             <div className="space-y-1">
-                                <label className="text-[10px] font-black uppercase text-slate-500 ml-1">Card Holder Name</label>
+                                <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 ml-1">Card Holder Name</label>
                                 <input
-                                    className={`w-full bg-slate-50 border rounded-xl px-4 py-3 text-sm font-medium focus:bg-white transition-colors outline-none ${cardErrors.cardHolderName ? "border-red-400 focus:border-red-400" : "border-slate-200 focus:border-primary"}`}
+                                    className={`w-full bg-slate-50 dark:bg-slate-800/50 border rounded-xl px-4 py-3 text-sm font-medium focus:bg-white dark:bg-slate-900 transition-colors outline-none ${cardErrors.cardHolderName ? "border-red-400 focus:border-red-400" : "border-slate-200 dark:border-slate-700 focus:border-primary"}`}
                                     value={cardForm.cardHolderName}
                                     onChange={e => { setCardForm({ ...cardForm, cardHolderName: e.target.value }); setCardErrors(prev => ({ ...prev, cardHolderName: "" })); }}
                                     placeholder="JOHN DOE"
@@ -168,9 +168,9 @@ export default function TenantWallet() {
                                 {cardErrors.cardHolderName && <p className="text-xs text-red-500 ml-1 mt-0.5">{cardErrors.cardHolderName}</p>}
                             </div>
                             <div className="space-y-1">
-                                <label className="text-[10px] font-black uppercase text-slate-500 ml-1">Card Number</label>
+                                <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 ml-1">Card Number</label>
                                 <input
-                                    className={`w-full bg-slate-50 border rounded-xl px-4 py-3 text-sm font-medium focus:bg-white transition-colors outline-none ${cardErrors.cardNumber ? "border-red-400 focus:border-red-400" : "border-slate-200 focus:border-primary"}`}
+                                    className={`w-full bg-slate-50 dark:bg-slate-800/50 border rounded-xl px-4 py-3 text-sm font-medium focus:bg-white dark:bg-slate-900 transition-colors outline-none ${cardErrors.cardNumber ? "border-red-400 focus:border-red-400" : "border-slate-200 dark:border-slate-700 focus:border-primary"}`}
                                     value={cardForm.cardNumber}
                                     onChange={e => { handleCardInput(e, 'cardNumber'); setCardErrors(prev => ({ ...prev, cardNumber: "" })); }}
                                     placeholder="xxxx xxxx xxxx xxxx"
@@ -180,9 +180,9 @@ export default function TenantWallet() {
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-black uppercase text-slate-500 ml-1">Expiry Date</label>
+                                    <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 ml-1">Expiry Date</label>
                                     <input
-                                        className={`w-full bg-slate-50 border rounded-xl px-4 py-3 text-sm font-medium focus:bg-white transition-colors outline-none ${cardErrors.expiryDate ? "border-red-400 focus:border-red-400" : "border-slate-200 focus:border-primary"}`}
+                                        className={`w-full bg-slate-50 dark:bg-slate-800/50 border rounded-xl px-4 py-3 text-sm font-medium focus:bg-white dark:bg-slate-900 transition-colors outline-none ${cardErrors.expiryDate ? "border-red-400 focus:border-red-400" : "border-slate-200 dark:border-slate-700 focus:border-primary"}`}
                                         value={cardForm.expiryDate}
                                         onChange={e => { handleCardInput(e, 'expiryDate'); setCardErrors(prev => ({ ...prev, expiryDate: "" })); }}
                                         placeholder="MM/YY"
@@ -191,9 +191,9 @@ export default function TenantWallet() {
                                     {cardErrors.expiryDate && <p className="text-xs text-red-500 ml-1 mt-0.5">{cardErrors.expiryDate}</p>}
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-black uppercase text-slate-500 ml-1">CVV</label>
+                                    <label className="text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 ml-1">CVV</label>
                                     <input
-                                        className={`w-full bg-slate-50 border rounded-xl px-4 py-3 text-sm font-medium focus:bg-white transition-colors outline-none ${cardErrors.cvv ? "border-red-400 focus:border-red-400" : "border-slate-200 focus:border-primary"}`}
+                                        className={`w-full bg-slate-50 dark:bg-slate-800/50 border rounded-xl px-4 py-3 text-sm font-medium focus:bg-white dark:bg-slate-900 transition-colors outline-none ${cardErrors.cvv ? "border-red-400 focus:border-red-400" : "border-slate-200 dark:border-slate-700 focus:border-primary"}`}
                                         placeholder="***"
                                         type="password"
                                         maxLength="3"
@@ -204,8 +204,8 @@ export default function TenantWallet() {
                                 </div>
                             </div>
                             <div className="flex gap-3 pt-4">
-                                <button type="button" onClick={() => { setShowCardModal(false); setCardErrors({}); setCardForm({ id: "", cardHolderName: "", cardNumber: "", expiryDate: "", cvv: "" }); }} className="flex-1 px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-50">Cancel</button>
-                                <button type="submit" className="flex-1 bg-primary text-slate-900 px-6 py-3 rounded-xl font-bold">Save Card</button>
+                                <button type="button" onClick={() => { setShowCardModal(false); setCardErrors({}); setCardForm({ id: "", cardHolderName: "", cardNumber: "", expiryDate: "", cvv: "" }); }} className="flex-1 px-6 py-3 rounded-xl font-bold text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:bg-slate-800/50">Cancel</button>
+                                <button type="submit" className="flex-1 bg-primary text-slate-900 dark:text-white px-6 py-3 rounded-xl font-bold">Save Card</button>
                             </div>
                         </form>
                     </div>

@@ -15,7 +15,7 @@ export default function Home() {
     const [activeCategory, setActiveCategory] = useState("Near Universities");
 
     return (
-        <div className="bg-background-light text-slate-900">
+        <div className="bg-background-light dark:bg-slate-900 text-slate-900 dark:text-white">
             <Navbar />
 
             <main>

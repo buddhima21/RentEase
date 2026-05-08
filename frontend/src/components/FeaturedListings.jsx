@@ -135,7 +135,7 @@ export default function FeaturedListings({ activeCategory }) {
         return (
             <section className="py-16 px-4">
                 <div className="max-w-7xl mx-auto text-center" ref={sectionRef}>
-                    <p className="text-slate-500">Loading featured listings...</p>
+                    <p className="text-slate-500 dark:text-slate-400">Loading featured listings...</p>
                 </div>
             </section>
         );
@@ -150,7 +150,7 @@ export default function FeaturedListings({ activeCategory }) {
                         <h2 className="text-3xl font-bold mb-2">
                             {activeCategory === "Near Universities" ? "Featured Listings" : activeCategory}
                         </h2>
-                        <p className="text-slate-500">
+                        <p className="text-slate-500 dark:text-slate-400">
                             {activeCategory === "Budget Friendly" 
                                 ? "Great places under LKR 15,000" 
                                 : activeCategory === "Luxury Apartments"
@@ -176,8 +176,8 @@ export default function FeaturedListings({ activeCategory }) {
                             </div>
                         ))
                     ) : (
-                        <div className="col-span-full text-center py-10 bg-slate-50 rounded-2xl listing-card-wrapper">
-                            <p className="text-slate-500 font-medium">
+                        <div className="col-span-full text-center py-10 bg-slate-50 dark:bg-slate-800/50 rounded-2xl listing-card-wrapper">
+                            <p className="text-slate-500 dark:text-slate-400 font-medium">
                                 No properties found for this category.
                             </p>
                         </div>

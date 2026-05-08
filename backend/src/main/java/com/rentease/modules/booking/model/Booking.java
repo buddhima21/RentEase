@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDate;
@@ -23,8 +24,11 @@ public class Booking {
     @Id
     private String id;
 
+    @Indexed
     private String propertyId;
+    @Indexed
     private String tenantId;
+    @Indexed
     private String ownerId;
     private LocalDate startDate;
     private LocalDate endDate;
@@ -32,6 +36,7 @@ public class Booking {
 
     private String cancellationReason;
 
+    @Indexed
     @Builder.Default
     private BookingStatus status = BookingStatus.PENDING;
 

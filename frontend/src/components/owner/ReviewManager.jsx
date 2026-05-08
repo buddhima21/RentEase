@@ -52,33 +52,33 @@ export default function ReviewManager() {
 
     if (isLoading) {
         return (
-            <div className="bg-white rounded-[2rem] p-8 md:p-12 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-100 flex flex-col items-center justify-center min-h-[300px]">
-                <div className="w-12 h-12 border-4 border-slate-200 border-t-primary rounded-full animate-spin mb-4"></div>
-                <p className="text-slate-500 font-medium">Loading your latest property reviews...</p>
+            <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-8 md:p-12 shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-100 dark:border-slate-700/50 flex flex-col items-center justify-center min-h-[300px]">
+                <div className="w-12 h-12 border-4 border-slate-200 dark:border-slate-700 border-t-primary rounded-full animate-spin mb-4"></div>
+                <p className="text-slate-500 dark:text-slate-400 font-medium">Loading your latest property reviews...</p>
             </div>
         );
     }
 
     return (
-        <section className="bg-white rounded-[2rem] p-6 md:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 relative overflow-hidden w-full max-w-7xl mx-auto mt-8">
+        <section className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 md:p-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 dark:border-slate-700/50 relative overflow-hidden w-full max-w-7xl mx-auto mt-8">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                 <div>
-                    <h2 className="text-2xl font-extrabold text-slate-900 flex items-center gap-3">
+                    <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white flex items-center gap-3">
                         <span className="material-symbols-outlined text-amber-500 bg-amber-50 p-2 rounded-xl">hotel_class</span>
                         Recent Property Reviews
                     </h2>
-                    <p className="text-slate-500 mt-1 font-medium">See what tenants are saying about your active listings.</p>
+                    <p className="text-slate-500 dark:text-slate-400 mt-1 font-medium">See what tenants are saying about your active listings.</p>
                 </div>
-                <button className="bg-slate-50 hover:bg-slate-100 text-slate-700 px-5 py-2.5 rounded-xl font-bold transition-all border border-slate-200 flex items-center gap-2">
+                <button className="bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 px-5 py-2.5 rounded-xl font-bold transition-all border border-slate-200 dark:border-slate-700 flex items-center gap-2">
                     <span className="material-symbols-outlined text-sm">filter_list</span>
                     Filter
                 </button>
             </div>
 
-            <div className="overflow-x-auto rounded-xl border border-slate-100">
+            <div className="overflow-x-auto rounded-xl border border-slate-100 dark:border-slate-700/50">
                 <table className="w-full text-left border-collapse">
                     <thead>
-                        <tr className="bg-slate-50 border-b border-slate-100 text-slate-500 text-sm uppercase tracking-wider">
+                        <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-700/50 text-slate-500 dark:text-slate-400 text-sm uppercase tracking-wider">
                             <th className="p-4 font-bold">Property & Reviewer</th>
                             <th className="p-4 font-bold">Rating</th>
                             <th className="p-4 font-bold hidden md:table-cell">Comment</th>
@@ -90,8 +90,8 @@ export default function ReviewManager() {
                         {reviews.map((review) => (
                             <tr key={review.id} className="hover:bg-slate-50/50 transition-colors group">
                                 <td className="p-4 align-top">
-                                    <div className="font-bold text-slate-900">{review.propertyName}</div>
-                                    <div className="text-sm font-medium text-slate-500 flex items-center gap-1.5 mt-1">
+                                    <div className="font-bold text-slate-900 dark:text-white">{review.propertyName}</div>
+                                    <div className="text-sm font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1.5 mt-1">
                                         <div className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold">
                                             {review.reviewerName.charAt(0)}
                                         </div>
@@ -110,10 +110,10 @@ export default function ReviewManager() {
                                         </span>
                                     )}
                                 </td>
-                                <td className="p-4 align-top text-slate-600 font-medium md:max-w-md hidden md:table-cell">
+                                <td className="p-4 align-top text-slate-600 dark:text-slate-300 font-medium md:max-w-md hidden md:table-cell">
                                     "{review.comment}"
                                 </td>
-                                <td className="p-4 align-top text-sm font-medium text-slate-500 whitespace-nowrap">
+                                <td className="p-4 align-top text-sm font-medium text-slate-500 dark:text-slate-400 whitespace-nowrap">
                                     {formatDate(review.createdAt)}
                                 </td>
                                 <td className="p-4 align-top text-center">
@@ -126,7 +126,7 @@ export default function ReviewManager() {
                     </tbody>
                 </table>
                 {reviews.length === 0 && (
-                    <div className="p-12 text-center text-slate-500 font-medium">
+                    <div className="p-12 text-center text-slate-500 dark:text-slate-400 font-medium">
                         You don't have any reviews yet.
                     </div>
                 )}

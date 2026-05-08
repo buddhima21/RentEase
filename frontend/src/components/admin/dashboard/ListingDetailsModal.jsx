@@ -64,15 +64,15 @@ export default function ListingDetailsModal({ isOpen, onClose, propertyId }) {
                 onClick={onClose}
             ></div>
 
-            <div className="relative w-full max-w-5xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="relative w-full max-w-5xl bg-white dark:bg-slate-900 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
                 {/* ── Header ────────────────────────────────────── */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 bg-white z-10 sticky top-0">
-                    <h2 className="text-lg font-bold text-slate-800">Property Details</h2>
+                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-700/50 bg-white dark:bg-slate-900 z-10 sticky top-0">
+                    <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">Property Details</h2>
                     <button
                         onClick={onClose}
-                        className="w-8 h-8 rounded-full bg-slate-50 hover:bg-slate-100 flex items-center justify-center transition-colors"
+                        className="w-8 h-8 rounded-full bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:bg-slate-800 flex items-center justify-center transition-colors"
                     >
-                        <span className="material-symbols-outlined text-slate-500 text-xl">close</span>
+                        <span className="material-symbols-outlined text-slate-500 dark:text-slate-400 text-xl">close</span>
                     </button>
                 </div>
 
@@ -88,10 +88,10 @@ export default function ListingDetailsModal({ isOpen, onClose, propertyId }) {
                             {/* ── Column 1: Images & Description ───── */}
                             <div className="lg:col-span-2 space-y-8">
                                 {/* Image Gallery */}
-                                <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+                                <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
                                     {images.length > 0 ? (
                                         <>
-                                            <div className="relative aspect-[16/9] bg-slate-100 rounded-lg overflow-hidden mb-3 group">
+                                            <div className="relative aspect-[16/9] bg-slate-100 dark:bg-slate-800 rounded-lg overflow-hidden mb-3 group">
                                                 <img
                                                     src={images[activeImageIndex]}
                                                     alt="Property"
@@ -118,7 +118,7 @@ export default function ListingDetailsModal({ isOpen, onClose, propertyId }) {
                                             </div>
                                         </>
                                     ) : (
-                                        <div className="h-64 bg-slate-50 rounded-lg flex flex-col items-center justify-center text-slate-400">
+                                        <div className="h-64 bg-slate-50 dark:bg-slate-800/50 rounded-lg flex flex-col items-center justify-center text-slate-400">
                                             <span className="material-symbols-outlined text-4xl mb-2">image_not_supported</span>
                                             <p className="text-sm">No images available</p>
                                         </div>
@@ -126,18 +126,18 @@ export default function ListingDetailsModal({ isOpen, onClose, propertyId }) {
                                 </div>
 
                                 {/* Description */}
-                                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2">
+                                <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                                    <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-4 border-b border-slate-100 dark:border-slate-700/50 pb-2">
                                         Description
                                     </h3>
-                                    <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-line">
+                                    <p className="text-slate-600 dark:text-slate-300 text-sm leading-relaxed whitespace-pre-line">
                                         {property.description || "No description provided."}
                                     </p>
                                 </div>
 
                                 {/* Amenities */}
-                                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                                    <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4 border-b border-slate-100 pb-2">
+                                <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                                    <h3 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-4 border-b border-slate-100 dark:border-slate-700/50 pb-2">
                                         Amenities
                                     </h3>
                                     {activeAmenities.length > 0 ? (
@@ -145,19 +145,19 @@ export default function ListingDetailsModal({ isOpen, onClose, propertyId }) {
                                             {activeAmenities.map((amenity) => (
                                                 <div
                                                     key={amenity.key}
-                                                    className="flex flex-col items-center p-3 bg-slate-50 rounded-lg border border-slate-100 text-center"
+                                                    className="flex flex-col items-center p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-700/50 text-center"
                                                 >
                                                     <span className="material-symbols-outlined text-emerald-500 mb-1">
                                                         {amenity.icon}
                                                     </span>
-                                                    <span className="text-xs font-semibold text-slate-700">
+                                                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">
                                                         {amenity.label}
                                                     </span>
                                                 </div>
                                             ))}
                                         </div>
                                     ) : (
-                                        <p className="text-sm text-slate-500 italic">No specific amenities listed.</p>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 italic">No specific amenities listed.</p>
                                     )}
                                 </div>
                             </div>
@@ -165,7 +165,7 @@ export default function ListingDetailsModal({ isOpen, onClose, propertyId }) {
                             {/* ── Column 2: At-a-Glance & Fees ─────── */}
                             <div className="lg:col-span-1 space-y-6">
                                 {/* Key Details */}
-                                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                                <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
                                     <div className="mb-4">
                                         <span className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${
                                             property.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-700' :
@@ -175,22 +175,22 @@ export default function ListingDetailsModal({ isOpen, onClose, propertyId }) {
                                             {property.status}
                                         </span>
                                     </div>
-                                    <h1 className="text-2xl font-bold text-slate-900 mb-2">{property.title}</h1>
-                                    <div className="flex items-start gap-2 text-slate-500 text-sm mb-6">
+                                    <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{property.title}</h1>
+                                    <div className="flex items-start gap-2 text-slate-500 dark:text-slate-400 text-sm mb-6">
                                         <span className="material-symbols-outlined text-[18px] shrink-0 mt-0.5">location_on</span>
                                         {property.address}, {property.city}
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100">
+                                    <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100 dark:border-slate-700/50">
                                         <div>
                                             <p className="text-xs text-slate-400 font-bold uppercase">Type</p>
-                                            <p className="text-sm font-semibold text-slate-700">
+                                            <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
                                                 {property.propertyType || "N/A"}
                                             </p>
                                         </div>
                                         <div>
                                             <p className="text-xs text-slate-400 font-bold uppercase">Bedrooms</p>
-                                            <p className="text-sm font-semibold text-slate-700">
+                                            <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
                                                 {property.bedrooms || "-"}
                                             </p>
                                         </div>
@@ -218,23 +218,23 @@ export default function ListingDetailsModal({ isOpen, onClose, propertyId }) {
                                 </div>
 
                                 {/* Owner Info */}
-                                <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                                <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
                                     <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">
                                         Owner Information
                                     </h3>
                                     <div className="flex items-center gap-3 mb-4">
-                                        <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold">
+                                        <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400 font-bold">
                                             {property.ownerName?.charAt(0) || "O"}
                                         </div>
                                         <div>
-                                            <p className="text-sm font-bold text-slate-900">
+                                            <p className="text-sm font-bold text-slate-900 dark:text-white">
                                                 {property.ownerName || "Unknown Owner"}
                                             </p>
-                                            <p className="text-xs text-slate-500">Property Owner</p>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400">Property Owner</p>
                                         </div>
                                     </div>
                                     <div className="space-y-3 text-sm">
-                                        <div className="flex items-center gap-3 text-slate-600">
+                                        <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300">
                                             <span className="material-symbols-outlined text-[18px]">mail</span>
                                             <span className="truncate">{property.ownerEmail || "-"}</span>
                                         </div>
